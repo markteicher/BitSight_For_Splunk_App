@@ -1,0 +1,28 @@
+# Application-level permissions
+
+[]
+export = system
+
+[eventtypes]
+export = system
+
+[props]
+export = system
+
+[transforms]
+export = system
+
+[views]
+export = system
+
+[nav]
+export = system
+
+[data/ui/views]
+export = system
+
+[data/ui/nav]
+export = system
+
+[lookups]
+export = system
