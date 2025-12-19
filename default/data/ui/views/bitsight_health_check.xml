@@ -1,0 +1,309 @@
+<dashboard version="1.1">
+  <label>Health Check</label>
+  <description>Configuration validation, health status, and scheduled checks</description>
+  
+  <row>
+    <panel>
+      <title>Configuration Status</title>
+      <single>
+        <search>
+          <query>
+            | rest /services/admin/bitsight/bitsight_settings
+            | eval status=if(isnotnull(api_token) AND api_token!="", "Configured", "Not Configured")
+            | stats count by status
+            | eval status=status
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xdc4e41","0x53a051"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="useColors">1</option>
+        <option name="field">status</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Last Validation</title>
+      <single>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd source=*bitsight_validation*
+            | head 1
+            | eval last_run=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | table last_run
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">none</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Data Collection Status</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight
+            | stats latest(_time) as last_event
+            | eval status=if(last_event > relative_time(now(), "-1h"), "Active", "Stale")
+            | eval last_event_time=strftime(last_event, "%Y-%m-%d %H:%M:%S")
+            | table status
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xdc4e41","0x53a051"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Scheduled Validation</title>
+      <single>
+        <search>
+          <query>
+            | rest /services/saved/searches
+            | search title="Bitsight - Scheduled Validation"
+            | eval status=if(disabled=0, "Enabled", "Disabled")
+            | table status
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xf8be34","0x53a051"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>API Configuration</title>
+      <table>
+        <search>
+          <query>
+            | makeresults
+            | eval check="API Token", status="Checking..."
+            | append [
+                | rest /services/admin/bitsight/bitsight_settings
+                | eval api_status=if(isnotnull(api_token) AND api_token!="", "✓ Configured", "✗ Not Configured")
+                | eval base_url_status=if(isnotnull(base_url) AND base_url!="", base_url, "Using default")
+                | eval ssl_status=if(verify_ssl="true", "✓ Enabled", "⚠ Disabled")
+                | eval timeout_status=timeout." seconds"
+                | eval check="API Token", value=api_status
+                | append [| makeresults | eval check="Base URL", value="$result.base_url_status$"]
+                | table check, value
+              ]
+            | eval Configuration=check, Status=value
+            | table Configuration, Status
+            | head 10
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Proxy Configuration</title>
+      <table>
+        <search>
+          <query>
+            | rest /services/admin/bitsight/bitsight_settings
+            | eval proxy_status=if(proxy_enabled="true", "✓ Enabled", "○ Disabled")
+            | eval proxy_url_display=if(isnotnull(proxy_url) AND proxy_url!="", proxy_url, "Not configured")
+            | eval proxy_auth=if(isnotnull(proxy_username) AND proxy_username!="", "✓ Configured", "○ No auth")
+            | eval Configuration="Proxy Enabled", Status=proxy_status
+            | append [| makeresults | eval Configuration="Proxy URL", Status="$result.proxy_url_display$"]
+            | append [| makeresults | eval Configuration="Proxy Auth", Status="$result.proxy_auth$"]
+            | table Configuration, Status
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Enabled Data Inputs</title>
+      <table>
+        <search>
+          <query>
+            | rest /services/admin/bitsight/bitsight_settings
+            | eval portfolio=if(input_portfolio="true", "✓", "○")
+            | eval ratings=if(input_ratings="true", "✓", "○")
+            | eval ratings_history=if(input_ratings_history="true", "✓", "○")
+            | eval findings=if(input_findings="true", "✓", "○")
+            | eval findings_summary=if(input_findings_summary="true", "✓", "○")
+            | eval alerts=if(input_alerts="true", "✓", "○")
+            | eval exposed_credentials=if(input_exposed_credentials="true", "✓", "○")
+            | eval threats=if(input_threats="true", "✓", "○")
+            | eval users=if(input_users="true", "✓", "○")
+            | table portfolio, ratings, ratings_history, findings, findings_summary, alerts, exposed_credentials, threats, users
+            | rename portfolio as "Portfolio", ratings as "Ratings", ratings_history as "Ratings History", findings as "Findings", findings_summary as "Findings Summary", alerts as "Alerts", exposed_credentials as "Exposed Credentials", threats as "Threats", users as "Users"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Collection Intervals</title>
+      <table>
+        <search>
+          <query>
+            | rest /services/admin/bitsight/bitsight_settings
+            | eval portfolio_min=round(portfolio_interval/60, 0)
+            | eval findings_min=round(findings_interval/60, 0)
+            | eval alerts_min=round(alerts_interval/60, 0)
+            | eval Setting="Portfolio Interval", Value=portfolio_min." minutes"
+            | append [| makeresults | eval Setting="Findings Interval", Value="$result.findings_min$ minutes"]
+            | append [| makeresults | eval Setting="Alerts Interval", Value="$result.alerts_min$ minutes"]
+            | append [| makeresults | eval Setting="Historical Days", Value="$result.days_back$ days"]
+            | table Setting, Value
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Logging Configuration</title>
+      <table>
+        <search>
+          <query>
+            | rest /services/admin/bitsight/bitsight_settings
+            | eval Setting="Log Level", Value=log_level
+            | table Setting, Value
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Data Collection Summary (Last 24 Hours)</title>
+      <table>
+        <search>
+          <query>
+            index=security_bitsight earliest=-24h
+            | stats count as "Events", latest(_time) as last_event, earliest(_time) as first_event by sourcetype
+            | eval "Last Event"=strftime(last_event, "%Y-%m-%d %H:%M:%S")
+            | eval "First Event"=strftime(first_event, "%Y-%m-%d %H:%M:%S")
+            | eval Status=if(last_event > relative_time(now(), "-2h"), "✓ Active", "⚠ Stale")
+            | rename sourcetype as "Sourcetype"
+            | table Sourcetype, Events, "First Event", "Last Event", Status
+            | sort - Events
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Validation History (Last 7 Days)</title>
+      <chart>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd source=*bitsight*
+            | timechart span=1d count by log_level
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.fieldColors">{"INFO": 0x53a051, "WARNING": 0xf8be34, "ERROR": 0xdc4e41}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Recent Validation Messages</title>
+      <table>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd source=*bitsight_validation*
+            | head 20
+            | eval Time=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | table Time, log_level, message
+            | rename log_level as "Level", message as "Message"
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>API Error Tracking</title>
+      <table>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd source=*bitsight* log_level=ERROR
+            | stats count as "Error Count", latest(_time) as last_error by message
+            | eval "Last Occurred"=strftime(last_error, "%Y-%m-%d %H:%M:%S")
+            | rename message as "Error Message"
+            | sort - "Error Count"
+            | head 10
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Scheduled Validation Jobs</title>
+      <table>
+        <search>
+          <query>
+            | rest /services/saved/searches
+            | search title="Bitsight*"
+            | eval Status=if(disabled=0, "✓ Enabled", "○ Disabled")
+            | eval "Next Run"=strftime(next_scheduled_time, "%Y-%m-%d %H:%M:%S")
+            | eval Schedule=cron_schedule
+            | rename title as "Job Name"
+            | table "Job Name", Status, Schedule, "Next Run"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

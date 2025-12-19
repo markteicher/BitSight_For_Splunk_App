@@ -16,6 +16,12 @@
       <label>Request Timeout (seconds)</label>
       <type>text</type>
     </input>
+    <text>
+      <content>Click "Test API Connection" after saving to validate your API token.</content>
+    </text>
+  </block>
+  
+  <block title="Proxy Configuration" endpoint="admin/bitsight_settings" entity="proxy">
     <input field="proxy_enabled">
       <label>Use Proxy</label>
       <type>bool</type>
@@ -23,6 +29,59 @@
     <input field="proxy_url">
       <label>Proxy URL</label>
       <type>text</type>
+    </input>
+    <input field="proxy_username">
+      <label>Proxy Username (optional)</label>
+      <type>text</type>
+    </input>
+    <input field="proxy_password">
+      <label>Proxy Password (optional)</label>
+      <type>password</type>
+    </input>
+    <text>
+      <content>If proxy is enabled, click "Test Proxy Connection" after saving to validate connectivity.</content>
+    </text>
+  </block>
+  
+  <block title="Data Inputs" endpoint="admin/bitsight_settings" entity="inputs">
+    <text>
+      <content>Select which data inputs to enable. Disabled inputs will not collect data.</content>
+    </text>
+    <input field="input_portfolio">
+      <label>Portfolio Companies</label>
+      <type>bool</type>
+    </input>
+    <input field="input_ratings">
+      <label>Security Ratings</label>
+      <type>bool</type>
+    </input>
+    <input field="input_ratings_history">
+      <label>Ratings History (Trending)</label>
+      <type>bool</type>
+    </input>
+    <input field="input_findings">
+      <label>Security Findings</label>
+      <type>bool</type>
+    </input>
+    <input field="input_findings_summary">
+      <label>Findings Summary</label>
+      <type>bool</type>
+    </input>
+    <input field="input_alerts">
+      <label>Alerts</label>
+      <type>bool</type>
+    </input>
+    <input field="input_exposed_credentials">
+      <label>Exposed Credentials</label>
+      <type>bool</type>
+    </input>
+    <input field="input_threats">
+      <label>Threat Intelligence</label>
+      <type>bool</type>
+    </input>
+    <input field="input_users">
+      <label>Users &amp; Quota</label>
+      <type>bool</type>
     </input>
   </block>
   
@@ -55,6 +114,20 @@
         <opt value="WARNING">Warning</opt>
         <opt value="ERROR">Error</opt>
       </options>
+    </input>
+  </block>
+  
+  <block title="Connection Tests" endpoint="admin/bitsight_test" entity="test">
+    <text>
+      <content>Use these buttons to validate your configuration after saving.</content>
+    </text>
+    <input field="test_api">
+      <label>Test API Connection</label>
+      <type>button</type>
+    </input>
+    <input field="test_proxy">
+      <label>Test Proxy Connection</label>
+      <type>button</type>
     </input>
   </block>
 </setup>

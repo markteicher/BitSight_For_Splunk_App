@@ -53,6 +53,7 @@
   
   <!-- Operations -->
   <collection label="Operations">
+    <view name="bitsight_health_check"/>
     <view name="bitsight_health"/>
     <view name="bitsight_operations"/>
     <view name="bitsight_logs"/>

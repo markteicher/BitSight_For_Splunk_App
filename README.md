@@ -14,6 +14,7 @@ Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ra
 - **Trending Analysis**: WoW, MoM, QoQ, YoY rating and findings trends
 - **21 Risk Vectors**: Complete coverage of all Bitsight risk vectors
 - **10 Pre-built Dashboards**: Immediate insights out of the box
+- **Setup Validation**: Automatic configuration validation on first launch
 
 ## Installation
 
@@ -24,18 +25,49 @@ Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ra
 4. Upload the `.tar.gz` file and click **Upload**
 5. Restart Splunk when prompted
 
-### Step 2: Configure API Token
-1. Copy the example configuration:
-```bash
-cp $SPLUNK_HOME/etc/apps/BitSight_For_Splunk_App/local/inputs.conf.example $SPLUNK_HOME/etc/apps/BitSight_For_Splunk_App/local/inputs.conf
-```
+### Step 2: Configure the App
+1. In Splunk Web, navigate to **Apps → Bitsight → Setup**
+2. Configure the following settings:
 
-2. Edit `local/inputs.conf` and replace `YOUR_BITSIGHT_API_TOKEN_HERE` with your actual API token
+#### API Configuration
+- **Bitsight API Token**: Enter your API token (obtain from the Bitsight portal)
+- **API Base URL**: Default is `https://api.bitsighttech.com`
+- **Verify SSL**: Enable SSL certificate verification (recommended)
+- **Request Timeout**: Set timeout in seconds (default: 60)
 
-3. Set `disabled = 0` for the inputs you want to enable
+#### Proxy Configuration (Optional)
+- **Use Proxy**: Enable if your network requires a proxy
+- **Proxy URL**: Enter proxy URL (e.g., `http://proxy.example.com:8080`)
+- **Proxy Username**: Enter username if proxy requires authentication
+- **Proxy Password**: Enter password if proxy requires authentication
 
-### Step 3: Verify Data Collection
-Run this search to verify data is being collected:
+#### Data Inputs
+Select which data to collect:
+- Portfolio Companies
+- Security Ratings
+- Ratings History (Trending)
+- Security Findings
+- Findings Summary
+- Alerts
+- Exposed Credentials
+- Threat Intelligence
+- Users & Quota
+
+#### Collection Settings
+- **Portfolio Interval**: How often to collect portfolio data (seconds)
+- **Findings Interval**: How often to collect findings data (seconds)
+- **Alerts Interval**: How often to check for new alerts (seconds)
+- **Historical Data**: Number of days of historical data to collect
+
+3. Click **Save** to apply the configuration
+
+### Step 3: Validate Configuration
+1. After saving, click **Test API Connection** to verify your API token
+2. If using a proxy, click **Test Proxy Connection** to verify connectivity
+3. The app will automatically validate your configuration on first launch
+
+### Step 4: Verify Data Collection
+In Splunk Web, run this search to verify data is being collected:
 ```spl
 index=security_bitsight sourcetype=bitsight:*
 | stats count by sourcetype
@@ -49,14 +81,17 @@ BitSight_For_Splunk_App/
 ├── README.md                 # This file
 ├── default/
 │   ├── app.conf              # App configuration
-│   ├── inputs.conf           # Input definitions (disabled by default)
+│   ├── bitsight.conf         # Default settings
+│   ├── inputs.conf           # Input definitions
 │   ├── props.conf            # Field extraction rules
 │   ├── transforms.conf       # Field transformations
 │   └── data/ui/
 │       ├── nav/default.xml   # Navigation menu
 │       └── views/            # Dashboard XML files
 ├── bin/
-│   └── bitsight_input.py     # Modular input script
+│   ├── bitsight_input.py     # Modular input script
+│   ├── bitsight_setup_handler.py  # Setup REST handler
+│   └── bitsight_validation.py     # Configuration validation
 ├── lookups/
 │   ├── bitsight_rating_categories.csv
 │   ├── bitsight_risk_vectors.csv
@@ -132,18 +167,33 @@ This app is designed to pass Splunk AppInspect validation:
 - ✅ Proper metadata permissions
 - ✅ Apache 2.0 License included
 - ✅ README documentation
+- ✅ Setup validation script
 
 ## Troubleshooting
 
 ### No data appearing
-1. Verify `local/inputs.conf` exists with your API token
-2. Check inputs are enabled (`disabled = 0`)
-3. Check `$SPLUNK_HOME/var/log/splunk/splunkd.log` for errors
+1. Navigate to **Apps → Bitsight → Setup** and verify your API token
+2. Click **Test API Connection** to validate connectivity
+3. Check that at least one data input is enabled
+4. In Splunk Web, search `index=_internal source=*bitsight*` for errors
 
 ### API errors
-- Verify your API token has the correct permissions
+- Verify your API token has the correct permissions in the Bitsight portal
 - Check Bitsight API rate limits
 - Ensure network connectivity to `api.bitsighttech.com`
+- If using a proxy, verify proxy settings and test connection
+
+### Proxy issues
+1. Navigate to **Apps → Bitsight → Setup**
+2. Verify proxy URL format includes protocol (http:// or https://)
+3. Click **Test Proxy Connection** to validate
+4. Check proxy authentication credentials if required
+
+### Configuration validation
+The app automatically validates configuration on first launch. To re-run validation:
+1. Navigate to **Apps → Bitsight → Setup**
+2. Make any change and click **Save**
+3. Check the validation results in the app logs
 
 ## Support
 - Bitsight API Documentation: https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview
