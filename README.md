@@ -18,18 +18,16 @@ Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ra
 ## Installation
 
 ### Step 1: Deploy the App
-```bash
-# Copy the bitsight folder to your Splunk apps directory
-cp -r bitsight $SPLUNK_HOME/etc/apps/
-
-# Restart Splunk
-$SPLUNK_HOME/bin/splunk restart
-```
+1. Download the `BitSight_For_Splunk_App-1.0.0.tar.gz` file
+2. In Splunk Web, navigate to **Apps → Manage Apps**
+3. Click **Install app from file**
+4. Upload the `.tar.gz` file and click **Upload**
+5. Restart Splunk when prompted
 
 ### Step 2: Configure API Token
 1. Copy the example configuration:
 ```bash
-cp $SPLUNK_HOME/etc/apps/bitsight/local/inputs.conf.example $SPLUNK_HOME/etc/apps/bitsight/local/inputs.conf
+cp $SPLUNK_HOME/etc/apps/BitSight_For_Splunk_App/local/inputs.conf.example $SPLUNK_HOME/etc/apps/BitSight_For_Splunk_App/local/inputs.conf
 ```
 
 2. Edit `local/inputs.conf` and replace `YOUR_BITSIGHT_API_TOKEN_HERE` with your actual API token
@@ -39,13 +37,13 @@ cp $SPLUNK_HOME/etc/apps/bitsight/local/inputs.conf.example $SPLUNK_HOME/etc/app
 ### Step 3: Verify Data Collection
 Run this search to verify data is being collected:
 ```spl
-index=main sourcetype=bitsight:*
+index=security_bitsight sourcetype=bitsight:*
 | stats count by sourcetype
 ```
 
 ## Directory Structure
 ```
-bitsight/
+BitSight_For_Splunk_App/
 ├── app.manifest              # App manifest for Splunk Cloud
 ├── LICENSE                   # Apache 2.0 License
 ├── README.md                 # This file
