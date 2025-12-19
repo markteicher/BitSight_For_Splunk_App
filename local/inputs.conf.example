@@ -1,0 +1,65 @@
+#
+# Example Bitsight Input Configuration
+# Copy this file to inputs.conf and configure your API token
+#
+# To enable:
+# 1. Copy this file: cp inputs.conf.example inputs.conf
+# 2. Replace YOUR_BITSIGHT_API_TOKEN_HERE with your actual API token
+# 3. Restart Splunk: $SPLUNK_HOME/bin/splunk restart
+#
+
+[bitsight://portfolio]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = main
+disabled = 0
+endpoint = portfolio
+
+[bitsight://companies]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = main
+disabled = 0
+endpoint = companies
+
+[bitsight://alerts]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 1800
+index = main
+disabled = 0
+endpoint = alerts
+
+[bitsight://findings]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = main
+disabled = 0
+endpoint = findings
+
+[bitsight://current_ratings]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = main
+disabled = 0
+endpoint = current-ratings
+
+[bitsight://industries]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = main
+disabled = 0
+endpoint = industries
+
+[bitsight://exposed_credentials]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = main
+disabled = 0
+endpoint = exposed-credentials
+
+[bitsight://threats]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = main
+disabled = 0
+endpoint = threats
