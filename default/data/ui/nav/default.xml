@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nav search_view="bitsight_search" color="#1E3A5F">
+  <view name="bitsight_overview" default="true"/>
+  <view name="bitsight_search"/>
+  
+  <!-- Portfolio & Organization -->
+  <collection label="Portfolio">
+    <view name="bitsight_portfolio"/>
+    <view name="bitsight_ratings_tree"/>
+    <view name="bitsight_benchmarking"/>
+  </collection>
+  
+  <!-- Security Ratings -->
+  <collection label="Ratings">
+    <view name="bitsight_ratings"/>
+    <view name="bitsight_ratings_trending"/>
+    <view name="bitsight_trending"/>
+  </collection>
+  
+  <!-- Findings & Remediation -->
+  <collection label="Findings">
+    <view name="bitsight_findings"/>
+    <view name="bitsight_findings_detailed"/>
+    <view name="bitsight_findings_trending"/>
+    <view name="bitsight_remediation"/>
+    <view name="bitsight_mttr_executive"/>
+  </collection>
+
+  
+  <!-- Assets & Infrastructure -->
+  <collection label="Assets">
+    <view name="bitsight_asset_risk_matrix"/>
+  </collection>
+  
+  <!-- Compliance -->
+  <collection label="Compliance">
+    <view name="bitsight_nist_csf"/>
+  </collection>
+  
+  <!-- Threats & Incidents -->
+  <collection label="Threats">
+    <view name="bitsight_threats"/>
+    <view name="bitsight_exposed_credentials"/>
+  </collection>
+  
+  <!-- Access & Governance -->
+  <collection label="Users">
+    <view name="bitsight_users"/>
+    <view name="bitsight_users_access_review"/>
+  </collection>
+  
+  <view name="bitsight_alerts"/>
+  
+  <!-- Operations -->
+  <collection label="Operations">
+    <view name="bitsight_health"/>
+    <view name="bitsight_operations"/>
+    <view name="bitsight_logs"/>
+    <view name="bitsight_reports"/>
+  </collection>
+  
+  <!-- Help & Settings -->
+  <view name="bitsight_help"/>
+  
+  <collection label="Settings">
+    <view name="setup"/>
+    <view name="data_inputs" source="unclassified"/>
+  </collection>
+  
+  <a href="https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview">Bitsight API Docs</a>
+</nav>
