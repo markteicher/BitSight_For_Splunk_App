@@ -4,17 +4,53 @@
 Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ratings, portfolio companies, alerts, findings, exposed credentials, users, and threat intelligence from the Bitsight API.
 
 ## Features
-- **Security Ratings Monitoring**: Track your organization's security rating over time
-- **Portfolio Management**: Monitor third-party vendor security posture
-- **Alert Management**: Real-time notifications for security rating changes
-- **Findings Analysis**: Detailed vulnerability and security finding tracking with CVSS scores
-- **Exposed Credentials**: Data breach and credential exposure monitoring
-- **Threat Intelligence**: CVE and vulnerability threat tracking
-- **User Management**: Track user activity and quota usage
-- **Trending Analysis**: WoW, MoM, QoQ, YoY rating and findings trends
-- **21 Risk Vectors**: Complete coverage of all Bitsight risk vectors
-- **26 Pre-built Dashboards**: Immediate insights out of the box
-- **Setup Validation**: Automatic configuration validation on first launch
+
+### Core Capabilities
+| Feature | Description |
+|---------|-------------|
+| Security Ratings Monitoring | Track your organization's security rating over time |
+| Portfolio Management | Monitor third-party vendor security posture with sparklines |
+| Alert Management | Real-time notifications for security rating changes |
+| Findings Analysis | Detailed vulnerability and security finding tracking with CVSS scores |
+| Exposed Credentials | Data breach and credential exposure monitoring |
+| Threat Intelligence | CVE and vulnerability threat tracking |
+| User Management | Track user activity, quota usage, and access review |
+| 21 Risk Vectors | Complete coverage of all Bitsight risk vectors |
+
+### Advanced Analytics
+| Feature | Description |
+|---------|-------------|
+| Ratings Trending | Company-level ratings trending over time |
+| Findings Trending | WoW, MoM, QoQ, YoY findings trend analysis |
+| Comparative Trending | WoW, MoM, QoQ, YoY rating comparisons |
+| Peer Benchmarking | Industry and peer group comparisons |
+| MTTR Executive | Mean Time to Remediate executive metrics |
+| Asset Risk Matrix | Asset importance vs severity heat mapping |
+| Ratings Tree | Company hierarchy and subsidiary ratings visualization |
+
+### Compliance & Governance
+| Feature | Description |
+|---------|-------------|
+| NIST CSF Mapping | Risk vectors mapped to NIST Cybersecurity Framework |
+| SLA Tracking | Remediation SLA monitoring and breach alerts |
+| User Access Review | Periodic access review and audit support |
+
+### Operational Excellence
+| Feature | Description |
+|---------|-------------|
+| Operational Metrics | Records processed, API calls, ingestion rates |
+| Health Monitoring | Data freshness and collection status |
+| Configuration Validation | Automatic setup validation on first launch |
+| Scheduled Health Checks | Daily validation and hourly API health checks |
+| Log Viewer | API activity and error monitoring |
+
+### Deployment
+| Feature | Description |
+|---------|-------------|
+| 26 Pre-built Dashboards | Immediate insights out of the box |
+| Web UI Setup | No CLI required - configure via Splunk Web |
+| Splunk Cloud Ready | AppInspect compliant for cloud deployment |
+| Alert Actions | Email, Webhook, Script, and PagerDuty integrations |
 
 ## Installation
 
@@ -155,15 +191,31 @@ BitSight_For_Splunk_App/
 | Dashboard | Description |
 |-----------|-------------|
 | **Overview** | Executive summary with KPIs, rating trends, and alerts |
-| **Ratings Analysis** | Detailed security rating analysis with risk vectors |
-| **Trending** | Week/Month/Quarter/Year over period trending analysis |
-| **Portfolio** | Third-party vendor portfolio management |
-| **Findings** | Security findings summary |
-| **Findings Detailed** | Detailed findings with CVSS, risk vectors, remediation |
-| **Users** | User management, activity, and quota tracking |
-| **Alerts** | Alert management and tracking |
-| **Exposed Credentials** | Data breach and credential exposure tracking |
+| **Search** | Company search and lookup |
+| **Portfolio** | Third-party vendor portfolio management with sparklines |
+| **Ratings Tree** | Company hierarchy and subsidiary ratings |
+| **Benchmarking** | Peer and industry benchmarking comparisons |
+| **Ratings** | Detailed security rating analysis with risk vectors |
+| **Ratings Trending** | Company ratings trending over time |
+| **Trending** | WoW, MoM, QoQ, YoY comparative trending analysis |
+| **Findings** | Security findings summary by severity and risk vector |
+| **Findings Detailed** | Detailed findings with CVSS scores, assets, remediation |
+| **Findings Trending** | Findings WoW, MoM, QoQ, YoY trending analysis |
+| **Remediation** | Remediation tracking and SLA monitoring |
+| **MTTR Executive** | Mean Time to Remediate executive dashboard |
+| **Asset Risk Matrix** | Asset importance vs severity risk matrix |
+| **NIST CSF** | NIST Cybersecurity Framework compliance mapping |
 | **Threats** | CVE and threat intelligence dashboard |
+| **Exposed Credentials** | Data breach and credential exposure tracking |
+| **Users** | User management, activity, and quota tracking |
+| **Users Access Review** | User access review and audit dashboard |
+| **Alerts** | Alert management and tracking |
+| **Health** | Data health and ingestion monitoring |
+| **Health Check** | Configuration validation and scheduled health checks |
+| **Operations** | Records processed and ingestion metrics |
+| **Logs** | Log viewer and API activity monitoring |
+| **Reports** | Board-ready report generation |
+| **Help** | Executive help and glossary |
 
 ## Risk Vectors Supported
 
