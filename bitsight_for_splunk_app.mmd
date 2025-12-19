@@ -1,32 +1,33 @@
 %% =========================================================
 %% BitSight Security Ratings for Splunk
-%% Full Splunk App – System & Data Flow
+%% Full Splunk App – End-to-End System Map
 %% =========================================================
 
 flowchart LR
 
-%% -------------------------
+%% ========================
 %% BitSight Platform
-%% -------------------------
+%% ========================
 subgraph BS["BitSight Platform"]
-  BS_API["BitSight API\napi.bitsighttech.com"]
+  BS_API["BitSight API\n(api.bitsighttech.com)"]
 end
 
-%% -------------------------
-%% Splunk App (Setup & Control Plane)
-%% -------------------------
-subgraph SETUP["Splunk App: Setup & Control"]
-  UI["Splunk Web Setup UI\n(bitsight/setup.xml)"]
-  CONF["App Configuration\n(bitsight.conf)"]
+%% ========================
+%% Splunk App – Setup & Control
+%% ========================
+subgraph SETUP["Splunk App Setup & Control Plane"]
+  SETUP_UI["Splunk Web Setup UI\n(setup.xml)"]
+  APP_CONF["App Configuration\n(bitsight.conf)"]
   VALIDATE["Config Validation\n(bitsight_validation.py)"]
   PROXY["Proxy / SSL Settings"]
 end
 
-%% -------------------------
-%% Data Collection Layer
-%% -------------------------
+%% ========================
+%% Data Collection
+%% ========================
 subgraph COLLECT["Data Collection (Modular Inputs)"]
-  INPUT["Modular Input\nbitsight_input.py"]
+  INPUT["Modular Input\n(bitsight_input.py)"]
+
   PORTFOLIO["Portfolio Companies"]
   RATINGS["Current Ratings"]
   HISTORY["Ratings History"]
@@ -38,73 +39,71 @@ subgraph COLLECT["Data Collection (Modular Inputs)"]
   USERS["Users & Quota"]
 end
 
-%% -------------------------
-%% Splunk Indexing Layer
-%% -------------------------
-subgraph INDEX["Splunk Index & Sourcetypes"]
-  IDX["index=security_bitsight"]
-  ST1["bitsight:portfolio"]
-  ST2["bitsight:current_ratings"]
-  ST3["bitsight:ratings_history"]
-  ST4["bitsight:findings"]
-  ST5["bitsight:findings_summary"]
-  ST6["bitsight:alerts"]
-  ST7["bitsight:threats"]
-  ST8["bitsight:exposed_credentials"]
-  ST9["bitsight:users"]
-  ST10["bitsight:user_quota"]
+%% ========================
+%% Splunk Index & Sourcetypes
+%% ========================
+subgraph INDEX["Splunk Index: security_bitsight"]
+  ST_PORT["bitsight:portfolio"]
+  ST_RATE["bitsight:current_ratings"]
+  ST_HIST["bitsight:ratings_history"]
+  ST_FIND["bitsight:findings"]
+  ST_FIND_SUM["bitsight:findings_summary"]
+  ST_ALERT["bitsight:alerts"]
+  ST_THREAT["bitsight:threats"]
+  ST_CREDS["bitsight:exposed_credentials"]
+  ST_USERS["bitsight:users"]
+  ST_QUOTA["bitsight:user_quota"]
 end
 
-%% -------------------------
+%% ========================
 %% Knowledge Objects
-%% -------------------------
+%% ========================
 subgraph KNOW["Splunk Knowledge Objects"]
   PROPS["Field Extractions\n(props.conf)"]
-  TRANS["Transforms & Lookups\n(transforms.conf / lookups)"]
+  TRANS["Transforms & Lookups"]
   MACROS["Search Macros"]
 end
 
-%% -------------------------
+%% ========================
 %% Analytics & Automation
-%% -------------------------
-subgraph ANALYTICS["Saved Searches & Automation"]
+%% ========================
+subgraph ANALYTICS["Saved Searches & Analytics"]
   SEARCHES["Saved Searches\n(savedsearches.conf)"]
-  SLA["SLA & MTTR Calculations"]
+  SLA["SLA / MTTR Metrics"]
   NIST["NIST CSF Mapping"]
   HEALTH["Health & Ops Metrics"]
 end
 
-%% -------------------------
-%% Alerting & Actions
-%% -------------------------
+%% ========================
+%% Alert Actions
+%% ========================
 subgraph ALERTING["Alert Actions"]
-  EMAIL["Email Alerts"]
-  WEBHOOK["Webhook Alerts"]
-  SCRIPT["Script Alerts"]
-  PD["PagerDuty Alerts"]
+  EMAIL["Email"]
+  WEBHOOK["Webhook"]
+  SCRIPT["Script"]
+  PD["PagerDuty"]
 end
 
-%% -------------------------
-%% Visualization Layer
-%% -------------------------
+%% ========================
+%% Dashboards & Reports
+%% ========================
 subgraph DASH["Dashboards & Reports (26 XML Views)"]
-  EXEC["Executive Dashboards\nOverview / MTTR / Reports"]
+  EXEC["Executive Overview / Reports"]
   PORT["Portfolio & Benchmarking"]
   RATE["Ratings & Trending"]
   FIND["Findings & Remediation"]
   THREAT["Threats & Credentials"]
   USERD["Users & Access Review"]
-  OPS["Health / Ops / Logs"]
+  OPS["Health / Operations / Logs"]
 end
 
-%% =========================================================
+%% ========================
 %% Flows
-%% =========================================================
-
-UI --> CONF
-CONF --> VALIDATE
-VALIDATE --> INPUT
+%% ========================
+SETUP_UI --> APP_CONF
+APP_CONF --> VALIDATE
 PROXY --> INPUT
+VALIDATE --> INPUT
 
 INPUT -->|API Calls| BS_API
 
@@ -118,33 +117,30 @@ BS_API --> THREATS
 BS_API --> CREDS
 BS_API --> USERS
 
-PORTFOLIO --> IDX
-RATINGS --> IDX
-HISTORY --> IDX
-FINDINGS --> IDX
-FINDINGS_SUM --> IDX
-ALERTS --> IDX
-THREATS --> IDX
-CREDS --> IDX
-USERS --> IDX
+PORTFOLIO --> ST_PORT
+RATINGS --> ST_RATE
+HISTORY --> ST_HIST
+FINDINGS --> ST_FIND
+FINDINGS_SUM --> ST_FIND_SUM
+ALERTS --> ST_ALERT
+THREATS --> ST_THREAT
+CREDS --> ST_CREDS
+USERS --> ST_USERS
+USERS --> ST_QUOTA
 
-IDX --> ST1
-IDX --> ST2
-IDX --> ST3
-IDX --> ST4
-IDX --> ST5
-IDX --> ST6
-IDX --> ST7
-IDX --> ST8
-IDX --> ST9
-IDX --> ST10
+ST_PORT --> PROPS
+ST_RATE --> PROPS
+ST_HIST --> PROPS
+ST_FIND --> PROPS
+ST_FIND_SUM --> PROPS
+ST_ALERT --> PROPS
+ST_THREAT --> PROPS
+ST_CREDS --> PROPS
+ST_USERS --> PROPS
+ST_QUOTA --> PROPS
 
-IDX --> PROPS
-IDX --> TRANS
-IDX --> MACROS
-
-PROPS --> SEARCHES
-TRANS --> SEARCHES
+PROPS --> TRANS
+TRANS --> MACROS
 MACROS --> SEARCHES
 
 SEARCHES --> SLA
