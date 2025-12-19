@@ -5,52 +5,52 @@ Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ra
 
 ## Features
 
-### Core Capabilities
+### 🛡️ Core Capabilities
 | Feature | Description |
 |---------|-------------|
-| Security Ratings Monitoring | Track your organization's security rating over time |
-| Portfolio Management | Monitor third-party vendor security posture with sparklines |
-| Alert Management | Real-time notifications for security rating changes |
-| Findings Analysis | Detailed vulnerability and security finding tracking with CVSS scores |
-| Exposed Credentials | Data breach and credential exposure monitoring |
-| Threat Intelligence | CVE and vulnerability threat tracking |
-| User Management | Track user activity, quota usage, and access review |
-| 21 Risk Vectors | Complete coverage of all Bitsight risk vectors |
+| 📊 Security Ratings Monitoring | Track your organization's security rating over time |
+| 🏢 Portfolio Management | Monitor third-party vendor security posture with sparklines |
+| 🔔 Alert Management | Real-time notifications for security rating changes |
+| 🔍 Findings Analysis | Detailed vulnerability and security finding tracking with CVSS scores |
+| 🔐 Exposed Credentials | Data breach and credential exposure monitoring |
+| ⚠️ Threat Intelligence | CVE and vulnerability threat tracking |
+| 👥 User Management | Track user activity, quota usage, and access review |
+| 📈 21 Risk Vectors | Complete coverage of all Bitsight risk vectors |
 
-### Advanced Analytics
+### 📈 Advanced Analytics
 | Feature | Description |
 |---------|-------------|
-| Ratings Trending | Company-level ratings trending over time |
-| Findings Trending | WoW, MoM, QoQ, YoY findings trend analysis |
-| Comparative Trending | WoW, MoM, QoQ, YoY rating comparisons |
-| Peer Benchmarking | Industry and peer group comparisons |
-| MTTR Executive | Mean Time to Remediate executive metrics |
-| Asset Risk Matrix | Asset importance vs severity heat mapping |
-| Ratings Tree | Company hierarchy and subsidiary ratings visualization |
+| 📉 Ratings Trending | Company-level ratings trending over time |
+| 📊 Findings Trending | WoW, MoM, QoQ, YoY findings trend analysis |
+| 🔄 Comparative Trending | WoW, MoM, QoQ, YoY rating comparisons |
+| 🏆 Peer Benchmarking | Industry and peer group comparisons |
+| ⏱️ MTTR Executive | Mean Time to Remediate executive metrics |
+| 🎯 Asset Risk Matrix | Asset importance vs severity heat mapping |
+| 🌳 Ratings Tree | Company hierarchy and subsidiary ratings visualization |
 
-### Compliance & Governance
+### ✅ Compliance & Governance
 | Feature | Description |
 |---------|-------------|
-| NIST CSF Mapping | Risk vectors mapped to NIST Cybersecurity Framework |
-| SLA Tracking | Remediation SLA monitoring and breach alerts |
-| User Access Review | Periodic access review and audit support |
+| 🏛️ NIST CSF Mapping | Risk vectors mapped to NIST Cybersecurity Framework |
+| ⏰ SLA Tracking | Remediation SLA monitoring and breach alerts |
+| 👤 User Access Review | Periodic access review and audit support |
 
-### Operational Excellence
+### ⚙️ Operational Excellence
 | Feature | Description |
 |---------|-------------|
-| Operational Metrics | Records processed, API calls, ingestion rates |
-| Health Monitoring | Data freshness and collection status |
-| Configuration Validation | Automatic setup validation on first launch |
-| Scheduled Health Checks | Daily validation and hourly API health checks |
-| Log Viewer | API activity and error monitoring |
+| 📊 Operational Metrics | Records processed, API calls, ingestion rates |
+| 💓 Health Monitoring | Data freshness and collection status |
+| ✅ Configuration Validation | Automatic setup validation on first launch |
+| 🕐 Scheduled Health Checks | Daily validation and hourly API health checks |
+| 📋 Log Viewer | API activity and error monitoring |
 
-### Deployment
+### 🚀 Deployment
 | Feature | Description |
 |---------|-------------|
-| 26 Pre-built Dashboards | Immediate insights out of the box |
-| Web UI Setup | No CLI required - configure via Splunk Web |
-| Splunk Cloud Ready | AppInspect compliant for cloud deployment |
-| Alert Actions | Email, Webhook, Script, and PagerDuty integrations |
+| 📊 26 Pre-built Dashboards | Immediate insights out of the box |
+| 🖥️ Web UI Setup | No CLI required - configure via Splunk Web |
+| ☁️ Splunk Cloud Ready | AppInspect compliant for cloud deployment |
+| 📧 Alert Actions | Email, Webhook, Script, and PagerDuty integrations |
 
 ## Installation
 
