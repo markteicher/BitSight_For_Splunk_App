@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Reports</label>
+  <description>Generate and schedule executive reports, compliance summaries, and audit exports</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Report Period</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <default>*</default>
+      <fieldForLabel>name</fieldForLabel>
+      <fieldForValue>name</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio"
+          | dedup name
+          | table name
+          | sort name
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+
+  <!-- Report Info -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
+          <h2 style="margin: 0 0 15px 0; color: #fff;">&#128202; Board-Ready Report Generation</h2>
+          <p style="color: #ccc; margin: 0 0 15px 0;">Export any panel below by clicking the <strong>Export</strong> button (&#8942;) in the panel header. Available formats: CSV, XML, JSON, PDF.</p>
+          
+          <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+            <div style="background: rgba(83,160,81,0.2); padding: 15px; border-radius: 8px; flex: 1; min-width: 180px; border-left: 4px solid #53A051;">
+              <strong style="color: #53A051;">&#128196; Full Dashboard PDF</strong><br/>
+              <span style="color: #999; font-size: 12px;">Export &#8594; Export PDF</span>
+            </div>
+            <div style="background: rgba(109,183,198,0.2); padding: 15px; border-radius: 8px; flex: 1; min-width: 180px; border-left: 4px solid #6DB7C6;">
+              <strong style="color: #6DB7C6;">&#128203; Panel Export</strong><br/>
+              <span style="color: #999; font-size: 12px;">Panel &#8942; &#8594; Export</span>
+            </div>
+            <div style="background: rgba(248,190,52,0.2); padding: 15px; border-radius: 8px; flex: 1; min-width: 180px; border-left: 4px solid #F8BE34;">
+              <strong style="color: #F8BE34;">&#128231; Scheduled Delivery</strong><br/>
+              <span style="color: #999; font-size: 12px;">Auto-email reports</span>
+            </div>
+            <div style="background: rgba(220,78,65,0.2); padding: 15px; border-radius: 8px; flex: 1; min-width: 180px; border-left: 4px solid #DC4E41;">
+              <strong style="color: #DC4E41;">&#128200; PowerPoint Ready</strong><br/>
+              <span style="color: #999; font-size: 12px;">Copy charts to slides</span>
+            </div>
+          </div>
+
+          <h3 style="color: #6DB7C6; margin: 0 0 10px 0;">&#128197; Scheduled Reports (Pre-Configured)</h3>
+          <table style="width: 100%; border-collapse: collapse; color: #ccc; font-size: 13px;">
+            <tr style="border-bottom: 1px solid #333;">
+              <th style="text-align: left; padding: 8px;">Report</th>
+              <th style="text-align: center; padding: 8px;">Schedule</th>
+              <th style="text-align: left; padding: 8px;">Recipients</th>
+              <th style="text-align: left; padding: 8px;">Format</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 8px;">Executive Weekly Summary</td>
+              <td style="text-align: center; padding: 8px;">Mon 7:00 AM</td>
+              <td style="padding: 8px;">security-executives@</td>
+              <td style="padding: 8px;">PDF</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 8px;">MTTR Performance Report</td>
+              <td style="text-align: center; padding: 8px;">Mon 7:00 AM</td>
+              <td style="padding: 8px;">security-ops@</td>
+              <td style="padding: 8px;">PDF</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 8px;">Monthly Board Report</td>
+              <td style="text-align: center; padding: 8px;">1st of Month 6:00 AM</td>
+              <td style="padding: 8px;">board@, ciso@</td>
+              <td style="padding: 8px;">PDF</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 8px;">Quarterly Risk Assessment</td>
+              <td style="text-align: center; padding: 8px;">Q1/Q2/Q3/Q4 Start</td>
+              <td style="padding: 8px;">executives@</td>
+              <td style="padding: 8px;">PDF</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 8px;">Daily Critical Alert Digest</td>
+              <td style="text-align: center; padding: 8px;">Daily 8:00 AM</td>
+              <td style="padding: 8px;">security-team@</td>
+              <td style="padding: 8px;">HTML</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px;">Vendor Risk Monthly Summary</td>
+              <td style="text-align: center; padding: 8px;">1st of Month 6:00 AM</td>
+              <td style="padding: 8px;">procurement@</td>
+              <td style="padding: 8px;">PDF</td>
+            </tr>
+          </table>
+          <p style="color: #666; font-size: 11px; margin: 10px 0 0 0;"><em>To customize: Settings &#8594; Searches, reports, and alerts &#8594; Edit email recipients and schedule</em></p>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Executive Summary Section -->
+  <row>
+    <panel>
+      <title>Executive Summary - Key Metrics</title>
+      <table>
+        <search>
+          <query>
+            | makeresults
+            | eval metric="placeholder"
+            | append [
+              search `bitsight_index` sourcetype="bitsight:portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
+              | where name="$company_filter$" OR "$company_filter$"="*"
+              | stats dc(guid) as value
+              | eval metric="Total Companies Monitored"
+            ]
+            | append [
+              search `bitsight_index` sourcetype="bitsight:portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
+              | where name="$company_filter$" OR "$company_filter$"="*"
+              | stats avg(rating) as value
+              | eval value=round(value, 0), metric="Average Portfolio Rating"
+            ]
+            | append [
+              search `bitsight_index` sourcetype="bitsight:portfolio" rating>=700 earliest=$time_range.earliest$ latest=$time_range.latest$
+              | where name="$company_filter$" OR "$company_filter$"="*"
+              | stats dc(guid) as healthy
+              | appendcols [
+                search `bitsight_index` sourcetype="bitsight:portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
+                | where name="$company_filter$" OR "$company_filter$"="*"
+                | stats dc(guid) as total
+              ]
+              | eval value=round((healthy/total)*100, 1)."%", metric="Portfolio Health (700+ Rating)"
+            ]
+            | append [
+              search `bitsight_index` sourcetype="bitsight:findings" (severity="critical" OR severity="severe") earliest=$time_range.earliest$ latest=$time_range.latest$
+              | where company_name="$company_filter$" OR "$company_filter$"="*"
+              | stats count as value
+              | eval metric="Critical/Severe Findings"
+            ]
+            | append [
+              search `bitsight_index` sourcetype="bitsight:alerts" earliest=$time_range.earliest$ latest=$time_range.latest$
+              | stats count as value
+              | eval metric="Alerts Generated"
+            ]
+            | where metric!="placeholder"
+            | table metric, value
+            | rename metric as "Metric", value as "Value"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Rating Trend Summary</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | timechart span=1d avg(rating) as "Portfolio Average"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleY.text">Rating</option>
+        <option name="charting.fieldColors">{"Portfolio Average": 0x6DB7C6}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Portfolio Report -->
+  <row>
+    <panel>
+      <title>Portfolio Report - All Companies</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where name="$company_filter$" OR "$company_filter$"="*"
+            | dedup guid
+            | eval rating_category=case(rating>=740, "Advanced", rating>=700, "Good", rating>=640, "Fair", rating>=500, "Warning", 1=1, "Critical")
+            | eval rating_date_fmt=strftime(strptime(rating_date, "%Y-%m-%dT%H:%M:%S"), "%Y-%m-%d")
+            | table name, rating, rating_category, industry, tier, primary_domain, country, rating_date_fmt
+            | rename name as "Company", rating as "Rating", rating_category as "Category", industry as "Industry", tier as "Tier", primary_domain as "Domain", country as "Country", rating_date_fmt as "Rating Date"
+            | sort -Rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">50</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Category">
+          <colorPalette type="map">{"Advanced": #53A051, "Good": #84b957, "Fair": #F8BE34, "Warning": #F1813F, "Critical": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Findings Report -->
+  <row>
+    <panel>
+      <title>Findings Report - Open Issues</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:findings"
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | eval first_seen_fmt=strftime(strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), "%Y-%m-%d")
+            | eval days_open=round((now() - strptime(first_seen, "%Y-%m-%dT%H:%M:%S"))/86400, 0)
+            | table company_name, severity, risk_vector, first_seen_fmt, days_open, assets, remediation_history
+            | rename company_name as "Company", severity as "Severity", risk_vector as "Risk Vector", first_seen_fmt as "First Seen", days_open as "Days Open", assets as "Affected Assets", remediation_history as "Remediation Notes"
+            | sort -"Days Open"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">50</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical": #DC4E41, "severe": #DC4E41, "high": #F1813F, "moderate": #F8BE34, "minor": #6DB7C6, "low": #53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Risk Vector Summary -->
+  <row>
+    <panel>
+      <title>Risk Vector Performance Report</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:risk_vectors"
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | stats avg(rating) as avg_rating, min(rating) as min_rating, max(rating) as max_rating, dc(company_guid) as companies by name
+            | eval avg_rating=round(avg_rating, 0), grade=case(avg_rating>=740, "A", avg_rating>=700, "B", avg_rating>=640, "C", avg_rating>=500, "D", 1=1, "F")
+            | table name, avg_rating, grade, min_rating, max_rating, companies
+            | rename name as "Risk Vector", avg_rating as "Avg Rating", grade as "Grade", min_rating as "Min", max_rating as "Max", companies as "Companies"
+            | sort -"Avg Rating"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">25</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Grade">
+          <colorPalette type="map">{"A": #53A051, "B": #84b957, "C": #F8BE34, "D": #F1813F, "F": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Avg Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Alerts Report -->
+  <row>
+    <panel>
+      <title>Alert History Report</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:alerts"
+            | eval alert_time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | table alert_time_fmt, company_name, alert_type, severity, message
+            | rename alert_time_fmt as "Alert Time", company_name as "Company", alert_type as "Type", severity as "Severity", message as "Message"
+            | sort -"Alert Time"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">50</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical": #DC4E41, "high": #F1813F, "medium": #F8BE34, "low": #53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- User Activity Report -->
+  <row>
+    <panel>
+      <title>User Activity Report</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:users"
+            | dedup email
+            | eval last_login_fmt=strftime(strptime(last_login, "%Y-%m-%dT%H:%M:%S"), "%Y-%m-%d %H:%M")
+            | eval status=if(isnotnull(last_login) AND (now() - strptime(last_login, "%Y-%m-%dT%H:%M:%S")) &lt; 2592000, "Active", "Inactive")
+            | table email, first_name, last_name, role, status, last_login_fmt, company_count
+            | rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", status as "Status", last_login_fmt as "Last Login", company_count as "Companies Viewed"
+            | sort -"Last Login"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">50</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"Active": #53A051, "Inactive": #999999}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>

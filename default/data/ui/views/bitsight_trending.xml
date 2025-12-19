@@ -1,0 +1,592 @@
+<dashboard version="1.1">
+  <label>Bitsight Trending Analysis</label>
+  <description>Week-over-Week, Month-over-Month, Quarter-over-Quarter, and Year-over-Year Trending</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:*" company_name=* | dedup company_name | table company_name</query>
+      </search>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-1y@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- Week over Week Section -->
+  <row>
+    <panel>
+      <title>Week-over-Week Rating Change</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval week=strftime(_time, "%Y-W%W")
+| stats latest(rating) as rating by company_name, week
+| sort company_name, week
+| streamstats current=f last(rating) as prev_rating by company_name
+| eval wow_change=rating-prev_rating
+| where isnotnull(prev_rating)
+| table week, company_name, rating, prev_rating, wow_change
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>WoW Findings Change</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" OR sourcetype="bitsight:findings_summary"
+| where company_name LIKE "%$company_filter$%"
+| eval week=strftime(_time, "%Y-W%W")
+| stats count as finding_count by company_name, week
+| sort company_name, week
+| streamstats current=f last(finding_count) as prev_count by company_name
+| eval wow_change=finding_count-prev_count
+| where isnotnull(prev_count)
+| table week, company_name, finding_count, prev_count, wow_change
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Month over Month Section -->
+  <row>
+    <panel>
+      <title>Month-over-Month Rating Trend</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| stats latest(rating) as rating by company_name, month
+| sort company_name, month
+| streamstats current=f last(rating) as prev_rating by company_name
+| eval mom_change=rating-prev_rating, mom_pct=round((rating-prev_rating)/prev_rating*100, 2)
+| where isnotnull(prev_rating)
+| table month, company_name, rating, prev_rating, mom_change, mom_pct
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>MoM Findings by Severity</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| stats count by month, severity
+| xyseries month, severity, count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked100</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Quarter over Quarter Section -->
+  <row>
+    <panel>
+      <title>Quarter-over-Quarter Rating Analysis</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval quarter=strftime(_time, "%Y-Q") + tostring(ceil(tonumber(strftime(_time, "%m"))/3))
+| stats latest(rating) as rating, avg(rating) as avg_rating by company_name, quarter
+| sort company_name, quarter
+| streamstats current=f last(rating) as prev_rating by company_name
+| eval qoq_change=rating-prev_rating
+| where isnotnull(prev_rating)
+| table quarter, company_name, rating, avg_rating, prev_rating, qoq_change
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>QoQ Findings Trend</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| eval quarter=strftime(_time, "%Y-Q") + tostring(ceil(tonumber(strftime(_time, "%m"))/3))
+| stats count as finding_count, dc(risk_vector) as risk_vectors by company_name, quarter
+| sort company_name, quarter
+| streamstats current=f last(finding_count) as prev_count by company_name
+| eval qoq_change=finding_count-prev_count, qoq_pct=round((finding_count-prev_count)/prev_count*100,2)
+| table quarter, company_name, finding_count, prev_count, qoq_change, qoq_pct
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Year over Year Section -->
+  <row>
+    <panel>
+      <title>Year-over-Year Rating Comparison</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval year=strftime(_time, "%Y")
+| stats latest(rating) as rating, avg(rating) as avg_rating, min(rating) as min_rating, max(rating) as max_rating by company_name, year
+| sort company_name, year
+| streamstats current=f last(rating) as prev_year_rating by company_name
+| eval yoy_change=rating-prev_year_rating, yoy_pct=round((rating-prev_year_rating)/prev_year_rating*100, 2)
+| where isnotnull(prev_year_rating)
+| table year, company_name, rating, avg_rating, min_rating, max_rating, prev_year_rating, yoy_change, yoy_pct
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>YoY Findings Summary</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| eval year=strftime(_time, "%Y")
+| stats count as total_findings, dc(risk_vector) as unique_risk_vectors, dc(asset) as unique_assets by company_name, year
+| sort company_name, year
+| streamstats current=f last(total_findings) as prev_findings by company_name
+| eval yoy_change=total_findings-prev_findings, yoy_pct=round((total_findings-prev_findings)/prev_findings*100, 2)."%"
+| table year, company_name, total_findings, prev_findings, yoy_change, yoy_pct, unique_risk_vectors, unique_assets
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="yoy_change">
+          <colorPalette type="expression">if(value > 0, "#DC4E41", if(value &lt; 0, "#53A051", "#006D9C"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- MTTR (Mean Time to Remediate) Section -->
+  <row>
+    <panel>
+      <title>📊 MTTR Overview - Remediated Findings</title>
+      <html>
+        <style>
+          .mttr-header { font-size: 14px; color: #999; margin-bottom: 10px; }
+          .mttr-note { font-size: 11px; color: #666; font-style: italic; }
+        </style>
+        <div class="mttr-header">Mean Time to Remediate = last_seen - first_seen for remediated findings</div>
+        <div class="mttr-note">Lower MTTR indicates faster remediation response</div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Current MTTR by Severity</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="critical" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| stats avg(mttr_seconds) as avg_mttr
+| eval mttr_days=round(avg_mttr/86400, 1)
+| table mttr_days
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[30,90]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">Critical MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="high" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| stats avg(mttr_seconds) as avg_mttr
+| eval mttr_days=round(avg_mttr/86400, 1)
+| table mttr_days
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[45,120]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">High MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="medium" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| stats avg(mttr_seconds) as avg_mttr
+| eval mttr_days=round(avg_mttr/86400, 1)
+| table mttr_days
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[60,180]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">Medium MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="low" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| stats avg(mttr_seconds) as avg_mttr
+| eval mttr_days=round(avg_mttr/86400, 1)
+| table mttr_days
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[90,365]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">Low MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>MTTR Trend - Week over Week</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| eval week=strftime(last_epoch, "%Y-W%W")
+| stats avg(mttr_seconds) as avg_mttr, count as remediated_count by week, severity
+| eval mttr_days=round(avg_mttr/86400, 1)
+| xyseries week, severity, mttr_days
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisLabelsY.majorUnit">10</option>
+        <option name="charting.axisTitleY.text">MTTR (Days)</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>MTTR Trend - Month over Month</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| eval month=strftime(last_epoch, "%Y-%m")
+| stats avg(mttr_seconds) as avg_mttr, count as remediated_count by month, severity
+| eval mttr_days=round(avg_mttr/86400, 1)
+| xyseries month, severity, mttr_days
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">MTTR (Days)</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>MTTR by Risk Vector</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=* risk_vector=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| stats avg(mttr_seconds) as avg_mttr, count as remediated_count by risk_vector
+| eval mttr_days=round(avg_mttr/86400, 1)
+| sort - mttr_days
+| head 15
+| table risk_vector, mttr_days, remediated_count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleX.text">MTTR (Days)</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>MTTR by Company</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| stats avg(mttr_seconds) as avg_mttr, count as remediated_count by company_name
+| eval mttr_days=round(avg_mttr/86400, 1)
+| sort - mttr_days
+| head 20
+| table company_name, mttr_days, remediated_count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleX.text">MTTR (Days)</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>MTTR Change - Period Comparison</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| eval mttr_days=mttr_seconds/86400
+| eval period=case(
+    last_epoch >= relative_time(now(), "-7d"), "This Week",
+    last_epoch >= relative_time(now(), "-14d"), "Last Week",
+    last_epoch >= relative_time(now(), "-30d"), "This Month",
+    last_epoch >= relative_time(now(), "-60d"), "Last Month",
+    last_epoch >= relative_time(now(), "-90d"), "This Quarter",
+    1=1, "Older"
+  )
+| stats avg(mttr_days) as avg_mttr, median(mttr_days) as median_mttr, min(mttr_days) as min_mttr, max(mttr_days) as max_mttr, count as count by severity, period
+| eval avg_mttr=round(avg_mttr, 1), median_mttr=round(median_mttr, 1), min_mttr=round(min_mttr, 1), max_mttr=round(max_mttr, 1)
+| sort severity, period
+| rename severity as "Severity", period as "Period", avg_mttr as "Avg MTTR (days)", median_mttr as "Median MTTR", min_mttr as "Min", max_mttr as "Max", count as "Remediated"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#DC4E41,"high":#F8BE34,"medium":#F1813F,"low":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Avg MTTR (days)">
+          <colorPalette type="expression">if(value > 90, "#DC4E41", if(value > 45, "#F8BE34", "#53A051"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Remediation Velocity - Findings Remediated per Week</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_seconds=last_epoch-first_epoch
+| where mttr_seconds > 0
+| eval week=strftime(last_epoch, "%Y-W%W")
+| stats count as remediated_count by week
+| sort week
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleY.text">Findings Remediated</option>
+        <option name="charting.chart.showDataLabels">all</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Exposure Duration Distribution</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval exposure_bucket=case(
+    mttr_days &lt;= 7, "0-7 days",
+    mttr_days &lt;= 30, "8-30 days",
+    mttr_days &lt;= 60, "31-60 days",
+    mttr_days &lt;= 90, "61-90 days",
+    mttr_days &lt;= 180, "91-180 days",
+    1=1, "180+ days"
+  )
+| stats count by exposure_bucket
+| sort exposure_bucket
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Trending Summary -->
+  <row>
+    <panel>
+      <title>Rating Trend Summary (All Periods)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval week=strftime(_time, "%Y-W%W"), month=strftime(_time, "%Y-%m"), quarter=strftime(_time, "%Y-Q") + tostring(ceil(tonumber(strftime(_time, "%m"))/3)), year=strftime(_time, "%Y")
+| stats latest(rating) as current_rating, earliest(rating) as first_rating by company_name
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-7d
+  | stats latest(rating) as last_week_rating by company_name
+]
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-30d latest=-7d
+  | stats latest(rating) as prev_week_rating by company_name
+]
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-60d latest=-30d
+  | stats latest(rating) as prev_month_rating by company_name
+]
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-180d latest=-90d
+  | stats latest(rating) as prev_quarter_rating by company_name
+]
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-400d latest=-365d
+  | stats latest(rating) as prev_year_rating by company_name
+]
+| eval wow_change=current_rating-prev_week_rating, mom_change=current_rating-prev_month_rating, qoq_change=current_rating-prev_quarter_rating, yoy_change=current_rating-prev_year_rating
+| table company_name, current_rating, wow_change, mom_change, qoq_change, yoy_change
+| rename company_name as "Company", current_rating as "Current Rating", wow_change as "WoW Δ", mom_change as "MoM Δ", qoq_change as "QoQ Δ", yoy_change as "YoY Δ"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="WoW Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="MoM Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="QoQ Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="YoY Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</dashboard>

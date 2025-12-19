@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Portfolio Overview</label>
+  <description>Executive Portfolio Analysis with Trends</description>
+  
+  <search id="base_portfolio">
+    <query>
+      `bitsight_index` sourcetype="bitsight:portfolio"
+      | dedup guid
+      | eval rating_category=case(
+          rating>=740, "Advanced",
+          rating>=700, "Good", 
+          rating>=640, "Fair",
+          rating>=500, "Warning",
+          1=1, "Critical"
+        )
+    </query>
+    <earliest>-24h@h</earliest>
+    <latest>now</latest>
+  </search>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="timerange" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="industry_filter" searchWhenChanged="true">
+      <label>Industry</label>
+      <choice value="*">All Industries</choice>
+      <default>*</default>
+      <fieldForLabel>industry</fieldForLabel>
+      <fieldForValue>industry</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio" 
+          | dedup industry 
+          | table industry 
+          | sort industry
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="tier_filter" searchWhenChanged="true">
+      <label>Tier</label>
+      <choice value="*">All Tiers</choice>
+      <default>*</default>
+      <fieldForLabel>tier</fieldForLabel>
+      <fieldForValue>tier</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio" 
+          | dedup tier 
+          | table tier 
+          | sort tier
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="text" token="search_filter" searchWhenChanged="true">
+      <label>Search Company</label>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <!-- Severity Legend -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="display: flex; justify-content: center; gap: 30px; padding: 10px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; margin-bottom: 5px;">
+          <span style="color: #53A051;"><strong>&#9679;</strong> Advanced (740+)</span>
+          <span style="color: #84b957;"><strong>&#9679;</strong> Good (700-739)</span>
+          <span style="color: #F8BE34;"><strong>&#9679;</strong> Fair (640-699)</span>
+          <span style="color: #F1813F;"><strong>&#9679;</strong> Warning (500-639)</span>
+          <span style="color: #DC4E41;"><strong>&#9679;</strong> Critical (&lt;500)</span>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Executive KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>Portfolio Size</title>
+        <search base="base_portfolio">
+          <query>
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | where tier="$tier_filter$" OR "$tier_filter$"="*"
+            | search name="*$search_filter$*"
+            | stats dc(guid) as count
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Companies</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x3D7EAA","0x3D7EAA"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Average Rating</title>
+        <search base="base_portfolio">
+          <query>
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | where tier="$tier_filter$" OR "$tier_filter$"="*"
+            | search name="*$search_filter$*"
+            | stats avg(rating) as avg_rating
+            | eval avg_rating=round(avg_rating, 0)
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Portfolio Health</title>
+        <search base="base_portfolio">
+          <query>
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | where tier="$tier_filter$" OR "$tier_filter$"="*"
+            | search name="*$search_filter$*"
+            | stats count(eval(rating>=700)) as healthy, count as total
+            | eval health_pct=round((healthy/total)*100, 1)."%"
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Rating ≥ 700</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[50,80]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>At Risk</title>
+        <search base="base_portfolio">
+          <query>
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | where tier="$tier_filter$" OR "$tier_filter$"="*"
+            | search name="*$search_filter$*"
+            | where rating &lt; 500
+            | stats dc(guid) as count
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,5]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Rating &lt; 500</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Declined (30d)</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | stats earliest(rating) as old_rating, latest(rating) as new_rating by company_guid
+            | where new_rating &lt; old_rating
+            | stats count
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">&#9660; Ratings Down</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Rating Distribution & Trend -->
+  <row>
+    <panel>
+      <title>Rating Distribution</title>
+      <chart>
+        <search base="base_portfolio">
+          <query>
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | where tier="$tier_filter$" OR "$tier_filter$"="*"
+            | search name="*$search_filter$*"
+            | stats count by rating_category
+            | eval sort_order=case(rating_category="Advanced",1,rating_category="Good",2,rating_category="Fair",3,rating_category="Warning",4,rating_category="Critical",5)
+            | sort sort_order
+            | fields - sort_order
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"Advanced": 0x53A051, "Good": 0x84b957, "Fair": 0xF8BE34, "Warning": 0xF1813F, "Critical": 0xDC4E41}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Portfolio Rating Trend (30 Days)</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | timechart span=1d avg(rating) as "Avg Rating" perc25(rating) as "25th %ile" perc75(rating) as "75th %ile"
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Rating</option>
+        <option name="charting.axisY.minimumNumber">400</option>
+        <option name="charting.chart.stackMode">default</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Industry & Tier Analysis -->
+  <row>
+    <panel>
+      <title>Rating by Industry</title>
+      <chart>
+        <search base="base_portfolio">
+          <query>
+            | where tier="$tier_filter$" OR "$tier_filter$"="*"
+            | search name="*$search_filter$*"
+            | stats avg(rating) as avg_rating, count by industry
+            | eval avg_rating=round(avg_rating, 0)
+            | sort -avg_rating
+            | head 10
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Industry</option>
+        <option name="charting.axisTitleY.text">Average Rating</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Rating by Tier</title>
+      <chart>
+        <search base="base_portfolio">
+          <query>
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | search name="*$search_filter$*"
+            | stats count, avg(rating) as avg_rating by tier
+            | eval avg_rating=round(avg_rating, 0)
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.chart.overlayFields">avg_rating</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleX.text">Tier</option>
+        <option name="charting.axisTitleY.text">Company Count</option>
+        <option name="charting.axisTitleY2.text">Average Rating</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Companies Requiring Attention -->
+  <row>
+    <panel>
+      <title>&#9888; Companies Requiring Attention</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | stats earliest(rating) as old_rating, latest(rating) as new_rating, latest(name) as name, latest(industry) as industry by company_guid
+            | eval change=new_rating - old_rating
+            | eval trend=case(change>10, "&#9650; +".change, change>0, "&#9650; +".change, change<-10, "&#9660; ".change, change<0, "&#9660; ".change, 1=1, "&#9644; 0")
+            | eval attention=if(new_rating<500 OR change<-20, "Yes", "No")
+            | where attention="Yes"
+            | eval severity=case(new_rating<400, "&#9679; Critical", new_rating<500, "&#9679; Warning", change<-50, "&#9679; High", 1=1, "&#9679; Medium")
+            | table severity, name, new_rating, trend, industry
+            | rename severity as "Status", name as "Company", new_rating as "Current Rating", trend as "30d Change", industry as "Industry"
+            | sort "Current Rating"
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Current Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="600"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Critical": #DC4E41, "&#9679; Warning": #F1813F, "&#9679; High": #F8BE34, "&#9679; Medium": #6DB7C6}</colorPalette>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_ratings_trending?form.company=$row.Company$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Main Portfolio Table with Sparklines -->
+  <row>
+    <panel>
+      <title>Portfolio Companies</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | where tier="$tier_filter$" OR "$tier_filter$"="*"
+            | search name="*$search_filter$*"
+            | stats sparkline(avg(rating), 1d) as trend, latest(rating) as rating, latest(name) as name, latest(industry) as industry, latest(tier) as tier, earliest(rating) as old_rating by company_guid
+            | eval change=rating - old_rating
+            | eval change_indicator=case(change>0, "&#9650; +".change, change<0, "&#9660; ".change, 1=1, "&#9644; 0")
+            | eval rating_category=case(
+                rating>=740, "&#9679; Advanced",
+                rating>=700, "&#9679; Good", 
+                rating>=640, "&#9679; Fair",
+                rating>=500, "&#9679; Warning",
+                1=1, "&#9679; Critical"
+              )
+            | table name, rating, rating_category, trend, change_indicator, industry, tier
+            | rename name as "Company", rating as "Rating", rating_category as "Status", trend as "30d Trend", change_indicator as "Change", industry as "Industry", tier as "Tier"
+            | sort - Rating
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">true</option>
+        <option name="wrap">false</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Advanced": #53A051, "&#9679; Good": #84b957, "&#9679; Fair": #F8BE34, "&#9679; Warning": #F1813F, "&#9679; Critical": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+        <format type="sparkline" field="30d Trend">
+          <option name="type">line</option>
+          <option name="lineColor">#6DB7C6</option>
+          <option name="fillColor">#1E3A5F</option>
+          <option name="height">25</option>
+          <option name="lineWidth">2</option>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_ratings_trending?form.company=$row.Company$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</form>

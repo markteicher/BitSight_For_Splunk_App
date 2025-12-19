@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dashboard version="1.1" theme="dark">
+  <label>Help &amp; Glossary</label>
+  <description>Executive guide to Bitsight metrics, terminology, and dashboard navigation</description>
+
+  <!-- Quick Navigation -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
+          <h2 style="margin: 0 0 15px 0; color: #fff;">&#128218; Dashboard Guide</h2>
+          <p style="color: #ccc; margin: 0 0 20px 0;">This help guide provides definitions, explanations, and navigation assistance for executives using the Bitsight Security Ratings platform.</p>
+          
+          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <a href="/app/bitsight/bitsight_overview" style="background: rgba(83,160,81,0.2); padding: 15px; border-radius: 8px; text-decoration: none; flex: 1; min-width: 200px;">
+              <div style="color: #53A051; font-weight: bold;">&#127968; Executive Overview</div>
+              <div style="color: #999; font-size: 12px;">Single-pane summary with composite risk score</div>
+            </a>
+            <a href="/app/bitsight/bitsight_portfolio" style="background: rgba(109,183,198,0.2); padding: 15px; border-radius: 8px; text-decoration: none; flex: 1; min-width: 200px;">
+              <div style="color: #6DB7C6; font-weight: bold;">&#128188; Portfolio</div>
+              <div style="color: #999; font-size: 12px;">All monitored companies and trends</div>
+            </a>
+            <a href="/app/bitsight/bitsight_mttr_executive" style="background: rgba(248,190,52,0.2); padding: 15px; border-radius: 8px; text-decoration: none; flex: 1; min-width: 200px;">
+              <div style="color: #F8BE34; font-weight: bold;">&#9201; MTTR Dashboard</div>
+              <div style="color: #999; font-size: 12px;">Remediation performance and SLAs</div>
+            </a>
+            <a href="/app/bitsight/bitsight_nist_csf" style="background: rgba(241,129,63,0.2); padding: 15px; border-radius: 8px; text-decoration: none; flex: 1; min-width: 200px;">
+              <div style="color: #F1813F; font-weight: bold;">&#128203; NIST CSF</div>
+              <div style="color: #999; font-size: 12px;">Compliance framework alignment</div>
+            </a>
+            <a href="/app/bitsight/bitsight_reports" style="background: rgba(220,78,65,0.2); padding: 15px; border-radius: 8px; text-decoration: none; flex: 1; min-width: 200px;">
+              <div style="color: #DC4E41; font-weight: bold;">&#128202; Reports</div>
+              <div style="color: #999; font-size: 12px;">Generate and export board-ready reports</div>
+            </a>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Composite Risk Score Explanation -->
+  <row>
+    <panel>
+      <title>&#127919; Composite Risk Score Explained</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <p style="color: #ccc; margin: 0 0 15px 0;">The <strong style="color: #53A051;">Composite Risk Score</strong> is a single 0-100 metric that aggregates multiple security factors into one executive-friendly number. <strong>Higher is better.</strong></p>
+          
+          <table style="width: 100%; border-collapse: collapse; color: #ccc;">
+            <tr style="border-bottom: 1px solid #333;">
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Component</th>
+              <th style="text-align: center; padding: 10px; color: #6DB7C6;">Weight</th>
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Description</th>
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">How to Improve</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><strong>Rating Score</strong></td>
+              <td style="text-align: center; padding: 10px;">40%</td>
+              <td style="padding: 10px;">Average security rating across portfolio (normalized from 0-900 scale)</td>
+              <td style="padding: 10px;">Remediate critical findings, improve configuration security</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><strong>Portfolio Health</strong></td>
+              <td style="text-align: center; padding: 10px;">25%</td>
+              <td style="padding: 10px;">Percentage of companies meeting 640+ threshold</td>
+              <td style="padding: 10px;">Focus on underperforming vendors, escalate to procurement</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><strong>Findings Score</strong></td>
+              <td style="text-align: center; padding: 10px;">20%</td>
+              <td style="padding: 10px;">Inverse of critical/severe open findings count</td>
+              <td style="padding: 10px;">Prioritize critical findings, assign remediation owners</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px;"><strong>SLA Compliance</strong></td>
+              <td style="text-align: center; padding: 10px;">15%</td>
+              <td style="padding: 10px;">Percentage of findings remediated within SLA targets</td>
+              <td style="padding: 10px;">Track MTTR metrics, improve remediation processes</td>
+            </tr>
+          </table>
+          
+          <div style="margin-top: 20px; display: flex; gap: 20px;">
+            <div style="flex: 1; padding: 15px; background: rgba(83,160,81,0.2); border-radius: 8px; text-align: center;">
+              <div style="font-size: 24px; color: #53A051; font-weight: bold;">75-100</div>
+              <div style="color: #53A051;">Excellent</div>
+            </div>
+            <div style="flex: 1; padding: 15px; background: rgba(248,190,52,0.2); border-radius: 8px; text-align: center;">
+              <div style="font-size: 24px; color: #F8BE34; font-weight: bold;">50-74</div>
+              <div style="color: #F8BE34;">Needs Attention</div>
+            </div>
+            <div style="flex: 1; padding: 15px; background: rgba(220,78,65,0.2); border-radius: 8px; text-align: center;">
+              <div style="font-size: 24px; color: #DC4E41; font-weight: bold;">0-49</div>
+              <div style="color: #DC4E41;">Critical Risk</div>
+            </div>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Rating Categories -->
+  <row>
+    <panel>
+      <title>&#127775; Security Rating Categories</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <p style="color: #ccc; margin: 0 0 15px 0;">Bitsight Security Ratings range from 250 to 900, similar to credit scores. Ratings are calculated based on externally observable security behaviors.</p>
+          
+          <table style="width: 100%; border-collapse: collapse; color: #ccc;">
+            <tr style="border-bottom: 1px solid #333;">
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Category</th>
+              <th style="text-align: center; padding: 10px; color: #6DB7C6;">Range</th>
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Description</th>
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Breach Likelihood</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><span style="color: #53A051;">&#9679;</span> <strong>Advanced</strong></td>
+              <td style="text-align: center; padding: 10px;">740-900</td>
+              <td style="padding: 10px;">Excellent security posture with minimal issues</td>
+              <td style="padding: 10px; color: #53A051;">Very Low</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><span style="color: #84b957;">&#9679;</span> <strong>Good</strong></td>
+              <td style="text-align: center; padding: 10px;">700-739</td>
+              <td style="padding: 10px;">Strong security with room for improvement</td>
+              <td style="padding: 10px; color: #84b957;">Low</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><span style="color: #F8BE34;">&#9679;</span> <strong>Fair</strong></td>
+              <td style="text-align: center; padding: 10px;">640-699</td>
+              <td style="padding: 10px;">Moderate security, several improvement areas</td>
+              <td style="padding: 10px; color: #F8BE34;">Moderate</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><span style="color: #F1813F;">&#9679;</span> <strong>Warning</strong></td>
+              <td style="text-align: center; padding: 10px;">500-639</td>
+              <td style="padding: 10px;">Significant security gaps requiring attention</td>
+              <td style="padding: 10px; color: #F1813F;">Elevated</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px;"><span style="color: #DC4E41;">&#9679;</span> <strong>Critical</strong></td>
+              <td style="text-align: center; padding: 10px;">250-499</td>
+              <td style="padding: 10px;">Serious security issues, immediate action needed</td>
+              <td style="padding: 10px; color: #DC4E41;">High</td>
+            </tr>
+          </table>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Key Terms Glossary -->
+  <row>
+    <panel>
+      <title>&#128214; Key Terms Glossary</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; columns: 2; column-gap: 30px;">
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">MTTR (Mean Time to Remediate)</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Average time in days from finding discovery to resolution. Lower is better.</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">Risk Vector</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">A category of security behavior (e.g., Patching Cadence, SSL Certificates, Open Ports).</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">Finding</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">A specific security issue identified by Bitsight (e.g., expired SSL certificate).</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">SLA (Service Level Agreement)</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Target remediation timeframes: Critical=30d, High=60d, Medium=90d, Low=180d.</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">Portfolio</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Collection of all companies being monitored (your organization + vendors).</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">NIST CSF</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">NIST Cybersecurity Framework with 5 functions: Identify, Protect, Detect, Respond, Recover.</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">Exposed Credentials</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Employee credentials found in data breaches on the dark web.</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">Sparkline</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Mini chart showing 30-day rating trend at a glance.</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">WoW / MoM / QoQ / YoY</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Week-over-Week, Month-over-Month, Quarter-over-Quarter, Year-over-Year comparisons.</p>
+          </div>
+          <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+            <strong style="color: #6DB7C6;">Tier</strong>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Vendor criticality level (Tier 1=Critical, Tier 2=Important, Tier 3=Standard).</p>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- SLA Reference -->
+  <row>
+    <panel>
+      <title>&#9201; SLA Remediation Targets</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <p style="color: #ccc; margin: 0 0 15px 0;">Standard remediation SLA targets based on finding severity:</p>
+          
+          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px; padding: 20px; background: linear-gradient(135deg, rgba(220,78,65,0.3) 0%, rgba(220,78,65,0.1) 100%); border-radius: 8px; text-align: center; border-left: 4px solid #DC4E41;">
+              <div style="font-size: 32px; color: #DC4E41; font-weight: bold;">30</div>
+              <div style="color: #DC4E41; font-weight: bold;">Critical</div>
+              <div style="color: #999; font-size: 12px;">days to remediate</div>
+            </div>
+            <div style="flex: 1; min-width: 150px; padding: 20px; background: linear-gradient(135deg, rgba(241,129,63,0.3) 0%, rgba(241,129,63,0.1) 100%); border-radius: 8px; text-align: center; border-left: 4px solid #F1813F;">
+              <div style="font-size: 32px; color: #F1813F; font-weight: bold;">60</div>
+              <div style="color: #F1813F; font-weight: bold;">High</div>
+              <div style="color: #999; font-size: 12px;">days to remediate</div>
+            </div>
+            <div style="flex: 1; min-width: 150px; padding: 20px; background: linear-gradient(135deg, rgba(248,190,52,0.3) 0%, rgba(248,190,52,0.1) 100%); border-radius: 8px; text-align: center; border-left: 4px solid #F8BE34;">
+              <div style="font-size: 32px; color: #F8BE34; font-weight: bold;">90</div>
+              <div style="color: #F8BE34; font-weight: bold;">Medium</div>
+              <div style="color: #999; font-size: 12px;">days to remediate</div>
+            </div>
+            <div style="flex: 1; min-width: 150px; padding: 20px; background: linear-gradient(135deg, rgba(83,160,81,0.3) 0%, rgba(83,160,81,0.1) 100%); border-radius: 8px; text-align: center; border-left: 4px solid #53A051;">
+              <div style="font-size: 32px; color: #53A051; font-weight: bold;">180</div>
+              <div style="color: #53A051; font-weight: bold;">Low</div>
+              <div style="color: #999; font-size: 12px;">days to remediate</div>
+            </div>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Exporting & Scheduling -->
+  <row>
+    <panel>
+      <title>&#128202; Exporting Reports &amp; Scheduling</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <h3 style="color: #6DB7C6; margin: 0 0 15px 0;">How to Export Reports</h3>
+          
+          <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+            <div style="flex: 1; min-width: 250px;">
+              <h4 style="color: #fff; margin: 0 0 10px 0;">Manual Export (Any Panel)</h4>
+              <ol style="color: #ccc; margin: 0; padding-left: 20px;">
+                <li>Hover over any panel or table</li>
+                <li>Click the <strong>&#8942;</strong> menu icon</li>
+                <li>Select <strong>Export</strong></li>
+                <li>Choose format: CSV, XML, JSON, or PDF</li>
+              </ol>
+            </div>
+            <div style="flex: 1; min-width: 250px;">
+              <h4 style="color: #fff; margin: 0 0 10px 0;">Full Dashboard PDF</h4>
+              <ol style="color: #ccc; margin: 0; padding-left: 20px;">
+                <li>Go to any dashboard</li>
+                <li>Click <strong>Export</strong> in top menu</li>
+                <li>Select <strong>Export PDF</strong></li>
+                <li>Configure layout options</li>
+                <li>Download or schedule delivery</li>
+              </ol>
+            </div>
+          </div>
+
+          <h3 style="color: #6DB7C6; margin: 20px 0 15px 0;">Scheduled Reports</h3>
+          <p style="color: #ccc; margin: 0 0 10px 0;">The following reports are pre-configured for automatic delivery:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; color: #ccc;">
+            <tr style="border-bottom: 1px solid #333;">
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Report</th>
+              <th style="text-align: center; padding: 10px; color: #6DB7C6;">Schedule</th>
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Contents</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><strong>Executive Weekly Summary</strong></td>
+              <td style="text-align: center; padding: 10px;">Monday 7:00 AM</td>
+              <td style="padding: 10px;">Composite score, top changes, action items</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><strong>MTTR Performance Report</strong></td>
+              <td style="text-align: center; padding: 10px;">Monday 7:00 AM</td>
+              <td style="padding: 10px;">SLA compliance by severity, trends</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;">
+              <td style="padding: 10px;"><strong>Monthly Board Report</strong></td>
+              <td style="text-align: center; padding: 10px;">1st of Month 6:00 AM</td>
+              <td style="padding: 10px;">Full portfolio summary, compliance status</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px;"><strong>Quarterly Risk Report</strong></td>
+              <td style="text-align: center; padding: 10px;">Q1/Q2/Q3/Q4 start</td>
+              <td style="padding: 10px;">YoY comparisons, strategic recommendations</td>
+            </tr>
+          </table>
+          
+          <p style="color: #888; font-size: 12px; margin: 15px 0 0 0;">
+            <em>To modify schedules: Settings &#8594; Searches, reports, and alerts &#8594; Select report &#8594; Edit Schedule</em>
+          </p>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Contact & Support -->
+  <row>
+    <panel>
+      <title>&#128222; Support &amp; Resources</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; padding: 15px; background: rgba(109,183,198,0.1); border-radius: 8px;">
+              <h4 style="color: #6DB7C6; margin: 0 0 10px 0;">&#128214; Bitsight Documentation</h4>
+              <a href="https://help.bitsighttech.com" target="_blank" style="color: #6DB7C6; text-decoration: none;">help.bitsighttech.com</a>
+            </div>
+            <div style="flex: 1; min-width: 200px; padding: 15px; background: rgba(83,160,81,0.1); border-radius: 8px;">
+              <h4 style="color: #53A051; margin: 0 0 10px 0;">&#128187; API Documentation</h4>
+              <a href="https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview" target="_blank" style="color: #53A051; text-decoration: none;">Bitsight API Docs</a>
+            </div>
+            <div style="flex: 1; min-width: 200px; padding: 15px; background: rgba(248,190,52,0.1); border-radius: 8px;">
+              <h4 style="color: #F8BE34; margin: 0 0 10px 0;">&#128218; Splunk Documentation</h4>
+              <a href="https://docs.splunk.com" target="_blank" style="color: #F8BE34; text-decoration: none;">docs.splunk.com</a>
+            </div>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+</dashboard>

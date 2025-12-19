@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Peer Benchmarking</label>
+  <description>Compare your security ratings against industry peers and benchmarks</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="my_company">
+      <label>My Organization</label>
+      <default>*</default>
+      <fieldForLabel>name</fieldForLabel>
+      <fieldForValue>guid</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio"
+          | dedup guid
+          | head 1
+          | table guid, name
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="industry_filter">
+      <label>Compare Industry</label>
+      <choice value="*">All Industries</choice>
+      <default>*</default>
+      <fieldForLabel>industry</fieldForLabel>
+      <fieldForValue>industry</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio"
+          | dedup industry
+          | table industry
+          | sort industry
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+
+  <!-- Your Position -->
+  <row>
+    <panel>
+      <single>
+        <title>Your Rating</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where guid="$my_company$"
+            | stats latest(rating) as rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Industry Average</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | stats avg(rating) as avg_rating
+            | eval avg_rating=round(avg_rating, 0)
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Your Percentile</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | dedup guid
+            | eventstats perc25(rating) as p25, perc50(rating) as p50, perc75(rating) as p75, perc90(rating) as p90
+            | where guid="$my_company$"
+            | eval percentile=case(
+                rating >= p90, "Top 10%",
+                rating >= p75, "Top 25%",
+                rating >= p50, "Top 50%",
+                rating >= p25, "Top 75%",
+                1=1, "Bottom 25%"
+              )
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">vs Industry Peers</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>vs Industry Avg</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | dedup guid
+            | eventstats avg(rating) as industry_avg
+            | where guid="$my_company$"
+            | eval diff=rating - industry_avg
+            | eval display=if(diff>=0, "+".round(diff,0), round(diff,0))
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0x6DB7C6","0x53A051"]</option>
+        <option name="rangeValues">[0,0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Points Difference</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Industry Peers</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | stats dc(guid) as count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x3D7EAA","0x3D7EAA"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Companies</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Distribution Chart -->
+  <row>
+    <panel>
+      <title>Your Position vs Industry Distribution</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | dedup guid
+            | eval rating_bucket=case(
+                rating>=800, "800-900",
+                rating>=750, "750-799",
+                rating>=700, "700-749",
+                rating>=650, "650-699",
+                rating>=600, "600-649",
+                rating>=550, "550-599",
+                rating>=500, "500-549",
+                rating>=450, "450-499",
+                rating>=400, "400-449",
+                1=1, "Below 400"
+              )
+            | stats count by rating_bucket
+            | sort rating_bucket
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Rating Range</option>
+        <option name="charting.axisTitleY.text">Number of Companies</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Industry Rating Comparison</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | dedup guid
+            | stats avg(rating) as avg_rating, count by industry
+            | eval avg_rating=round(avg_rating, 0)
+            | sort -avg_rating
+            | head 15
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Industry</option>
+        <option name="charting.axisTitleY.text">Average Rating</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Percentile Breakdown -->
+  <row>
+    <panel>
+      <title>Industry Percentiles</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | dedup guid
+            | stats min(rating) as "Minimum", perc10(rating) as "10th %ile", perc25(rating) as "25th %ile", perc50(rating) as "Median", perc75(rating) as "75th %ile", perc90(rating) as "90th %ile", max(rating) as "Maximum", avg(rating) as "Average"
+            | eval Average=round(Average, 0)
+            | transpose
+            | rename column as "Percentile", "row 1" as "Rating"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Risk Vector Comparison vs Industry</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:risk_vectors"
+            | dedup name, company_guid
+            | eventstats avg(rating) as industry_avg by name
+            | where company_guid="$my_company$"
+            | eval diff=rating - industry_avg
+            | table name, rating, industry_avg, diff
+            | eval industry_avg=round(industry_avg, 0), diff=round(diff, 0)
+            | sort -diff
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleX.text">Risk Vector</option>
+        <option name="charting.axisTitleY.text">Rating</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Peer Comparison Table -->
+  <row>
+    <panel>
+      <title>Peer Company Comparison</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | dedup guid
+            | eventstats avg(rating) as industry_avg
+            | eval vs_avg=rating - industry_avg
+            | eval vs_avg_display=if(vs_avg>=0, "+".round(vs_avg,0), round(vs_avg,0))
+            | eval rank=1
+            | sort -rating
+            | streamstats count as rank
+            | eval is_you=if(guid="$my_company$", "&#9733; YOU", "")
+            | eval rating_category=case(rating>=740, "&#9679; Advanced", rating>=700, "&#9679; Good", rating>=640, "&#9679; Fair", rating>=500, "&#9679; Warning", 1=1, "&#9679; Critical")
+            | table rank, is_you, name, rating, rating_category, vs_avg_display, industry
+            | rename rank as "#", is_you as "", name as "Company", rating as "Rating", rating_category as "Status", vs_avg_display as "vs Avg", industry as "Industry"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">false</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Advanced": #53A051, "&#9679; Good": #84b957, "&#9679; Fair": #F8BE34, "&#9679; Warning": #F1813F, "&#9679; Critical": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="">
+          <colorPalette type="map">{"&#9733; YOU": #6DB7C6}</colorPalette>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_ratings_trending?form.company=$row.Company$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Trend Comparison -->
+  <row>
+    <panel>
+      <title>Rating Trend: You vs Industry Average</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | where industry="$industry_filter$" OR "$industry_filter$"="*"
+            | eval series=if(company_guid="$my_company$", "Your Organization", "Industry Average")
+            | timechart span=1d avg(rating) by series
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Rating</option>
+        <option name="charting.fieldColors">{"Your Organization": 0x6DB7C6, "Industry Average": 0x999999}</option>
+      </chart>
+    </panel>
+  </row>
+</form>

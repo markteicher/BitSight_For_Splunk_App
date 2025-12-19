@@ -1,0 +1,215 @@
+<dashboard version="1.1">
+  <label>Bitsight Users</label>
+  <description>User Management and Activity Monitoring</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="role_filter">
+      <label>Role</label>
+      <choice value="*">All Roles</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:users" | dedup role | table role</query>
+      </search>
+      <fieldForLabel>role</fieldForLabel>
+      <fieldForValue>role</fieldForValue>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <!-- User Overview -->
+  <row>
+    <panel>
+      <title>Total Users</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype="bitsight:users" | dedup email | stats count</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Active Users (Last 7 Days)</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where last_login_time > relative_time(now(), "-7d")
+| dedup email
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+      </single>
+    </panel>
+    <panel>
+      <title>User Quota</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:user_quota" 
+| stats latest(used) as used, latest(total) as total
+| eval quota=used."/".total
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Roles Distribution</title>
+      <chart>
+        <search>
+          <query>index=security_bitsight sourcetype="bitsight:users" | dedup email | stats count by role</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- User List -->
+  <row>
+    <panel>
+      <title>User Directory</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| where role LIKE "%$role_filter$%"
+| dedup email
+| table email, first_name, last_name, role, status, last_login, created, guid
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", status as "Status", last_login as "Last Login", created as "Created", guid as "User GUID"
+| sort -"Last Login"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">20</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"active":#53A051,"inactive":#DC4E41}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- User Activity -->
+  <row>
+    <panel>
+      <title>User Login Activity Over Time</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users"
+| eval login_date=strftime(strptime(last_login, "%Y-%m-%dT%H:%M:%S"), "%Y-%m-%d")
+| timechart count by email limit=10
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Company Views by User</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:user_company_views"
+| stats count as views by user_email, company_name
+| sort -views
+| head 20
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- User Permissions -->
+  <row>
+    <panel>
+      <title>Users by Permission Level</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users"
+| dedup email
+| stats count by permissions
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Recently Added Users</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users"
+| dedup email
+| eval created_time=strptime(created, "%Y-%m-%dT%H:%M:%S")
+| sort -created_time
+| head 10
+| table email, first_name, last_name, role, created
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", created as "Created Date"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Inactive Users -->
+  <row>
+    <panel>
+      <title>Inactive Users (No Login in 30+ Days)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users"
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where last_login_time &lt; relative_time(now(), "-30d") OR isnull(last_login_time)
+| eval days_inactive=round((now()-last_login_time)/86400, 0)
+| table email, first_name, last_name, role, last_login, days_inactive
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", last_login as "Last Login", days_inactive as "Days Inactive"
+| sort -days_inactive
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Days Inactive">
+          <colorPalette type="expression">if(value > 90, "#DC4E41", if(value > 60, "#F8BE34", "#006D9C"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</dashboard>

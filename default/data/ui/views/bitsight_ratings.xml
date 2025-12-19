@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Ratings Analysis</label>
+  <description>Detailed Security Ratings Analysis with Trends</description>
+  
+  <search id="base_ratings">
+    <query>
+      `bitsight_index` sourcetype="bitsight:ratings"
+    </query>
+    <earliest>$timerange.earliest$</earliest>
+    <latest>$timerange.latest$</latest>
+  </search>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="timerange" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="company_filter" searchWhenChanged="true">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <default>*</default>
+      <fieldForLabel>name</fieldForLabel>
+      <fieldForValue>guid</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio" 
+          | dedup guid 
+          | table guid, name 
+          | sort name
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="rating_category" searchWhenChanged="true">
+      <label>Rating Category</label>
+      <choice value="*">All Categories</choice>
+      <choice value="Advanced">Advanced (740+)</choice>
+      <choice value="Good">Good (700-739)</choice>
+      <choice value="Fair">Fair (640-699)</choice>
+      <choice value="Warning">Warning (500-639)</choice>
+      <choice value="Critical">Critical (&lt;500)</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <!-- Severity Legend -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="display: flex; justify-content: center; gap: 30px; padding: 10px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
+          <span style="color: #53A051;"><strong>&#9679;</strong> Advanced (740+)</span>
+          <span style="color: #84b957;"><strong>&#9679;</strong> Good (700-739)</span>
+          <span style="color: #F8BE34;"><strong>&#9679;</strong> Fair (640-699)</span>
+          <span style="color: #F1813F;"><strong>&#9679;</strong> Warning (500-639)</span>
+          <span style="color: #DC4E41;"><strong>&#9679;</strong> Critical (&lt;500)</span>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- KPI Row -->
+  <row>
+    <panel>
+      <single>
+        <title>Average Rating</title>
+        <search base="base_ratings">
+          <query>
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | stats avg(rating) as avg_rating
+            | eval avg_rating=round(avg_rating, 0)
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Rating Range</title>
+        <search base="base_ratings">
+          <query>
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | stats min(rating) as min_rating, max(rating) as max_rating
+            | eval range=min_rating." - ".max_rating
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Min - Max</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Period Change</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | stats earliest(rating) as old_rating, latest(rating) as new_rating
+            | eval change=new_rating - old_rating
+            | eval display=if(change>=0, "&#9650; +".change, "&#9660; ".change)
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0x6DB7C6","0x53A051"]</option>
+        <option name="rangeValues">[0,0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Selected Period</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Companies Analyzed</title>
+        <search base="base_ratings">
+          <query>
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | stats dc(guid) as count
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x3D7EAA","0x3D7EAA"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Rating History Chart -->
+  <row>
+    <panel>
+      <title>Rating History</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | timechart span=1d avg(rating) as "Rating" by name limit=10
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Security Rating</option>
+        <option name="charting.axisY.minimumNumber">250</option>
+        <option name="charting.axisY.maximumNumber">900</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Risk Vectors -->
+  <row>
+    <panel>
+      <title>Risk Vector Performance</title>
+      <chart>
+        <search base="base_ratings">
+          <query>
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | spath input=rating_details 
+            | rename rating_details{}.name as risk_vector, rating_details{}.rating as vector_rating
+            | mvexpand risk_vector
+            | mvexpand vector_rating
+            | stats latest(vector_rating) as rating by risk_vector
+            | sort -rating
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Risk Vector</option>
+        <option name="charting.axisTitleY.text">Rating</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.maximumNumber">900</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Risk Vector Grades</title>
+      <table>
+        <search base="base_ratings">
+          <query>
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | spath input=rating_details 
+            | rename rating_details{}.name as risk_vector, rating_details{}.rating as vector_rating, rating_details{}.grade as vector_grade
+            | mvexpand risk_vector
+            | mvexpand vector_rating
+            | mvexpand vector_grade
+            | stats latest(vector_rating) as Rating, latest(vector_grade) as Grade by risk_vector
+            | eval status=case(Grade="A", "&#9679; A", Grade="B", "&#9679; B", Grade="C", "&#9679; C", Grade="D", "&#9679; D", Grade="F", "&#9679; F", 1=1, Grade)
+            | rename risk_vector as "Risk Vector", status as "Grade"
+            | sort -Rating
+          </query>
+        </search>
+        <option name="count">21</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Grade">
+          <colorPalette type="map">{"&#9679; A": #53A051, "&#9679; B": #84b957, "&#9679; C": #F8BE34, "&#9679; D": #F1813F, "&#9679; F": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Industry Comparison -->
+  <row>
+    <panel>
+      <title>Industry Comparison</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | stats avg(rating) as avg_rating by industry
+            | eval avg_rating=round(avg_rating, 0)
+            | sort -avg_rating
+            | head 15
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleX.text">Industry</option>
+        <option name="charting.axisTitleY.text">Average Rating</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Rating Details with Sparklines -->
+  <row>
+    <panel>
+      <title>Company Ratings with Trends</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | where guid="$company_filter$" OR "$company_filter$"="*"
+            | eval rating_category=case(
+                rating>=740, "Advanced",
+                rating>=700, "Good", 
+                rating>=640, "Fair",
+                rating>=500, "Warning",
+                1=1, "Critical"
+              )
+            | where rating_category="$rating_category$" OR "$rating_category$"="*"
+            | stats sparkline(avg(rating), 1d) as trend, latest(rating) as rating, latest(name) as name, latest(industry) as industry, earliest(rating) as old_rating by company_guid
+            | eval change=rating - old_rating
+            | eval change_display=case(change>0, "&#9650; +".change, change<0, "&#9660; ".change, 1=1, "&#9644; 0")
+            | eval status=case(
+                rating>=740, "&#9679; Advanced",
+                rating>=700, "&#9679; Good", 
+                rating>=640, "&#9679; Fair",
+                rating>=500, "&#9679; Warning",
+                1=1, "&#9679; Critical"
+              )
+            | table name, rating, status, trend, change_display, industry
+            | rename name as "Company", rating as "Rating", status as "Status", trend as "30d Trend", change_display as "Change", industry as "Industry"
+            | sort -Rating
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">true</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Advanced": #53A051, "&#9679; Good": #84b957, "&#9679; Fair": #F8BE34, "&#9679; Warning": #F1813F, "&#9679; Critical": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+        <format type="sparkline" field="30d Trend">
+          <option name="type">line</option>
+          <option name="lineColor">#6DB7C6</option>
+          <option name="fillColor">#1E3A5F</option>
+          <option name="height">25</option>
+          <option name="lineWidth">2</option>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_ratings_trending?form.company=$row.Company$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</form>

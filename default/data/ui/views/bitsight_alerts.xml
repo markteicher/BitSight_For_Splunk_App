@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dashboard>
+  <label>Bitsight Alerts</label>
+  <description>Alert Management and Tracking</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="timerange" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="severity_filter" searchWhenChanged="true">
+      <label>Severity</label>
+      <choice value="*">All Severities</choice>
+      <choice value="critical">Critical</choice>
+      <choice value="high">High</choice>
+      <choice value="medium">Medium</choice>
+      <choice value="low">Low</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="alert_type_filter" searchWhenChanged="true">
+      <label>Alert Type</label>
+      <choice value="*">All Types</choice>
+      <default>*</default>
+      <fieldForLabel>alert_type</fieldForLabel>
+      <fieldForValue>alert_type</fieldForValue>
+      <search>
+        <query>
+          index=security_bitsight sourcetype="bitsight:alerts" 
+          | dedup alert_type 
+          | table alert_type 
+          | sort alert_type
+        </query>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="company_filter" searchWhenChanged="true">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <default>*</default>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_guid</fieldForValue>
+      <search>
+        <query>
+          index=security_bitsight sourcetype="bitsight:alerts" 
+          | dedup company_guid 
+          | table company_guid, company_name 
+          | sort company_name
+        </query>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+  
+  <row>
+    <panel>
+      <title>Total Alerts</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Critical Alerts</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" severity="critical"
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[0,5]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>High Alerts</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" severity="high"
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f"]</option>
+        <option name="rangeValues">[0,10]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Companies Affected</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | stats dc(company_guid) as count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Alerts Over Time</title>
+      <chart>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | timechart span=1d count by severity
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.fieldColors">{"critical": 0xdc4e41, "high": 0xf1813f, "medium": 0xf8be34, "low": 0x53a051}</option>
+      </chart>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Alerts by Severity</title>
+      <chart>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" 
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats count by severity
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"critical": 0xdc4e41, "high": 0xf1813f, "medium": 0xf8be34, "low": 0x53a051}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Alerts by Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats count by alert_type
+            | sort -count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleX.text">Alert Type</option>
+        <option name="charting.axisTitleY.text">Count</option>
+      </chart>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Top Companies by Alert Count</title>
+      <chart>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | stats count by company_name
+            | sort -count
+            | head 10
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleX.text">Company</option>
+        <option name="charting.axisTitleY.text">Alert Count</option>
+      </chart>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Alert Details</title>
+      <table>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:alerts" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where alert_type="$alert_type_filter$" OR "$alert_type_filter$"="*"
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | eval alert_time=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | table alert_time, company_name, alert_type, severity, trigger, message
+            | rename alert_time as "Time", company_name as "Company", alert_type as "Type", severity as "Severity", trigger as "Trigger", message as "Message"
+            | sort -Time
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">true</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#dc4e41,"high":#f1813f,"medium":#f8be34,"low":#53a051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</dashboard>

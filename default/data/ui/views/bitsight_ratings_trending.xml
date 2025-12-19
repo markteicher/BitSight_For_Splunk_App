@@ -1,0 +1,584 @@
+<dashboard version="1.1">
+  <label>Ratings Trending by Company</label>
+  <description>Company Rating Trends with WoW, MoM, QoQ, YoY Analysis and Company Logos</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:portfolio" OR sourcetype="bitsight:companies" | dedup company_name | table company_name</query>
+      </search>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="tier_filter">
+      <label>Tier</label>
+      <choice value="*">All Tiers</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:portfolio" | dedup tier | table tier</query>
+      </search>
+      <fieldForLabel>tier</fieldForLabel>
+      <fieldForValue>tier</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-1y@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- Company Overview with Logos -->
+  <row>
+    <panel>
+      <title>Companies Overview with Current Ratings</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:portfolio" OR sourcetype="bitsight:companies"
+| where company_name LIKE "%$company_filter$%" AND (tier LIKE "%$tier_filter$%" OR isnull(tier))
+| dedup company_name
+| eval logo_html=if(isnotnull(logo_url) AND logo_url!="", "&lt;img src=\"".logo_url."\" height=\"24\" alt=\"".company_name."\" /&gt;", "")
+| eval rating_category=case(
+    rating>=740, "Advanced",
+    rating>=700, "Good", 
+    rating>=640, "Fair",
+    rating>=600, "Poor",
+    1=1, "Critical"
+)
+| table logo_url, company_name, rating, rating_category, industry, tier, guid
+| rename logo_url as "Logo", company_name as "Company", rating as "Current Rating", rating_category as "Category", industry as "Industry", tier as "Tier", guid as "GUID"
+| sort -"Current Rating"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">20</option>
+        <format type="color" field="Category">
+          <colorPalette type="map">{"Advanced":#53A051,"Good":#006D9C,"Fair":#F8BE34,"Poor":#F1813F,"Critical":#DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Current Rating">
+          <colorPalette type="expression">if(value>=740, "#53A051", if(value>=700, "#006D9C", if(value>=640, "#F8BE34", if(value>=600, "#F1813F", "#DC4E41"))))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Trending Summary Cards -->
+  <row>
+    <panel>
+      <title>Companies Improved (Last 30 Days)</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
+| eval change=current_rating-prev_rating
+| where change > 0
+| stats count
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Companies Declined (Last 30 Days)</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
+| eval change=current_rating-prev_rating
+| where change &lt; 0
+| stats count
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0xDC4E41","0xDC4E41"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>No Change (Last 30 Days)</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
+| eval change=current_rating-prev_rating
+| where change=0
+| stats count
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x006D9C","0x006D9C"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Average Rating Change</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
+| eval change=current_rating-prev_rating
+| stats avg(change) as avg_change
+| eval avg_change=round(avg_change, 1)
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.0</option>
+        <option name="useColors">1</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0xDC4E41","0x006D9C","0x53A051"]</option>
+        <option name="rangeValues">[-1,1]</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Company Rating Trends Table with Logo -->
+  <row>
+    <panel>
+      <title>Company Rating Trends (WoW, MoM, QoQ, YoY)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:portfolio" OR sourcetype="bitsight:companies"
+| where company_name LIKE "%$company_filter$%" AND (tier LIKE "%$tier_filter$%" OR isnull(tier))
+| dedup company_name
+| rename rating as current_rating
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-14d latest=-7d
+  | stats latest(rating) as week_ago_rating by company_name
+]
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-60d latest=-30d
+  | stats latest(rating) as month_ago_rating by company_name
+]
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-120d latest=-90d
+  | stats latest(rating) as quarter_ago_rating by company_name
+]
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-400d latest=-365d
+  | stats latest(rating) as year_ago_rating by company_name
+]
+| eval wow_change=if(isnotnull(week_ago_rating), current_rating-week_ago_rating, null())
+| eval mom_change=if(isnotnull(month_ago_rating), current_rating-month_ago_rating, null())
+| eval qoq_change=if(isnotnull(quarter_ago_rating), current_rating-quarter_ago_rating, null())
+| eval yoy_change=if(isnotnull(year_ago_rating), current_rating-year_ago_rating, null())
+| eval wow_trend=case(wow_change>0, "↑", wow_change&lt;0, "↓", wow_change=0, "→", 1=1, "-")
+| eval mom_trend=case(mom_change>0, "↑", mom_change&lt;0, "↓", mom_change=0, "→", 1=1, "-")
+| eval qoq_trend=case(qoq_change>0, "↑", qoq_change&lt;0, "↓", qoq_change=0, "→", 1=1, "-")
+| eval yoy_trend=case(yoy_change>0, "↑", yoy_change&lt;0, "↓", yoy_change=0, "→", 1=1, "-")
+| table logo_url, company_name, current_rating, wow_change, wow_trend, mom_change, mom_trend, qoq_change, qoq_trend, yoy_change, yoy_trend, tier, industry
+| rename logo_url as "Logo", company_name as "Company", current_rating as "Rating", wow_change as "WoW Δ", wow_trend as "WoW", mom_change as "MoM Δ", mom_trend as "MoM", qoq_change as "QoQ Δ", qoq_trend as "QoQ", yoy_change as "YoY Δ", yoy_trend as "YoY", tier as "Tier", industry as "Industry"
+| sort -Rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">25</option>
+        <format type="color" field="WoW Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="MoM Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="QoQ Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="YoY Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="Rating">
+          <colorPalette type="expression">if(value>=740, "#53A051", if(value>=700, "#006D9C", if(value>=640, "#F8BE34", if(value>=600, "#F1813F", "#DC4E41"))))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Rating History Charts -->
+  <row>
+    <panel>
+      <title>Company Rating History Over Time</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| timechart span=1w latest(rating) by company_name limit=15
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Rating</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Biggest Movers -->
+  <row>
+    <panel>
+      <title>Top Improvers (Last 30 Days)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:portfolio" OR sourcetype="bitsight:companies"
+| where company_name LIKE "%$company_filter$%"
+| dedup company_name
+| rename rating as current_rating
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-30d@d latest=-29d@d
+  | stats earliest(rating) as month_ago_rating by company_name
+]
+| eval change=current_rating-month_ago_rating
+| where change > 0
+| table logo_url, company_name, month_ago_rating, current_rating, change
+| rename logo_url as "Logo", company_name as "Company", month_ago_rating as "30 Days Ago", current_rating as "Current", change as "Improvement"
+| sort -Improvement
+| head 10
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+        <format type="color" field="Improvement">
+          <colorPalette type="expression">if(value > 20, "#53A051", if(value > 10, "#006D9C", "#F8BE34"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Top Decliners (Last 30 Days)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:portfolio" OR sourcetype="bitsight:companies"
+| where company_name LIKE "%$company_filter$%"
+| dedup company_name
+| rename rating as current_rating
+| join type=left company_name [
+  search index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history" earliest=-30d@d latest=-29d@d
+  | stats earliest(rating) as month_ago_rating by company_name
+]
+| eval change=current_rating-month_ago_rating
+| where change &lt; 0
+| table logo_url, company_name, month_ago_rating, current_rating, change
+| rename logo_url as "Logo", company_name as "Company", month_ago_rating as "30 Days Ago", current_rating as "Current", change as "Decline"
+| sort Decline
+| head 10
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+        <format type="color" field="Decline">
+          <colorPalette type="expression">if(value &lt; -20, "#DC4E41", if(value &lt; -10, "#F1813F", "#F8BE34"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Week over Week Detail -->
+  <row>
+    <panel>
+      <title>Week-over-Week Rating Changes</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval week=strftime(_time, "%Y-W%W")
+| stats latest(rating) as rating by company_name, week
+| sort company_name, week
+| streamstats current=f last(rating) as prev_rating by company_name
+| eval wow_change=rating-prev_rating
+| where isnotnull(prev_rating)
+| chart avg(wow_change) as "Avg WoW Change" by week
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleY.text">Rating Change</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>WoW Change Distribution</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval week=strftime(_time, "%Y-W%W")
+| stats latest(rating) as rating by company_name, week
+| sort company_name, week
+| streamstats current=f last(rating) as prev_rating by company_name
+| eval wow_change=rating-prev_rating
+| where isnotnull(prev_rating)
+| eval change_bucket=case(
+    wow_change &lt;= -20, "Significant Drop (-20+)",
+    wow_change &lt; -5, "Moderate Drop (-5 to -20)",
+    wow_change &lt; 0, "Minor Drop (0 to -5)",
+    wow_change = 0, "No Change",
+    wow_change &lt;= 5, "Minor Gain (0 to 5)",
+    wow_change &lt;= 20, "Moderate Gain (5 to 20)",
+    1=1, "Significant Gain (20+)"
+)
+| stats count by change_bucket
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Month over Month Detail -->
+  <row>
+    <panel>
+      <title>Month-over-Month Rating Changes by Company</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| stats latest(rating) as rating by company_name, month
+| sort company_name, month
+| streamstats current=f last(rating) as prev_rating by company_name
+| eval mom_change=rating-prev_rating
+| where isnotnull(prev_rating)
+| xyseries month, company_name, mom_change
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Quarter over Quarter Detail -->
+  <row>
+    <panel>
+      <title>Quarter-over-Quarter Rating Trends</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval quarter=strftime(_time, "%Y-Q") + tostring(ceil(tonumber(strftime(_time, "%m"))/3))
+| stats latest(rating) as rating, avg(rating) as avg_rating by company_name, quarter
+| sort company_name, quarter
+| xyseries quarter, company_name, rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>QoQ Change Summary</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval quarter=strftime(_time, "%Y-Q") + tostring(ceil(tonumber(strftime(_time, "%m"))/3))
+| stats latest(rating) as rating by company_name, quarter
+| sort company_name, quarter
+| streamstats current=f last(rating) as prev_rating by company_name
+| eval qoq_change=rating-prev_rating
+| where isnotnull(prev_rating)
+| stats latest(rating) as current_rating, latest(qoq_change) as latest_qoq, avg(qoq_change) as avg_qoq, sum(qoq_change) as total_change by company_name
+| eval avg_qoq=round(avg_qoq, 1)
+| table company_name, current_rating, latest_qoq, avg_qoq, total_change
+| rename company_name as "Company", current_rating as "Current Rating", latest_qoq as "Latest QoQ", avg_qoq as "Avg QoQ", total_change as "Total Change"
+| sort -current_rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Latest QoQ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="Total Change">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Year over Year Detail -->
+  <row>
+    <panel>
+      <title>Year-over-Year Comparison</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval year=strftime(_time, "%Y")
+| stats avg(rating) as avg_rating, latest(rating) as end_rating, earliest(rating) as start_rating by company_name, year
+| eval yearly_change=end_rating-start_rating
+| xyseries year, company_name, avg_rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>YoY Performance Summary</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval year=strftime(_time, "%Y")
+| stats latest(rating) as end_rating, earliest(rating) as start_rating, min(rating) as min_rating, max(rating) as max_rating, avg(rating) as avg_rating by company_name, year
+| eval yoy_change=end_rating-start_rating, volatility=max_rating-min_rating
+| stats latest(end_rating) as current_rating, latest(yoy_change) as latest_yoy, avg(avg_rating) as overall_avg, sum(yoy_change) as cumulative_change, avg(volatility) as avg_volatility by company_name
+| eval overall_avg=round(overall_avg, 0), avg_volatility=round(avg_volatility, 0)
+| table company_name, current_rating, latest_yoy, overall_avg, cumulative_change, avg_volatility
+| rename company_name as "Company", current_rating as "Current Rating", latest_yoy as "Latest YoY Δ", overall_avg as "Historical Avg", cumulative_change as "Cumulative Δ", avg_volatility as "Avg Volatility"
+| sort -current_rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Latest YoY Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="Cumulative Δ">
+          <colorPalette type="expression">if(value > 0, "#53A051", if(value &lt; 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Rating Category Changes -->
+  <row>
+    <panel>
+      <title>Companies by Rating Category Over Time</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| eval rating_category=case(
+    rating>=740, "Advanced",
+    rating>=700, "Good",
+    rating>=640, "Fair",
+    rating>=600, "Poor",
+    1=1, "Critical"
+)
+| stats dc(company_name) as companies by month, rating_category
+| xyseries month, rating_category, companies
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"Advanced":#53A051,"Good":#006D9C,"Fair":#F8BE34,"Poor":#F1813F,"Critical":#DC4E41}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Rating Category Transitions</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:ratings_history" OR sourcetype="bitsight:company_ratings_history"
+| where company_name LIKE "%$company_filter$%"
+| eval month=strftime(_time, "%Y-%m")
+| stats latest(rating) as current_rating, earliest(rating) as first_rating by company_name
+| eval current_category=case(
+    current_rating>=740, "Advanced",
+    current_rating>=700, "Good",
+    current_rating>=640, "Fair",
+    current_rating>=600, "Poor",
+    1=1, "Critical"
+)
+| eval first_category=case(
+    first_rating>=740, "Advanced",
+    first_rating>=700, "Good",
+    first_rating>=640, "Fair",
+    first_rating>=600, "Poor",
+    1=1, "Critical"
+)
+| eval transition=first_category." → ".current_category
+| eval improved=if(current_rating>first_rating, "Yes", if(current_rating&lt;first_rating, "No", "Same"))
+| table company_name, first_rating, first_category, current_rating, current_category, transition, improved
+| rename company_name as "Company", first_rating as "Starting Rating", first_category as "Starting Category", current_rating as "Current Rating", current_category as "Current Category", transition as "Category Transition", improved as "Improved?"
+| sort -"Current Rating"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">15</option>
+        <format type="color" field="Improved?">
+          <colorPalette type="map">{"Yes":#53A051,"No":#DC4E41,"Same":#006D9C}</colorPalette>
+        </format>
+        <format type="color" field="Current Category">
+          <colorPalette type="map">{"Advanced":#53A051,"Good":#006D9C,"Fair":#F8BE34,"Poor":#F1813F,"Critical":#DC4E41}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</dashboard>

@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Logs Viewer</label>
+  <description>Browse and search Bitsight data collection logs, API responses, and internal messages</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="log_level">
+      <label>Log Level</label>
+      <choice value="*">All Levels</choice>
+      <choice value="ERROR">Error</choice>
+      <choice value="WARN">Warning</choice>
+      <choice value="INFO">Info</choice>
+      <choice value="DEBUG">Debug</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="sourcetype_filter">
+      <label>Sourcetype</label>
+      <choice value="*">All Sourcetypes</choice>
+      <default>*</default>
+      <fieldForLabel>sourcetype</fieldForLabel>
+      <fieldForValue>sourcetype</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index`
+          | stats count by sourcetype
+          | table sourcetype
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="text" token="search_term">
+      <label>Search Term</label>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <!-- Log Level Summary -->
+  <row>
+    <panel>
+      <single>
+        <title>Errors</title>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight) log_level=ERROR
+            | stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="log_level">ERROR</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Warnings</title>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight) log_level=WARN
+            | stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xF8BE34"]</option>
+        <option name="rangeValues">[5,20]</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="log_level">WARN</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Info Messages</title>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight) log_level=INFO
+            | stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x6DB7C6","0x6DB7C6"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total Log Entries</title>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight)
+            | stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x3D7EAA","0x3D7EAA"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Log Timeline -->
+  <row>
+    <panel>
+      <title>Log Activity Timeline</title>
+      <chart>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight)
+            | timechart span=15m count by log_level
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.fieldColors">{"ERROR": 0xDC4E41, "WARN": 0xF8BE34, "INFO": 0x6DB7C6, "DEBUG": 0x999999}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Internal Logs -->
+  <row>
+    <panel>
+      <title>Bitsight Internal Logs</title>
+      <table>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight)
+            | where log_level LIKE "%$log_level$%" OR "$log_level$"="*"
+            | search $search_term$
+            | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | eval level_icon=case(log_level="ERROR", "🔴", log_level="WARN", "🟡", log_level="INFO", "🔵", 1=1, "⚪")
+            | table time_fmt, level_icon, log_level, component, message
+            | rename time_fmt as "Timestamp", level_icon as "", log_level as "Level", component as "Component", message as "Message"
+            | sort -Timestamp
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">50</option>
+        <option name="drilldown">none</option>
+        <option name="wrap">true</option>
+        <format type="color" field="Level">
+          <colorPalette type="map">{"ERROR": #DC4E41, "WARN": #F8BE34, "INFO": #6DB7C6, "DEBUG": #999999}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- API Response Logs -->
+  <row>
+    <panel>
+      <title>API Collection Activity</title>
+      <table>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd component=ModularInputs (bitsight OR Bitsight)
+            | search $search_term$
+            | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | rex field=message "(?i)(?P<api_endpoint>portfolio|ratings|findings|alerts|users|credentials|risk_vectors)"
+            | rex field=message "(?i)(?P<record_count>\d+)\s*(records|events|items|companies)"
+            | table time_fmt, log_level, api_endpoint, record_count, message
+            | rename time_fmt as "Timestamp", log_level as "Level", api_endpoint as "API Endpoint", record_count as "Records", message as "Message"
+            | sort -Timestamp
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">30</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Level">
+          <colorPalette type="map">{"ERROR": #DC4E41, "WARN": #F8BE34, "INFO": #6DB7C6}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Bitsight Data Events -->
+  <row>
+    <panel>
+      <title>Recent Bitsight Data Events</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index`
+            | where sourcetype LIKE "%$sourcetype_filter$%" OR "$sourcetype_filter$"="*"
+            | search $search_term$
+            | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | table time_fmt, sourcetype, company_name, _raw
+            | rename time_fmt as "Timestamp", sourcetype as "Sourcetype", company_name as "Company", _raw as "Raw Event"
+            | sort -Timestamp
+            | head 100
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <link target="_blank">/app/bitsight/search?q=`bitsight_index` sourcetype="$row.Sourcetype$" company_name="$row.Company$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Error Details -->
+  <row>
+    <panel>
+      <title>Error Details &amp; Stack Traces</title>
+      <event>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight) log_level=ERROR
+            | search $search_term$
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="list.drilldown">none</option>
+        <option name="type">list</option>
+      </event>
+    </panel>
+  </row>
+</form>

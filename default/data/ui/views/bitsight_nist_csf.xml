@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>NIST CSF Compliance</label>
+  <description>NIST Cybersecurity Framework alignment based on Bitsight risk vectors</description>
+  
+  <search id="base_nist">
+    <query>
+      `bitsight_index` sourcetype="bitsight:risk_vectors"
+      | dedup name, company_guid
+      | eval nist_function=case(
+          name IN ("dnssec", "spf", "dkim", "dmarc"), "Identify",
+          name IN ("ssl_certificates", "ssl_configurations", "open_ports", "patching_cadence", "server_software", "desktop_software", "mobile_software", "insecure_systems"), "Protect",
+          name IN ("botnet_infections", "malware_servers", "potentially_exploited", "spam_propagation", "unsolicited_comm"), "Detect",
+          name IN ("web_appsec", "application_security", "mobile_application_security"), "Respond",
+          1=1, "Recover"
+        )
+      | eval nist_category=case(
+          name="dnssec", "ID.AM - Asset Management",
+          name="spf", "ID.GV - Governance",
+          name="dkim", "ID.GV - Governance",
+          name="dmarc", "ID.GV - Governance",
+          name="ssl_certificates", "PR.DS - Data Security",
+          name="ssl_configurations", "PR.DS - Data Security",
+          name="open_ports", "PR.AC - Access Control",
+          name="patching_cadence", "PR.IP - Information Protection",
+          name="server_software", "PR.IP - Information Protection",
+          name="desktop_software", "PR.IP - Information Protection",
+          name="mobile_software", "PR.IP - Information Protection",
+          name="insecure_systems", "PR.IP - Information Protection",
+          name="botnet_infections", "DE.CM - Continuous Monitoring",
+          name="malware_servers", "DE.CM - Continuous Monitoring",
+          name="potentially_exploited", "DE.AE - Anomalies & Events",
+          name="spam_propagation", "DE.CM - Continuous Monitoring",
+          name="unsolicited_comm", "DE.CM - Continuous Monitoring",
+          name="web_appsec", "RS.MI - Mitigation",
+          name="application_security", "RS.MI - Mitigation",
+          name="mobile_application_security", "RS.MI - Mitigation",
+          1=1, "RC.RP - Recovery Planning"
+        )
+    </query>
+    <earliest>-24h@h</earliest>
+    <latest>now</latest>
+  </search>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <default>*</default>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_guid</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio"
+          | dedup guid
+          | rename guid as company_guid, name as company_name
+          | table company_guid, company_name
+          | sort company_name
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+
+  <!-- NIST Framework Legend -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="padding: 15px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
+          <h3 style="margin: 0 0 10px 0; color: #fff;">NIST Cybersecurity Framework Functions</h3>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <span style="color: #3D7EAA;"><strong>&#9632; IDENTIFY</strong> - Asset Management, Governance, Risk Assessment</span>
+            <span style="color: #53A051;"><strong>&#9632; PROTECT</strong> - Access Control, Data Security, Information Protection</span>
+            <span style="color: #6DB7C6;"><strong>&#9632; DETECT</strong> - Continuous Monitoring, Anomalies & Events</span>
+            <span style="color: #F8BE34;"><strong>&#9632; RESPOND</strong> - Analysis, Mitigation, Communications</span>
+            <span style="color: #F1813F;"><strong>&#9632; RECOVER</strong> - Recovery Planning, Improvements</span>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Overall NIST Scores -->
+  <row>
+    <panel>
+      <single>
+        <title>Overall CSF Score</title>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats avg(rating) as score
+            | eval score=round(score, 0)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Composite Rating</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>&#9632; IDENTIFY</title>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | where nist_function="Identify"
+            | stats avg(rating) as score
+            | eval score=round(score, 0)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x3D7EAA"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>&#9632; PROTECT</title>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | where nist_function="Protect"
+            | stats avg(rating) as score
+            | eval score=round(score, 0)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>&#9632; DETECT</title>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | where nist_function="Detect"
+            | stats avg(rating) as score
+            | eval score=round(score, 0)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x6DB7C6"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>&#9632; RESPOND</title>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | where nist_function="Respond"
+            | stats avg(rating) as score
+            | eval score=round(score, 0)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0xF8BE34"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- NIST Function Breakdown -->
+  <row>
+    <panel>
+      <title>NIST Function Scores</title>
+      <chart>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats avg(rating) as score by nist_function
+            | eval score=round(score, 0)
+            | eval sort_order=case(nist_function="Identify",1,nist_function="Protect",2,nist_function="Detect",3,nist_function="Respond",4,nist_function="Recover",5)
+            | sort sort_order
+            | fields - sort_order
+          </query>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,400,600,750,900]</option>
+        <option name="charting.gaugeColors">["0xDC4E41","0xF1813F","0xF8BE34","0x53A051"]</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Function Score Distribution</title>
+      <chart>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats avg(rating) as score by nist_function
+            | eval score=round(score, 0)
+            | eval sort_order=case(nist_function="Identify",1,nist_function="Protect",2,nist_function="Detect",3,nist_function="Respond",4,nist_function="Recover",5)
+            | sort sort_order
+            | fields - sort_order
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.fieldColors">{"Identify": 0x3D7EAA, "Protect": 0x53A051, "Detect": 0x6DB7C6, "Respond": 0xF8BE34, "Recover": 0xF1813F}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Category Breakdown -->
+  <row>
+    <panel>
+      <title>NIST Category Scores</title>
+      <table>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats avg(rating) as score, values(name) as risk_vectors by nist_function, nist_category
+            | eval score=round(score, 0)
+            | eval status=case(score>=700, "&#9679; Compliant", score>=500, "&#9679; Partial", 1=1, "&#9679; Gap")
+            | eval risk_vectors=mvjoin(risk_vectors, ", ")
+            | table nist_function, nist_category, score, status, risk_vectors
+            | rename nist_function as "Function", nist_category as "Category", score as "Score", status as "Status", risk_vectors as "Risk Vectors"
+            | sort Function, -Score
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Score">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="600"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Compliant": #53A051, "&#9679; Partial": #F8BE34, "&#9679; Gap": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Function">
+          <colorPalette type="map">{"Identify": #3D7EAA, "Protect": #53A051, "Detect": #6DB7C6, "Respond": #F8BE34, "Recover": #F1813F}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Risk Vector Detail -->
+  <row>
+    <panel>
+      <title>Risk Vector NIST Mapping</title>
+      <table>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | stats latest(rating) as rating, latest(grade) as grade by name, nist_function, nist_category
+            | eval status=case(rating>=700, "&#9679; Pass", rating>=500, "&#9679; Warn", 1=1, "&#9679; Fail")
+            | table nist_function, nist_category, name, rating, grade, status
+            | rename nist_function as "Function", nist_category as "Category", name as "Risk Vector", rating as "Rating", grade as "Grade", status as "Status"
+            | sort Function, Category, -Rating
+          </query>
+        </search>
+        <option name="count">25</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="600"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Pass": #53A051, "&#9679; Warn": #F8BE34, "&#9679; Fail": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Grade">
+          <colorPalette type="map">{"A": #53A051, "B": #84b957, "C": #F8BE34, "D": #F1813F, "F": #DC4E41}</colorPalette>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_findings?form.risk_vector=$row.Risk Vector$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Compliance Gap Analysis -->
+  <row>
+    <panel>
+      <title>Compliance Gaps (Score &lt; 600)</title>
+      <table>
+        <search base="base_nist">
+          <query>
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | where rating &lt; 600
+            | eval gap_severity=case(rating&lt;400, "&#9679; Critical", rating&lt;500, "&#9679; High", 1=1, "&#9679; Medium")
+            | eval remediation=case(
+                name="patching_cadence", "Implement automated patch management",
+                name="ssl_certificates", "Renew/replace expired certificates",
+                name="ssl_configurations", "Upgrade to TLS 1.2+, disable weak ciphers",
+                name="open_ports", "Close unnecessary ports, implement firewall rules",
+                name="dnssec", "Enable DNSSEC for all domains",
+                name="spf", "Configure SPF records for email domains",
+                name="dkim", "Enable DKIM signing for email",
+                name="dmarc", "Implement DMARC policy",
+                name="botnet_infections", "Investigate and remediate infected systems",
+                1=1, "Review and remediate findings"
+              )
+            | table gap_severity, nist_function, name, rating, remediation
+            | rename gap_severity as "Severity", nist_function as "Function", name as "Risk Vector", rating as "Score", remediation as "Recommended Action"
+            | sort Score
+          </query>
+        </search>
+        <option name="count">15</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"&#9679; Critical": #DC4E41, "&#9679; High": #F1813F, "&#9679; Medium": #F8BE34}</colorPalette>
+        </format>
+        <format type="color" field="Score">
+          <colorPalette type="minMidMax" maxColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_findings?form.risk_vector=$row.Risk Vector$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Trend by Function -->
+  <row>
+    <panel>
+      <title>NIST Function Trend (30 Days)</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:risk_vectors"
+            | eval nist_function=case(
+                name IN ("dnssec", "spf", "dkim", "dmarc"), "Identify",
+                name IN ("ssl_certificates", "ssl_configurations", "open_ports", "patching_cadence", "server_software", "desktop_software", "mobile_software", "insecure_systems"), "Protect",
+                name IN ("botnet_infections", "malware_servers", "potentially_exploited", "spam_propagation", "unsolicited_comm"), "Detect",
+                name IN ("web_appsec", "application_security", "mobile_application_security"), "Respond",
+                1=1, "Recover"
+              )
+            | where company_guid="$company_filter$" OR "$company_filter$"="*"
+            | timechart span=1d avg(rating) by nist_function
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Score</option>
+        <option name="charting.fieldColors">{"Identify": 0x3D7EAA, "Protect": 0x53A051, "Detect": 0x6DB7C6, "Respond": 0xF8BE34, "Recover": 0xF1813F}</option>
+      </chart>
+    </panel>
+  </row>
+</form>

@@ -1,0 +1,718 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Operations Dashboard</label>
+  <description>Data ingestion metrics, record counts, processing rates, and operational KPIs</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- Key Operational Metrics -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="padding: 15px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; text-align: center;">
+          <h2 style="margin: 0; color: #6DB7C6;">📊 Data Processing Operations</h2>
+          <p style="margin: 5px 0 0 0; color: #888;">Real-time ingestion metrics, net new records, and percentage KPIs</p>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Net New Records & Growth KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>📈 Net New Records (Today)</title>
+        <search>
+          <query>
+            `bitsight_index` earliest=-1d@d latest=@d
+            | stats count as today
+            | appendcols [
+              search `bitsight_index` earliest=-2d@d latest=-1d@d
+              | stats count as yesterday
+            ]
+            | eval net_new=today - yesterday
+            | eval display=if(net_new >= 0, "+".net_new, net_new)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[0,0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">vs Yesterday</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>📊 Daily Growth Rate</title>
+        <search>
+          <query>
+            `bitsight_index` earliest=-1d@d latest=@d
+            | stats count as today
+            | appendcols [
+              search `bitsight_index` earliest=-2d@d latest=-1d@d
+              | stats count as yesterday
+            ]
+            | eval growth_pct=if(yesterday > 0, round(((today - yesterday)/yesterday)*100, 1), 0)
+            | eval display=if(growth_pct >= 0, "+".growth_pct."%", growth_pct."%")
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[0,0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Day-over-Day</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>📈 Weekly Growth Rate</title>
+        <search>
+          <query>
+            `bitsight_index` earliest=-7d@d latest=@d
+            | stats count as this_week
+            | appendcols [
+              search `bitsight_index` earliest=-14d@d latest=-7d@d
+              | stats count as last_week
+            ]
+            | eval growth_pct=if(last_week > 0, round(((this_week - last_week)/last_week)*100, 1), 0)
+            | eval display=if(growth_pct >= 0, "+".growth_pct."%", growth_pct."%")
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[0,0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Week-over-Week</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>📊 Monthly Growth Rate</title>
+        <search>
+          <query>
+            `bitsight_index` earliest=-30d@d latest=@d
+            | stats count as this_month
+            | appendcols [
+              search `bitsight_index` earliest=-60d@d latest=-30d@d
+              | stats count as last_month
+            ]
+            | eval growth_pct=if(last_month > 0, round(((this_month - last_month)/last_month)*100, 1), 0)
+            | eval display=if(growth_pct >= 0, "+".growth_pct."%", growth_pct."%")
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[0,0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Month-over-Month</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Collection Success & Quality KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>✓ Collection Success Rate</title>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight)
+            | stats count(eval(log_level="INFO")) as success, count(eval(log_level="ERROR")) as errors, count as total
+            | eval success_rate=round((success/total)*100, 1)
+            | table success_rate
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[90,98]</option>
+        <option name="unit">%</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">API Calls Successful</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>📋 Data Coverage Rate</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | dedup guid
+            | stats count as total_companies
+            | appendcols [
+              search `bitsight_index` sourcetype="bitsight:ratings"
+              | stats dc(company_guid) as companies_with_ratings
+            ]
+            | appendcols [
+              search `bitsight_index` sourcetype="bitsight:findings"
+              | stats dc(company_guid) as companies_with_findings
+            ]
+            | eval coverage_pct=round((companies_with_ratings/total_companies)*100, 1)
+            | table coverage_pct
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[80,95]</option>
+        <option name="unit">%</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Portfolio with Ratings</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>🔄 Deduplication Rate</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats count as total_events, dc(_raw) as unique_events
+            | eval dup_rate=round(((total_events - unique_events)/total_events)*100, 1)
+            | eval unique_pct=100 - dup_rate
+            | table unique_pct
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[70,90]</option>
+        <option name="unit">%</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Unique Records</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>⚡ Error Rate</title>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd (bitsight OR Bitsight)
+            | stats count(eval(log_level="ERROR")) as errors, count as total
+            | eval error_rate=round((errors/total)*100, 2)
+            | table error_rate
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,5]</option>
+        <option name="unit">%</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Collection Errors</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Net New by Sourcetype -->
+  <row>
+    <panel>
+      <title>📈 Net New Records by Data Type (Today vs Yesterday)</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` earliest=-1d@d latest=@d
+            | stats count as today by sourcetype
+            | join type=outer sourcetype [
+              search `bitsight_index` earliest=-2d@d latest=-1d@d
+              | stats count as yesterday by sourcetype
+            ]
+            | fillnull value=0 yesterday
+            | eval net_new=today - yesterday
+            | eval change_pct=if(yesterday > 0, round(((today - yesterday)/yesterday)*100, 1), "New")
+            | eval trend=case(net_new > 0, "▲ +".net_new, net_new < 0, "▼ ".net_new, 1=1, "─ 0")
+            | eval change_display=if(isnum(change_pct), if(change_pct >= 0, "+".change_pct."%", change_pct."%"), change_pct)
+            | table sourcetype, today, yesterday, trend, change_display
+            | rename sourcetype as "Data Type", today as "Today", yesterday as "Yesterday", trend as "Net Change", change_display as "% Change"
+            | sort -Today
+          </query>
+        </search>
+        <option name="count">15</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Net Change">
+          <colorPalette type="expression">if(match(value, "▲"), "#53A051", if(match(value, "▼"), "#DC4E41", "#6DB7C6"))</colorPalette>
+        </format>
+        <format type="color" field="% Change">
+          <colorPalette type="expression">if(match(value, "^\+") OR match(value, "New"), "#53A051", if(match(value, "^-"), "#DC4E41", "#6DB7C6"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Net New Records Trend (7 Days)</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index`
+            | eval date=strftime(_time, "%Y-%m-%d")
+            | stats count as records by date
+            | sort date
+            | streamstats current=f last(records) as prev_records
+            | eval net_new=records - prev_records
+            | where isnotnull(prev_records)
+            | table date, net_new
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleY.text">Net New Records</option>
+        <option name="charting.fieldColors">{"net_new": 0x53A051}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- API Performance Metrics -->
+  <row>
+    <panel>
+      <title>⚡ API Response Latency</title>
+      <single>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd component=ModularInputs (bitsight OR Bitsight)
+            | rex field=message "(?i)completed in (?P&lt;latency_ms&gt;\d+)"
+            | where isnotnull(latency_ms)
+            | stats avg(latency_ms) as avg_latency
+            | eval avg_latency=round(avg_latency, 0)
+            | table avg_latency
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1000,5000]</option>
+        <option name="unit">ms</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Avg API Response</option>
+      </single>
+    </panel>
+    <panel>
+      <title>📊 Records per API Call</title>
+      <single>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd component=ModularInputs (bitsight OR Bitsight) "records"
+            | rex field=message "(?i)(?P&lt;record_count&gt;\d+)\s*(records|events|items)"
+            | where isnotnull(record_count)
+            | stats avg(record_count) as avg_records
+            | eval avg_records=round(avg_records, 0)
+            | table avg_records
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[10,50]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Avg per Collection</option>
+      </single>
+    </panel>
+    <panel>
+      <title>🔄 Collection Runs Today</title>
+      <single>
+        <search>
+          <query>
+            index=_internal sourcetype=scheduler (app="bitsight" OR savedsearch="*bitsight*")
+            | stats count as runs
+          </query>
+          <earliest>-1d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x6DB7C6","0x6DB7C6"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Scheduled Runs</option>
+      </single>
+    </panel>
+    <panel>
+      <title>⏱️ Avg Collection Time</title>
+      <single>
+        <search>
+          <query>
+            index=_internal sourcetype=scheduler (app="bitsight" OR savedsearch="*bitsight*")
+            | stats avg(run_time) as avg_runtime
+            | eval avg_runtime=round(avg_runtime, 1)
+            | table avg_runtime
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[30,120]</option>
+        <option name="unit">sec</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Per Run</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Total Records KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>Total Records Processed</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats count as total_records
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Events Ingested</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Unique Companies</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats dc(company_guid) as unique_companies
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x6DB7C6","0x6DB7C6"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">In Portfolio</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Unique Findings</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:findings"
+            | stats dc(finding_id) as unique_findings
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xF8BE34","0xF8BE34"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Tracked Issues</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Avg Events/Hour</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats count as total
+            | eval hours=(now() - relative_time(now(), "$time_range.earliest$"))/3600
+            | eval avg_per_hour=round(total/hours, 0)
+            | table avg_per_hour
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[10,50]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Ingestion Rate</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Data Freshness</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats latest(_time) as last_event
+            | eval age_mins=round((now() - last_event)/60, 0)
+            | eval display=if(age_mins < 60, age_mins." min ago", round(age_mins/60, 1)." hrs ago")
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[60,1440]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Last Data Received</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Records by Sourcetype -->
+  <row>
+    <panel>
+      <title>Records Processed by Data Type</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats count as records, dc(_raw) as unique_events, latest(_time) as last_event, earliest(_time) as first_event by sourcetype
+            | eval last_event_fmt=strftime(last_event, "%Y-%m-%d %H:%M")
+            | eval first_event_fmt=strftime(first_event, "%Y-%m-%d %H:%M")
+            | eval data_span_hours=round((last_event - first_event)/3600, 1)
+            | eval records_per_hour=if(data_span_hours > 0, round(records/data_span_hours, 1), records)
+            | table sourcetype, records, unique_events, records_per_hour, first_event_fmt, last_event_fmt
+            | rename sourcetype as "Data Type", records as "Total Records", unique_events as "Unique Events", records_per_hour as "Records/Hour", first_event_fmt as "First Event", last_event_fmt as "Last Event"
+            | sort -"Total Records"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <format type="number" field="Total Records">
+          <option name="precision">0</option>
+        </format>
+        <format type="color" field="Total Records">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/search?q=`bitsight_index` sourcetype="$row.Data Type$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <title>Record Distribution</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats count by sourcetype
+            | sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Ingestion Timeline -->
+  <row>
+    <panel>
+      <title>Ingestion Rate Over Time</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index`
+            | timechart span=1h count as "Records Ingested"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleY.text">Records</option>
+        <option name="charting.fieldColors">{"Records Ingested": 0x53A051}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Records by Sourcetype Over Time</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index`
+            | timechart span=1h count by sourcetype limit=10
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Records</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Company-Level Metrics -->
+  <row>
+    <panel>
+      <title>Records by Company (Top 20)</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` company_name=*
+            | stats count as total_records, dc(sourcetype) as data_types, latest(_time) as last_update by company_name
+            | eval last_update_fmt=strftime(last_update, "%Y-%m-%d %H:%M")
+            | table company_name, total_records, data_types, last_update_fmt
+            | rename company_name as "Company", total_records as "Total Records", data_types as "Data Types", last_update_fmt as "Last Update"
+            | sort -"Total Records"
+            | head 20
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Total Records">
+          <colorPalette type="minMidMax" maxColor="#53A051" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/search?q=`bitsight_index` company_name="$row.Company$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Processing Statistics -->
+  <row>
+    <panel>
+      <title>Daily Processing Summary (Last 7 Days)</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index`
+            | eval date=strftime(_time, "%Y-%m-%d")
+            | stats count as records, dc(sourcetype) as data_types, dc(company_guid) as companies by date
+            | sort -date
+            | streamstats current=f last(records) as prev_records by date
+            | eval change=records - prev_records
+            | eval trend=case(change > 0, "▲ +".change, change < 0, "▼ ".change, 1=1, "─ 0")
+            | table date, records, data_types, companies, trend
+            | rename date as "Date", records as "Records", data_types as "Data Types", companies as "Companies", trend as "Change"
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Change">
+          <colorPalette type="expression">if(match(value, "▲"), "#53A051", if(match(value, "▼"), "#DC4E41", "#6DB7C6"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Hourly Processing Rate</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index`
+            | eval hour=strftime(_time, "%H")
+            | stats count by hour
+            | sort hour
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Hour of Day</option>
+        <option name="charting.axisTitleY.text">Avg Records</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Index Statistics -->
+  <row>
+    <panel>
+      <title>Index Statistics</title>
+      <table>
+        <search>
+          <query>
+            | rest /services/data/indexes
+            | search title="security_bitsight" OR title="main"
+            | eval size_mb=round(currentDBSizeMB, 2)
+            | eval max_size_mb=round(maxTotalDataSizeMB, 2)
+            | eval usage_pct=round((size_mb/max_size_mb)*100, 1)."%"
+            | eval event_count=totalEventCount
+            | table title, size_mb, max_size_mb, usage_pct, event_count, frozenTimePeriodInSecs
+            | rename title as "Index", size_mb as "Size (MB)", max_size_mb as "Max Size (MB)", usage_pct as "Usage", event_count as "Total Events", frozenTimePeriodInSecs as "Retention (sec)"
+          </query>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Usage">
+          <colorPalette type="expression">if(tonumber(replace(value, "%", "")) > 80, "#DC4E41", if(tonumber(replace(value, "%", "")) > 50, "#F8BE34", "#53A051"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Collection Run Times</title>
+      <table>
+        <search>
+          <query>
+            index=_internal sourcetype=scheduler (app="bitsight" OR savedsearch="*bitsight*")
+            | stats count as runs, avg(run_time) as avg_runtime, max(run_time) as max_runtime, latest(_time) as last_run by savedsearch
+            | eval avg_runtime=round(avg_runtime, 2)." sec", max_runtime=round(max_runtime, 2)." sec"
+            | eval last_run_fmt=strftime(last_run, "%Y-%m-%d %H:%M")
+            | table savedsearch, runs, avg_runtime, max_runtime, last_run_fmt
+            | rename savedsearch as "Search Name", runs as "Runs", avg_runtime as "Avg Runtime", max_runtime as "Max Runtime", last_run_fmt as "Last Run"
+            | sort -runs
+            | head 15
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">15</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Data Quality -->
+  <row>
+    <panel>
+      <title>Data Completeness Check</title>
+      <table>
+        <search>
+          <query>
+            | makeresults count=1
+            | eval data_types=split("portfolio,ratings,findings,alerts,users,credentials,risk_vectors,threats", ",")
+            | mvexpand data_types
+            | map search="search `bitsight_index` sourcetype=\"bitsight:$data_types$\" | stats count as records, dc(company_guid) as companies | eval data_type=\"$data_types$\""
+            | eval status=case(records > 0 AND companies > 0, "✓ Complete", records > 0, "⚠ Partial", 1=1, "✗ Missing")
+            | table data_type, records, companies, status
+            | rename data_type as "Data Type", records as "Records", companies as "Companies", status as "Status"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"✓ Complete": #53A051, "⚠ Partial": #F8BE34, "✗ Missing": #DC4E41}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>

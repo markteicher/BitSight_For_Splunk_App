@@ -1,0 +1,670 @@
+<dashboard version="1.1">
+  <label>Users Access Review</label>
+  <description>User Access Review Dashboard - Login Status, Inactivity Analysis, and Account Age</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-90d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="role_filter">
+      <label>Role</label>
+      <choice value="*">All Roles</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:users" | dedup role | table role</query>
+      </search>
+      <fieldForLabel>role</fieldForLabel>
+      <fieldForValue>role</fieldForValue>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <!-- Summary Row -->
+  <row>
+    <panel>
+      <title>Total Users</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype="bitsight:users" | dedup email | stats count</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0x006D9C"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Users Logged In (Ever)</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| where isnotnull(last_login) AND last_login!=""
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Users Never Logged In</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| where isnull(last_login) OR last_login=""
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0xDC4E41","0xDC4E41"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Never Logged % of Total</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval never_logged=if(isnull(last_login) OR last_login="", 1, 0)
+| stats sum(never_logged) as never_logged, count as total
+| eval pct=round((never_logged/total)*100, 1)."%"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Login Status Last 30/60/90 Days -->
+  <row>
+    <panel>
+      <title>Logged In Last 30 Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time >= relative_time(now(), "-30d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Logged In Last 60 Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time >= relative_time(now(), "-60d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x006D9C","0x006D9C"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Logged In Last 90 Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time >= relative_time(now(), "-90d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0xF8BE34","0xF8BE34"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Not Logged In 90+ Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where (isnull(last_login_time) OR last_login_time &lt; relative_time(now(), "-90d"))
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0xDC4E41","0xDC4E41"]</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Inactivity Breakdown 30/60/90 Days -->
+  <row>
+    <panel>
+      <title>Inactive 30+ Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-30d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0x006D9C"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Inactive 60+ Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-60d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Inactive 90+ Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-90d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0xF1813F"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Inactive 180+ Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-180d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0xDC4E41"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Inactivity by Period -->
+  <row>
+    <panel>
+      <title>Inactive 1-30 Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-1d") AND last_login_time >= relative_time(now(), "-30d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Inactive 31-60 Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-30d") AND last_login_time >= relative_time(now(), "-60d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Inactive 61-90 Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-60d") AND last_login_time >= relative_time(now(), "-90d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Inactive &gt;90 Days</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-90d")
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0xDC4E41"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Inactivity Distribution Chart -->
+  <row>
+    <panel>
+      <title>User Login Status Distribution</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| eval days_inactive=if(isnull(last_login_time), 9999, round((now()-last_login_time)/86400, 0))
+| eval login_status=case(
+    days_inactive>=9999, "Never Logged In",
+    days_inactive>=180, "Inactive 180+ Days",
+    days_inactive>=90, "Inactive 91-180 Days",
+    days_inactive>=60, "Inactive 61-90 Days",
+    days_inactive>=30, "Inactive 31-60 Days",
+    days_inactive>=1, "Inactive 1-30 Days",
+    1=1, "Active Today"
+)
+| stats count by login_status
+| sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Inactivity by Role (30/60/90 Days)</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| eval days_inactive=if(isnull(last_login_time), 9999, round((now()-last_login_time)/86400, 0))
+| eval inactivity_bucket=case(
+    days_inactive>=9999, "Never Logged In",
+    days_inactive>=90, "90+ Days",
+    days_inactive>=60, "61-90 Days",
+    days_inactive>=30, "31-60 Days",
+    days_inactive>=1, "1-30 Days",
+    1=1, "Active"
+)
+| stats count by role, inactivity_bucket
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Users Never Logged In with Account Age -->
+  <row>
+    <panel>
+      <title>Users Never Logged In - Account Age Analysis</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| where role LIKE "%$role_filter$%"
+| dedup email
+| where isnull(last_login) OR last_login=""
+| eval created_time=strptime(created, "%Y-%m-%dT%H:%M:%S")
+| eval account_age_days=round((now()-created_time)/86400, 0)
+| eval account_age_months=round(account_age_days/30, 1)
+| eval account_age_years=round(account_age_days/365, 2)
+| eval age_category=case(
+    account_age_days>=730, "2+ Years Old",
+    account_age_days>=365, "1-2 Years Old",
+    account_age_days>=180, "6-12 Months Old",
+    account_age_days>=90, "3-6 Months Old",
+    account_age_days>=30, "1-3 Months Old",
+    1=1, "Less than 1 Month"
+)
+| table email, first_name, last_name, role, created, account_age_days, account_age_months, account_age_years, age_category
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", created as "Created Date", account_age_days as "Age (Days)", account_age_months as "Age (Months)", account_age_years as "Age (Years)", age_category as "Age Category"
+| sort -"Age (Days)"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">20</option>
+        <format type="color" field="Age Category">
+          <colorPalette type="map">{"2+ Years Old":#DC4E41,"1-2 Years Old":#F1813F,"6-12 Months Old":#F8BE34,"3-6 Months Old":#006D9C,"1-3 Months Old":#53A051,"Less than 1 Month":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Age (Days)">
+          <colorPalette type="expression">if(value > 730, "#DC4E41", if(value > 365, "#F1813F", if(value > 180, "#F8BE34", "#53A051")))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Never Logged Summary by Age -->
+  <row>
+    <panel>
+      <title>Never Logged Users by Account Age</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| where isnull(last_login) OR last_login=""
+| eval created_time=strptime(created, "%Y-%m-%dT%H:%M:%S")
+| eval account_age_days=round((now()-created_time)/86400, 0)
+| eval age_category=case(
+    account_age_days>=730, "2+ Years",
+    account_age_days>=365, "1-2 Years",
+    account_age_days>=180, "6-12 Months",
+    account_age_days>=90, "3-6 Months",
+    account_age_days>=30, "1-3 Months",
+    1=1, "&lt;1 Month"
+)
+| stats count by age_category
+| sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.chart.showDataLabels">all</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Never Logged Users by Role</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| where isnull(last_login) OR last_login=""
+| stats count by role
+| sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Inactive Users Detail Tables -->
+  <row>
+    <panel>
+      <title>Users Inactive 90+ Days</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| where role LIKE "%$role_filter$%"
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-90d")
+| eval days_inactive=round((now()-last_login_time)/86400, 0)
+| eval months_inactive=round(days_inactive/30, 1)
+| table email, first_name, last_name, role, last_login, days_inactive, months_inactive
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", last_login as "Last Login", days_inactive as "Days Inactive", months_inactive as "Months Inactive"
+| sort -"Days Inactive"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">15</option>
+        <format type="color" field="Days Inactive">
+          <colorPalette type="expression">if(value > 180, "#DC4E41", if(value > 120, "#F1813F", "#F8BE34"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Users Inactive 61-90 Days</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| where role LIKE "%$role_filter$%"
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-60d") AND last_login_time >= relative_time(now(), "-90d")
+| eval days_inactive=round((now()-last_login_time)/86400, 0)
+| table email, first_name, last_name, role, last_login, days_inactive
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", last_login as "Last Login", days_inactive as "Days Inactive"
+| sort -"Days Inactive"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">15</option>
+        <format type="color" field="Days Inactive">
+          <colorPalette type="expression">if(value > 75, "#F1813F", "#F8BE34")</colorPalette>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Users Inactive 31-60 Days</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| where role LIKE "%$role_filter$%"
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| where isnotnull(last_login_time) AND last_login_time &lt; relative_time(now(), "-30d") AND last_login_time >= relative_time(now(), "-60d")
+| eval days_inactive=round((now()-last_login_time)/86400, 0)
+| table email, first_name, last_name, role, last_login, days_inactive
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", last_login as "Last Login", days_inactive as "Days Inactive"
+| sort -"Days Inactive"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">15</option>
+        <format type="color" field="Days Inactive">
+          <colorPalette type="expression">if(value > 45, "#F8BE34", "#006D9C")</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Access Review Summary -->
+  <row>
+    <panel>
+      <title>Access Review Summary (30/60/90 Day Categories)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| eval created_time=strptime(created, "%Y-%m-%dT%H:%M:%S")
+| eval days_inactive=if(isnull(last_login_time), 9999, round((now()-last_login_time)/86400, 0))
+| eval status_category=case(
+    days_inactive>=9999, "Never Logged In",
+    days_inactive>=180, "Inactive 180+ Days",
+    days_inactive>=90, "Inactive 91-180 Days",
+    days_inactive>=60, "Inactive 61-90 Days",
+    days_inactive>=30, "Inactive 31-60 Days",
+    days_inactive>=1, "Inactive 1-30 Days",
+    1=1, "Active Today"
+)
+| eval review_action=case(
+    status_category="Never Logged In" AND (now()-created_time)/86400 > 90, "Review - Remove or Activate",
+    status_category="Inactive 180+ Days", "Review - Recommend Removal",
+    status_category="Inactive 91-180 Days", "Review - Consider Removal",
+    status_category="Inactive 61-90 Days", "Review - Contact User",
+    status_category="Inactive 31-60 Days", "Monitor",
+    1=1, "No Action Required"
+)
+| stats count as user_count by status_category, review_action
+| sort -user_count
+| rename status_category as "Status Category", review_action as "Recommended Action", user_count as "User Count"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Recommended Action">
+          <colorPalette type="map">{"Review - Remove or Activate":#DC4E41,"Review - Recommend Removal":#DC4E41,"Review - Consider Removal":#F1813F,"Review - Contact User":#F8BE34,"Monitor":#006D9C,"No Action Required":#53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Complete User Access Review Table -->
+  <row>
+    <panel>
+      <title>Complete User Access Review</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:users" 
+| where role LIKE "%$role_filter$%"
+| dedup email
+| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+| eval created_time=strptime(created, "%Y-%m-%dT%H:%M:%S")
+| eval days_inactive=if(isnull(last_login_time), 9999, round((now()-last_login_time)/86400, 0))
+| eval account_age_days=round((now()-created_time)/86400, 0)
+| eval login_status=case(
+    days_inactive>=9999, "Never Logged In",
+    days_inactive>=90, "Inactive 90+ Days",
+    days_inactive>=60, "Inactive 60-90 Days",
+    days_inactive>=30, "Inactive 30-60 Days",
+    1=1, "Active"
+)
+| eval review_required=if(days_inactive>=90 OR days_inactive>=9999, "Yes", "No")
+| table email, first_name, last_name, role, last_login, days_inactive, account_age_days, login_status, review_required
+| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", last_login as "Last Login", days_inactive as "Days Inactive", account_age_days as "Account Age (Days)", login_status as "Login Status", review_required as "Review Required"
+| sort -"Days Inactive"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">25</option>
+        <format type="color" field="Login Status">
+          <colorPalette type="map">{"Never Logged In":#DC4E41,"Inactive 90+ Days":#F1813F,"Inactive 60-90 Days":#F8BE34,"Inactive 30-60 Days":#006D9C,"Active":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Review Required">
+          <colorPalette type="map">{"Yes":#DC4E41,"No":#53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</dashboard>

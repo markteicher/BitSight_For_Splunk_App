@@ -1,0 +1,382 @@
+<dashboard version="1.1">
+  <label>Bitsight Findings - Detailed</label>
+  <description>Comprehensive Finding Analysis with Risk Vectors, CVSS, and Remediation Tracking</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:findings" company_name=* | dedup company_name | table company_name</query>
+      </search>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="risk_category">
+      <label>Risk Category</label>
+      <choice value="*">All Categories</choice>
+      <choice value="Compromised Systems">Compromised Systems</choice>
+      <choice value="Diligence">Diligence</choice>
+      <choice value="User Behavior">User Behavior</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="severity">
+      <label>Severity</label>
+      <choice value="*">All Severities</choice>
+      <choice value="critical">Critical</choice>
+      <choice value="severe">Severe</choice>
+      <choice value="material">Material</choice>
+      <choice value="moderate">Moderate</choice>
+      <choice value="minor">Minor</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="affects_rating">
+      <label>Affects Rating</label>
+      <choice value="*">All</choice>
+      <choice value="true">Yes</choice>
+      <choice value="false">No</choice>
+      <default>*</default>
+    </input>
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- Summary Stats -->
+  <row>
+    <panel>
+      <title>Total Findings</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| where risk_category LIKE "%$risk_category$%"
+| where severity LIKE "%$severity$%"
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Affecting Rating</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" affects_rating=true
+| where company_name LIKE "%$company_filter$%"
+| where risk_category LIKE "%$risk_category$%"
+| where severity LIKE "%$severity$%"
+| stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Findings Impacting Grade</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Avg CVSS Score</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| where risk_category LIKE "%$risk_category$%"
+| stats avg(cvss_base) as avg_cvss
+| eval avg_cvss=round(avg_cvss, 1)
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[4,7]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique Assets Affected</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| where risk_category LIKE "%$risk_category$%"
+| stats dc(evidence_key) as unique_assets
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Risk Vector Breakdown -->
+  <row>
+    <panel>
+      <title>Findings by Risk Vector</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| where risk_category LIKE "%$risk_category$%"
+| where severity LIKE "%$severity$%"
+| stats count by risk_vector
+| sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">cell</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>CVSS Distribution</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| where isnotnull(cvss_base)
+| eval cvss_range=case(
+  cvss_base>=9, "Critical (9.0-10.0)",
+  cvss_base>=7, "High (7.0-8.9)",
+  cvss_base>=4, "Medium (4.0-6.9)",
+  cvss_base>=0.1, "Low (0.1-3.9)",
+  true(), "None"
+)
+| stats count by cvss_range
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Finding Details Table -->
+  <row>
+    <panel>
+      <title>Finding Details</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| where risk_category LIKE "%$risk_category$%"
+| where severity LIKE "%$severity$%"
+| where affects_rating LIKE "%$affects_rating$%"
+| table _time, company_name, risk_category, risk_vector, severity, grade, evidence_key, cvss_base, affects_rating, first_seen, last_seen, remediation_status
+| rename company_name as "Company", risk_category as "Risk Category", risk_vector as "Risk Vector", severity as "Severity", grade as "Grade", evidence_key as "Asset", cvss_base as "CVSS", affects_rating as "Affects Rating", first_seen as "First Seen", last_seen as "Last Seen", remediation_status as "Remediation"
+| sort -_time
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">row</option>
+        <option name="count">25</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#DC4E41,"severe":#F1813F,"material":#F8BE34,"moderate":#006D9C,"minor":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Grade">
+          <colorPalette type="map">{"BAD":#DC4E41,"WARN":#F8BE34,"FAIR":#006D9C,"GOOD":#53A051,"NEUTRAL":#999999}</colorPalette>
+        </format>
+        <format type="color" field="Affects Rating">
+          <colorPalette type="map">{"true":#DC4E41,"false":#53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Compromised Systems Details -->
+  <row>
+    <panel>
+      <title>Compromised Systems Findings</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" risk_category="Compromised Systems"
+| where company_name LIKE "%$company_filter$%"
+| where severity LIKE "%$severity$%"
+| table _time, company_name, risk_vector, evidence_key, infection_family, observed_ips, severity, first_seen, last_seen
+| rename company_name as "Company", risk_vector as "Risk Vector", evidence_key as "Asset", infection_family as "Infection", observed_ips as "Observed IPs", severity as "Severity", first_seen as "First Seen", last_seen as "Last Seen"
+| sort -_time
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#DC4E41,"severe":#F1813F,"material":#F8BE34,"moderate":#006D9C,"minor":#53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Diligence Findings -->
+  <row>
+    <panel>
+      <title>Diligence Findings by Risk Vector</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" risk_category="Diligence"
+| where company_name LIKE "%$company_filter$%"
+| stats count by risk_vector, grade
+| sort risk_vector
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>SSL/TLS Certificate Issues</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" risk_vector="ssl_certificates" OR risk_vector="ssl_configurations"
+| where company_name LIKE "%$company_filter$%"
+| table _time, company_name, risk_vector, evidence_key, grade, details, remediation_history
+| rename company_name as "Company", risk_vector as "Issue Type", evidence_key as "Domain/IP", grade as "Grade", details as "Details", remediation_history as "Remediation"
+| sort -_time
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Grade">
+          <colorPalette type="map">{"BAD":#DC4E41,"WARN":#F8BE34,"FAIR":#006D9C,"GOOD":#53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Vulnerability Analysis -->
+  <row>
+    <panel>
+      <title>High CVSS Findings (7.0+)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" cvss_base>=7
+| where company_name LIKE "%$company_filter$%"
+| table _time, company_name, risk_vector, evidence_key, cvss_base, vulnerability_name, severity, affects_rating
+| rename company_name as "Company", risk_vector as "Risk Vector", evidence_key as "Asset", cvss_base as "CVSS Score", vulnerability_name as "Vulnerability", severity as "Severity", affects_rating as "Affects Rating"
+| sort -cvss_base
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="CVSS Score">
+          <colorPalette type="expression">if(value >= 9, "#DC4E41", if(value >= 7, "#F1813F", "#F8BE34"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Asset Analysis -->
+  <row>
+    <panel>
+      <title>Most Affected Assets</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| stats count as finding_count, dc(risk_vector) as risk_vectors, values(severity) as severities by evidence_key
+| sort -finding_count
+| head 15
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">cell</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Asset Importance Distribution</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| stats count by asset_importance
+| sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Remediation Tracking -->
+  <row>
+    <panel>
+      <title>Finding Age Distribution</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| eval first_seen_time=strptime(first_seen, "%Y-%m-%dT%H:%M:%S")
+| eval age_days=round((now()-first_seen_time)/86400, 0)
+| eval age_bucket=case(
+  age_days &lt;= 7, "0-7 days",
+  age_days &lt;= 30, "8-30 days",
+  age_days &lt;= 90, "31-90 days",
+  age_days &lt;= 180, "91-180 days",
+  true(), "180+ days"
+)
+| stats count by age_bucket
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Findings Timeline</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings"
+| where company_name LIKE "%$company_filter$%"
+| timechart count by severity
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>

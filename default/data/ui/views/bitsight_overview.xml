@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Executive Overview</label>
+  <description>Security Ratings Executive Dashboard</description>
+  
+  <search id="base_portfolio">
+    <query>
+      `bitsight_index` sourcetype="bitsight:portfolio"
+      | dedup guid
+    </query>
+    <earliest>-24h@h</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- Composite Risk Score -->
+  <search id="composite_risk">
+    <query>
+      `bitsight_index` sourcetype="bitsight:portfolio"
+      | dedup guid
+      | stats avg(rating) as avg_rating count(eval(rating&lt;640)) as at_risk count as total
+      | appendcols [
+        search `bitsight_index` sourcetype="bitsight:findings" (severity="critical" OR severity="severe")
+        | stats count as critical_findings
+      ]
+      | appendcols [
+        search `bitsight_index` sourcetype="bitsight:findings" first_seen=* last_seen=*
+        | eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+        | eval mttr_days=(last_epoch-first_epoch)/86400
+        | where mttr_days > 0
+        | eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+        | eval sla_met=if(mttr_days &lt;= sla_days, 1, 0)
+        | stats avg(sla_met) as sla_compliance
+      ]
+      | eval rating_score=(avg_rating/900)*40
+      | eval portfolio_health_score=((total-at_risk)/total)*25
+      | eval findings_score=case(critical_findings>100, 0, critical_findings>50, 5, critical_findings>20, 10, critical_findings>10, 15, 1=1, 20)
+      | eval sla_score=coalesce(sla_compliance, 0.8)*15
+      | eval composite_score=round(rating_score + portfolio_health_score + findings_score + sla_score, 0)
+    </query>
+    <earliest>-24h@h</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- Header with Risk Score & Legend -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; margin-bottom: 5px;">
+          <div style="display: flex; gap: 25px; align-items: center;">
+            <div style="text-align: center; padding: 10px 20px; background: rgba(83,160,81,0.2); border-radius: 8px; border: 2px solid #53A051;">
+              <div style="font-size: 11px; color: #999; text-transform: uppercase;">Composite Risk Score</div>
+              <div style="font-size: 28px; font-weight: bold; color: #53A051;" id="risk-score">--</div>
+              <div style="font-size: 10px; color: #666;">0-100 (Higher is Better)</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 25px;">
+            <span style="color: #53A051;"><strong>&#9679;</strong> Advanced (740+)</span>
+            <span style="color: #84b957;"><strong>&#9679;</strong> Good (700-739)</span>
+            <span style="color: #F8BE34;"><strong>&#9679;</strong> Fair (640-699)</span>
+            <span style="color: #F1813F;"><strong>&#9679;</strong> Warning (500-639)</span>
+            <span style="color: #DC4E41;"><strong>&#9679;</strong> Critical (&lt;500)</span>
+          </div>
+          <div style="text-align: right;">
+            <div style="color: #888; font-size: 12px;">Last Updated: <span id="last-update"></span></div>
+            <a href="/app/bitsight/bitsight_help" style="color: #6DB7C6; font-size: 11px; text-decoration: none;">&#9432; Help &amp; Glossary</a>
+          </div>
+        </div>
+        <script>document.getElementById('last-update').textContent = new Date().toLocaleString();</script>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Composite Risk Score Display -->
+  <row>
+    <panel>
+      <single>
+        <title>&#127919; Composite Risk Score</title>
+        <search base="composite_risk">
+          <query>| table composite_score</query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[50,75]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Portfolio Health (0-100)</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_help</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Rating Component (40%)</title>
+        <search base="composite_risk">
+          <query>| eval score=round(rating_score, 0) | table score</query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[15,30]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">of 40 points</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_ratings</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Portfolio Health (25%)</title>
+        <search base="composite_risk">
+          <query>| eval score=round(portfolio_health_score, 0) | table score</query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[10,18]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">of 25 points</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_portfolio</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Findings Score (20%)</title>
+        <search base="composite_risk">
+          <query>| eval score=round(findings_score, 0) | table score</query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[8,15]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">of 20 points</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_findings</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>SLA Compliance (15%)</title>
+        <search base="composite_risk">
+          <query>| eval score=round(sla_score, 0) | table score</query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[6,12]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">of 15 points</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_mttr_executive</link>
+        </drilldown>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Primary KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>My Organization</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio" 
+            | head 1 
+            | eval rating=round(rating, 0)
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Current Rating</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>30-Day Trend</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | head 1000
+            | stats earliest(rating) as old_rating, latest(rating) as new_rating
+            | eval change=new_rating - old_rating
+            | eval display=if(change>=0, "+".change, change)
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[0,0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Rating Change</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Portfolio Companies</title>
+        <search base="base_portfolio">
+          <query>| stats dc(guid) as count</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x3D7EAA","0x3D7EAA"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Monitored</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Portfolio Health</title>
+        <search base="base_portfolio">
+          <query>
+            | stats count(eval(rating>=700)) as healthy, count as total
+            | eval pct=round((healthy/total)*100, 0)."%"
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[50,80]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Meeting 700+ Threshold</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Critical Alerts</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:alerts" (severity="critical" OR severity="high")
+            | stats count
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Last 7 Days</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_alerts</link>
+        </drilldown>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Secondary KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>&#9650; Improved (30d)</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | stats earliest(rating) as old, latest(rating) as new by company_guid
+            | where new > old
+            | stats count
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Companies</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>&#9660; Declined (30d)</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | stats earliest(rating) as old, latest(rating) as new by company_guid
+            | where new &lt; old
+            | stats count
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,5]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Companies</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Critical Findings</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:findings" (severity="critical" OR severity="severe")
+            | stats count
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[10,50]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Open Issues</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Exposed Credentials</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:credentials"
+            | stats count
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,100]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Last 30 Days</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Industries</title>
+        <search base="base_portfolio">
+          <query>| stats dc(industry) as count</query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x6DB7C6","0x6DB7C6"]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Monitored</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Charts Row -->
+  <row>
+    <panel>
+      <title>Portfolio Rating Distribution</title>
+      <chart>
+        <search base="base_portfolio">
+          <query>
+            | eval rating_category=case(
+                rating>=740, "Advanced",
+                rating>=700, "Good", 
+                rating>=640, "Fair",
+                rating>=500, "Warning",
+                1=1, "Critical"
+              )
+            | stats count by rating_category
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"Advanced": 0x53A051, "Good": 0x84b957, "Fair": 0xF8BE34, "Warning": 0xF1813F, "Critical": 0xDC4E41}</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_portfolio</link>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Rating Trend (30 Days)</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | timechart span=1d avg(rating) as "Portfolio Avg"
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleY.text">Rating</option>
+        <option name="charting.axisY.minimumNumber">400</option>
+        <option name="charting.axisY.maximumNumber">900</option>
+        <option name="charting.fieldColors">{"Portfolio Avg": 0x6DB7C6}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Risk Vectors & Findings -->
+  <row>
+    <panel>
+      <title>Risk Vector Performance</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:risk_vectors"
+            | stats avg(rating) as avg_rating by name
+            | eval avg_rating=round(avg_rating, 0)
+            | sort -avg_rating
+            | head 10
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleY.text">Avg Rating</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Findings by Severity</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:findings"
+            | stats count by severity
+            | eval sort_order=case(severity="critical",1,severity="severe",2,severity="high",3,severity="moderate",4,severity="minor",5,severity="low",6,1=1,7)
+            | sort sort_order
+            | fields - sort_order
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"critical": 0xDC4E41, "severe": 0xDC4E41, "high": 0xF1813F, "moderate": 0xF8BE34, "minor": 0x6DB7C6, "low": 0x53A051}</option>
+        <drilldown>
+          <link>/app/bitsight/bitsight_findings</link>
+        </drilldown>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Action Items -->
+  <row>
+    <panel>
+      <title>&#9888; Action Required - Companies with Declining Ratings</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | stats earliest(rating) as old_rating, latest(rating) as new_rating, latest(name) as name, latest(industry) as industry by company_guid
+            | eval change=new_rating - old_rating
+            | where change &lt; 0
+            | eval trend=case(change&lt;=-50, "&#9660;&#9660; ".change, change&lt;=-20, "&#9660; ".change, 1=1, "&#9660; ".change)
+            | eval status=case(new_rating&lt;500, "&#9679; Critical", new_rating&lt;640, "&#9679; Warning", 1=1, "&#9679; Monitor")
+            | table status, name, new_rating, trend, industry
+            | rename status as "Status", name as "Company", new_rating as "Current", trend as "30d Change", industry as "Industry"
+            | sort "Current"
+            | head 10
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Current">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Critical": #DC4E41, "&#9679; Warning": #F1813F, "&#9679; Monitor": #F8BE34}</colorPalette>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_ratings_trending?form.company=$row.Company$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <title>Recent Critical Alerts</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:alerts"
+            | eval alert_time=strftime(_time, "%m/%d %H:%M")
+            | eval severity_icon=case(severity="critical", "&#9679; Critical", severity="high", "&#9679; High", severity="medium", "&#9679; Medium", 1=1, "&#9679; Low")
+            | table alert_time, severity_icon, company_name, message
+            | rename alert_time as "Time", severity_icon as "Severity", company_name as "Company", message as "Alert"
+            | sort -Time
+            | head 10
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"&#9679; Critical": #DC4E41, "&#9679; High": #F1813F, "&#9679; Medium": #F8BE34, "&#9679; Low": #53A051}</colorPalette>
+        </format>
+        <drilldown>
+          <link>/app/bitsight/bitsight_alerts</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Top/Bottom Performers -->
+  <row>
+    <panel>
+      <title>&#9650; Top Performers</title>
+      <table>
+        <search base="base_portfolio">
+          <query>
+            | eval status="&#9679; ".case(rating>=740, "Advanced", rating>=700, "Good", 1=1, "Fair")
+            | sort -rating
+            | head 5
+            | table name, rating, status, industry
+            | rename name as "Company", rating as "Rating", status as "Status", industry as "Industry"
+          </query>
+        </search>
+        <option name="count">5</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" minColor="#84b957"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Advanced": #53A051, "&#9679; Good": #84b957, "&#9679; Fair": #F8BE34}</colorPalette>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>&#9660; Needs Improvement</title>
+      <table>
+        <search base="base_portfolio">
+          <query>
+            | eval status="&#9679; ".case(rating&lt;500, "Critical", rating&lt;640, "Warning", 1=1, "Fair")
+            | sort rating
+            | head 5
+            | table name, rating, status, industry
+            | rename name as "Company", rating as "Rating", status as "Status", industry as "Industry"
+          </query>
+        </search>
+        <option name="count">5</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Critical": #DC4E41, "&#9679; Warning": #F1813F, "&#9679; Fair": #F8BE34}</colorPalette>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_findings?form.company=$row.Company$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</form>

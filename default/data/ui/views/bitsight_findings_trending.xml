@@ -1,0 +1,436 @@
+<dashboard version="1.1" theme="dark">
+  <label>Findings Trending</label>
+  <description>Week-over-Week, Month-over-Month, Quarter-over-Quarter, and Year-over-Year findings trends</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range" searchWhenChanged="false">
+      <label>Time Range</label>
+      <default>
+        <earliest>-365d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="company_filter" searchWhenChanged="false">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <default>*</default>
+      <search>
+        <query>index=security_bitsight sourcetype=bitsight:findings | dedup company_name | table company_name | sort company_name</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_name</fieldForValue>
+    </input>
+    <input type="dropdown" token="severity_filter" searchWhenChanged="false">
+      <label>Severity</label>
+      <choice value="*">All Severities</choice>
+      <choice value="critical">Critical</choice>
+      <choice value="severe">Severe</choice>
+      <choice value="high">High</choice>
+      <choice value="medium">Medium</choice>
+      <choice value="low">Low</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="risk_vector_filter" searchWhenChanged="false">
+      <label>Risk Vector</label>
+      <choice value="*">All Risk Vectors</choice>
+      <default>*</default>
+      <search>
+        <query>index=security_bitsight sourcetype=bitsight:findings | dedup risk_vector | table risk_vector | sort risk_vector</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <fieldForLabel>risk_vector</fieldForLabel>
+      <fieldForValue>risk_vector</fieldForValue>
+    </input>
+  </fieldset>
+
+  <!-- KPI Row: Current Period Findings -->
+  <row>
+    <panel>
+      <title>This Week Findings</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$" earliest=-7d@d latest=now
+| stats count as this_week</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[100,500,1000]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>This Month Findings</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$" earliest=-30d@d latest=now
+| stats count as this_month</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[500,2000,5000]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>This Quarter Findings</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$" earliest=-90d@d latest=now
+| stats count as this_quarter</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[1500,6000,15000]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>This Year Findings</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$" earliest=-365d@d latest=now
+| stats count as this_year</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[6000,24000,60000]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- WoW Change Row -->
+  <row>
+    <panel>
+      <title>Week-over-Week (WoW) Change</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| eval period=if(_time >= relative_time(now(), "-7d@d"), "this_week", if(_time >= relative_time(now(), "-14d@d"), "last_week", "older"))
+| stats count by period
+| eval this_week=if(period="this_week", count, 0), last_week=if(period="last_week", count, 0)
+| stats sum(this_week) as this_week sum(last_week) as last_week
+| eval wow_change=if(last_week>0, round(((this_week-last_week)/last_week)*100, 1), 0)
+| eval wow_display=wow_change."%"
+| table wow_display</query>
+          <earliest>-14d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.0</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[-50,0,25,50]</option>
+        <option name="useColors">1</option>
+        <option name="unit">%</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Month-over-Month (MoM) Change</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| eval period=if(_time >= relative_time(now(), "-30d@d"), "this_month", if(_time >= relative_time(now(), "-60d@d"), "last_month", "older"))
+| stats count by period
+| eval this_month=if(period="this_month", count, 0), last_month=if(period="last_month", count, 0)
+| stats sum(this_month) as this_month sum(last_month) as last_month
+| eval mom_change=if(last_month>0, round(((this_month-last_month)/last_month)*100, 1), 0)
+| eval mom_display=mom_change."%"
+| table mom_display</query>
+          <earliest>-60d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[-50,0,25,50]</option>
+        <option name="useColors">1</option>
+        <option name="unit">%</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Quarter-over-Quarter (QoQ) Change</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| eval period=if(_time >= relative_time(now(), "-90d@d"), "this_quarter", if(_time >= relative_time(now(), "-180d@d"), "last_quarter", "older"))
+| stats count by period
+| eval this_quarter=if(period="this_quarter", count, 0), last_quarter=if(period="last_quarter", count, 0)
+| stats sum(this_quarter) as this_quarter sum(last_quarter) as last_quarter
+| eval qoq_change=if(last_quarter>0, round(((this_quarter-last_quarter)/last_quarter)*100, 1), 0)
+| eval qoq_display=qoq_change."%"
+| table qoq_display</query>
+          <earliest>-180d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[-50,0,25,50]</option>
+        <option name="useColors">1</option>
+        <option name="unit">%</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Year-over-Year (YoY) Change</title>
+      <single>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| eval period=if(_time >= relative_time(now(), "-365d@d"), "this_year", if(_time >= relative_time(now(), "-730d@d"), "last_year", "older"))
+| stats count by period
+| eval this_year=if(period="this_year", count, 0), last_year=if(period="last_year", count, 0)
+| stats sum(this_year) as this_year sum(last_year) as last_year
+| eval yoy_change=if(last_year>0, round(((this_year-last_year)/last_year)*100, 1), 0)
+| eval yoy_display=yoy_change."%"
+| table yoy_display</query>
+          <earliest>-730d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[-50,0,25,50]</option>
+        <option name="useColors">1</option>
+        <option name="unit">%</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Findings Trend Chart -->
+  <row>
+    <panel>
+      <title>Findings Trend Over Time</title>
+      <chart>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| timechart span=1w count as findings
+| trendline sma4(findings) as trend</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.overlayFields">trend</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Findings by Severity Trend -->
+  <row>
+    <panel>
+      <title>Findings by Severity - Weekly Trend</title>
+      <chart>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" risk_vector="$risk_vector_filter$"
+| timechart span=1w count by severity</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"critical": 0xDC4E41, "severe": 0xF1813F, "high": 0xF8BE34, "medium": 0x62B3B2, "low": 0x53A051}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Findings by Risk Vector Trend -->
+  <row>
+    <panel>
+      <title>Top Risk Vectors - Weekly Trend</title>
+      <chart>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$"
+| timechart span=1w count by risk_vector limit=10</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- WoW Detailed Comparison Table -->
+  <row>
+    <panel>
+      <title>Week-over-Week Findings by Company</title>
+      <table>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| eval period=if(_time >= relative_time(now(), "-7d@d"), "this_week", if(_time >= relative_time(now(), "-14d@d"), "last_week", "older"))
+| stats count by company_name period
+| xyseries company_name period count
+| fillnull value=0 this_week last_week
+| eval wow_change=if(last_week>0, round(((this_week-last_week)/last_week)*100, 1), if(this_week>0, 100, 0))
+| eval trend=case(wow_change>10, "▲ Increasing", wow_change<-10, "▼ Decreasing", true(), "― Stable")
+| sort -wow_change
+| rename this_week as "This Week" last_week as "Last Week" wow_change as "WoW Change %" trend as "Trend"
+| table company_name "Last Week" "This Week" "WoW Change %" Trend</query>
+          <earliest>-14d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">20</option>
+        <format type="color" field="WoW Change %">
+          <colorPalette type="list">[0x53A051,0x53A051,0xF8BE34,0xF1813F,0xDC4E41]</colorPalette>
+          <scale type="threshold">-25,0,25,50</scale>
+        </format>
+        <format type="color" field="Trend">
+          <colorPalette type="map">{"▲ Increasing": 0xDC4E41, "▼ Decreasing": 0x53A051, "― Stable": 0x62B3B2}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- MoM Detailed Comparison Table -->
+  <row>
+    <panel>
+      <title>Month-over-Month Findings by Company</title>
+      <table>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| eval period=if(_time >= relative_time(now(), "-30d@d"), "this_month", if(_time >= relative_time(now(), "-60d@d"), "last_month", "older"))
+| stats count by company_name period
+| xyseries company_name period count
+| fillnull value=0 this_month last_month
+| eval mom_change=if(last_month>0, round(((this_month-last_month)/last_month)*100, 1), if(this_month>0, 100, 0))
+| eval trend=case(mom_change>10, "▲ Increasing", mom_change<-10, "▼ Decreasing", true(), "― Stable")
+| sort -mom_change
+| rename this_month as "This Month" last_month as "Last Month" mom_change as "MoM Change %" trend as "Trend"
+| table company_name "Last Month" "This Month" "MoM Change %" Trend</query>
+          <earliest>-60d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">20</option>
+        <format type="color" field="MoM Change %">
+          <colorPalette type="list">[0x53A051,0x53A051,0xF8BE34,0xF1813F,0xDC4E41]</colorPalette>
+          <scale type="threshold">-25,0,25,50</scale>
+        </format>
+        <format type="color" field="Trend">
+          <colorPalette type="map">{"▲ Increasing": 0xDC4E41, "▼ Decreasing": 0x53A051, "― Stable": 0x62B3B2}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Critical Findings Trend -->
+  <row>
+    <panel>
+      <title>Critical/Severe Findings Trend</title>
+      <chart>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity IN ("critical", "severe", "high")
+| timechart span=1w count by severity</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.fieldColors">{"critical": 0xDC4E41, "severe": 0xF1813F, "high": 0xF8BE34}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Risk Vector Distribution Change</title>
+      <chart>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$"
+| eval period=if(_time >= relative_time(now(), "-30d@d"), "This Month", "Last Month")
+| stats count by risk_vector period
+| xyseries risk_vector period count
+| fillnull value=0
+| sort -"This Month"
+| head 15</query>
+          <earliest>-60d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- QoQ Findings by Risk Category -->
+  <row>
+    <panel>
+      <title>Quarter-over-Quarter by Risk Category</title>
+      <table>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$"
+| eval risk_category=case(
+    match(risk_vector, "botnet_infections|spam_propagation|malware_servers|unsolicited_comm|potentially_exploited"), "Compromised Systems",
+    match(risk_vector, "spf|dkim|dmarc|dnssec"), "Email Security",
+    match(risk_vector, "ssl_certificates|ssl_configurations"), "SSL/TLS",
+    match(risk_vector, "open_ports|web_appsec|application_security"), "Network Security",
+    match(risk_vector, "patching_cadence|server_software|desktop_software|mobile_software|insecure_systems"), "Patching & Software",
+    match(risk_vector, "file_sharing"), "User Behavior",
+    true(), "Other"
+)
+| eval period=if(_time >= relative_time(now(), "-90d@d"), "this_quarter", if(_time >= relative_time(now(), "-180d@d"), "last_quarter", "older"))
+| stats count by risk_category period
+| xyseries risk_category period count
+| fillnull value=0 this_quarter last_quarter
+| eval qoq_change=if(last_quarter>0, round(((this_quarter-last_quarter)/last_quarter)*100, 1), if(this_quarter>0, 100, 0))
+| eval trend=case(qoq_change>10, "▲", qoq_change<-10, "▼", true(), "―")
+| sort -this_quarter
+| rename this_quarter as "This Quarter" last_quarter as "Last Quarter" qoq_change as "QoQ Change %" trend as "Trend"
+| table risk_category "Last Quarter" "This Quarter" "QoQ Change %" Trend</query>
+          <earliest>-180d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+        <format type="color" field="QoQ Change %">
+          <colorPalette type="list">[0x53A051,0x53A051,0xF8BE34,0xF1813F,0xDC4E41]</colorPalette>
+          <scale type="threshold">-25,0,25,50</scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Findings Heatmap -->
+  <row>
+    <panel>
+      <title>Findings Heatmap by Day of Week</title>
+      <chart>
+        <search>
+          <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
+| eval day=strftime(_time, "%A")
+| eval hour=strftime(_time, "%H")
+| stats count by day hour
+| xyseries day hour count</query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>

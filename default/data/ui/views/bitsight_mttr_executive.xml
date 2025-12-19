@@ -1,0 +1,574 @@
+<dashboard version="1.1">
+  <label>MTTR Executive Dashboard</label>
+  <description>Mean Time to Remediate Performance Tracking with SLA Compliance</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:*" company_name=* | dedup company_name | table company_name</query>
+      </search>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-90d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- SLA Thresholds Reference -->
+  <row>
+    <panel>
+      <title>📋 MTTR SLA Thresholds</title>
+      <html>
+        <style>
+          .sla-grid { display: flex; justify-content: space-around; padding: 15px; }
+          .sla-item { text-align: center; padding: 10px 20px; border-radius: 8px; }
+          .sla-critical { background: linear-gradient(135deg, #DC4E41 0%, #a83232 100%); color: white; }
+          .sla-high { background: linear-gradient(135deg, #F8BE34 0%, #d4a02a 100%); color: #333; }
+          .sla-medium { background: linear-gradient(135deg, #F1813F 0%, #d46e2e 100%); color: white; }
+          .sla-low { background: linear-gradient(135deg, #53A051 0%, #3d7a3c 100%); color: white; }
+          .sla-days { font-size: 28px; font-weight: bold; }
+          .sla-label { font-size: 12px; margin-top: 5px; }
+        </style>
+        <div class="sla-grid">
+          <div class="sla-item sla-critical">
+            <div class="sla-days">30</div>
+            <div class="sla-label">Critical (days)</div>
+          </div>
+          <div class="sla-item sla-high">
+            <div class="sla-days">60</div>
+            <div class="sla-label">High (days)</div>
+          </div>
+          <div class="sla-item sla-medium">
+            <div class="sla-days">90</div>
+            <div class="sla-label">Medium (days)</div>
+          </div>
+          <div class="sla-item sla-low">
+            <div class="sla-days">180</div>
+            <div class="sla-label">Low (days)</div>
+          </div>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Overall SLA Compliance KPIs -->
+  <row>
+    <panel>
+      <title>Overall SLA Compliance Rate</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval sla_met=if(mttr_days &lt;= sla_days, 1, 0)
+| stats sum(sla_met) as compliant count as total
+| eval compliance_rate=round((compliant/total)*100, 1)
+| table compliance_rate
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[70,90]</option>
+        <option name="unit">%</option>
+        <option name="underLabel">SLA Compliance</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Total Findings Remediated</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| stats count as total
+| table total
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Remediated</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SLA Breaches</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| where mttr_days > sla_days
+| stats count as breaches
+| table breaches
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[5,20]</option>
+        <option name="underLabel">Breaches</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Avg Days Over SLA</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval days_over=mttr_days - sla_days
+| where days_over > 0
+| stats avg(days_over) as avg_over
+| eval avg_over=round(avg_over, 1)
+| table avg_over
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[15,45]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">Avg Overdue</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- MTTR by Severity with SLA Status -->
+  <row>
+    <panel>
+      <title>Critical MTTR vs 30-Day SLA</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="critical" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| stats avg(mttr_days) as avg_mttr
+| eval avg_mttr=round(avg_mttr, 1)
+| table avg_mttr
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[30,45]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">Critical Avg MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>High MTTR vs 60-Day SLA</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="high" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| stats avg(mttr_days) as avg_mttr
+| eval avg_mttr=round(avg_mttr, 1)
+| table avg_mttr
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[60,90]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">High Avg MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Medium MTTR vs 90-Day SLA</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="medium" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| stats avg(mttr_days) as avg_mttr
+| eval avg_mttr=round(avg_mttr, 1)
+| table avg_mttr
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[90,120]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">Medium Avg MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Low MTTR vs 180-Day SLA</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" severity="low" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| stats avg(mttr_days) as avg_mttr
+| eval avg_mttr=round(avg_mttr, 1)
+| table avg_mttr
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[180,270]</option>
+        <option name="unit">days</option>
+        <option name="underLabel">Low Avg MTTR</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- SLA Compliance by Severity Table -->
+  <row>
+    <panel>
+      <title>SLA Compliance by Severity</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval sla_met=if(mttr_days &lt;= sla_days, 1, 0)
+| stats sum(sla_met) as compliant count as total avg(mttr_days) as avg_mttr median(mttr_days) as median_mttr p90(mttr_days) as p90_mttr by severity
+| eval compliance_pct=round((compliant/total)*100, 1)
+| eval breaches=total-compliant
+| eval avg_mttr=round(avg_mttr, 1), median_mttr=round(median_mttr, 1), p90_mttr=round(p90_mttr, 1)
+| eval sla_target=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval status=if(compliance_pct >= 90, "✓ Good", if(compliance_pct >= 70, "⚠ Warning", "✗ Critical"))
+| table severity sla_target avg_mttr median_mttr p90_mttr total compliant breaches compliance_pct status
+| rename severity as "Severity", sla_target as "SLA Target", avg_mttr as "Avg MTTR", median_mttr as "Median", p90_mttr as "P90", total as "Total", compliant as "Compliant", breaches as "Breaches", compliance_pct as "Compliance %", status as "Status"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#DC4E41,"high":#F8BE34,"medium":#F1813F,"low":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Compliance %">
+          <colorPalette type="expression">if(value >= 90, "#53A051", if(value >= 70, "#F8BE34", "#DC4E41"))</colorPalette>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="expression">if(match(value, "Good"), "#53A051", if(match(value, "Warning"), "#F8BE34", "#DC4E41"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- MTTR Trend with Sparklines -->
+  <row>
+    <panel>
+      <title>MTTR Weekly Trend (Last 12 Weeks)</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval week=strftime(last_epoch, "%Y-W%W")
+| stats avg(mttr_days) as avg_mttr by week severity
+| eval avg_mttr=round(avg_mttr, 1)
+| xyseries week, severity, avg_mttr
+          </query>
+          <earliest>-90d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">MTTR (Days)</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>SLA Compliance Trend</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval week=strftime(last_epoch, "%Y-W%W")
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval sla_met=if(mttr_days &lt;= sla_days, 1, 0)
+| stats sum(sla_met) as compliant count as total by week
+| eval compliance_pct=round((compliant/total)*100, 1)
+| table week compliance_pct
+          </query>
+          <earliest>-90d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.axisTitleY.text">Compliance %</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Company Performance Comparison -->
+  <row>
+    <panel>
+      <title>Company MTTR Performance Ranking</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval sla_met=if(mttr_days &lt;= sla_days, 1, 0)
+| stats avg(mttr_days) as avg_mttr sum(sla_met) as compliant count as total sparkline(avg(mttr_days), 1w) as trend by company_name
+| eval compliance_pct=round((compliant/total)*100, 1)
+| eval avg_mttr=round(avg_mttr, 1)
+| eval performance=case(compliance_pct >= 90, "★★★ Excellent", compliance_pct >= 75, "★★ Good", compliance_pct >= 50, "★ Fair", 1=1, "⚠ Needs Improvement")
+| sort - compliance_pct
+| table company_name avg_mttr compliance_pct total trend performance
+| rename company_name as "Company", avg_mttr as "Avg MTTR (days)", compliance_pct as "SLA Compliance %", total as "Findings Remediated", trend as "12-Week Trend", performance as "Performance"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="sparkline" field="12-Week Trend">
+          <option name="type">line</option>
+          <option name="lineColor">#006D9C</option>
+          <option name="fillColor">#DBEEF3</option>
+          <option name="height">30</option>
+        </format>
+        <format type="color" field="SLA Compliance %">
+          <colorPalette type="expression">if(value >= 90, "#53A051", if(value >= 70, "#F8BE34", "#DC4E41"))</colorPalette>
+        </format>
+        <format type="color" field="Performance">
+          <colorPalette type="expression">if(match(value, "Excellent"), "#53A051", if(match(value, "Good"), "#6DB044", if(match(value, "Fair"), "#F8BE34", "#DC4E41")))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Top SLA Breaches -->
+  <row>
+    <panel>
+      <title>⚠ Top SLA Breach Offenders (Risk Vectors)</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=* risk_vector=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval days_over=mttr_days - sla_days
+| where days_over > 0
+| stats count as breach_count avg(days_over) as avg_over by risk_vector
+| eval avg_over=round(avg_over, 1)
+| sort - breach_count
+| head 10
+| table risk_vector breach_count avg_over
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Breach Count</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>⚠ Longest Open Findings (Still In SLA)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* (NOT last_seen=*)
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S")
+| eval days_open=round((now()-first_epoch)/86400, 0)
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval days_remaining=sla_days - days_open
+| where days_remaining > 0 AND days_remaining &lt;= 7
+| eval urgency=case(days_remaining &lt;= 3, "🔴 Critical", days_remaining &lt;= 5, "🟠 High", 1=1, "🟡 Medium")
+| sort days_remaining
+| head 15
+| table company_name severity risk_vector days_open days_remaining urgency
+| rename company_name as "Company", severity as "Severity", risk_vector as "Risk Vector", days_open as "Days Open", days_remaining as "Days to SLA", urgency as "Urgency"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#DC4E41,"high":#F8BE34,"medium":#F1813F,"low":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Days to SLA">
+          <colorPalette type="expression">if(value &lt;= 3, "#DC4E41", if(value &lt;= 5, "#F8BE34", "#53A051"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Month-over-Month Comparison -->
+  <row>
+    <panel>
+      <title>MTTR Month-over-Month Change</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval month=strftime(last_epoch, "%Y-%m")
+| stats avg(mttr_days) as avg_mttr count as count by severity month
+| sort severity month
+| streamstats current=f last(avg_mttr) as prev_mttr by severity
+| eval change=round(avg_mttr - prev_mttr, 1)
+| eval trend=case(change &lt; -5, "📉 Improving", change > 5, "📈 Degrading", 1=1, "➡ Stable")
+| eval avg_mttr=round(avg_mttr, 1), prev_mttr=round(prev_mttr, 1)
+| where isnotnull(prev_mttr)
+| table month severity avg_mttr prev_mttr change trend count
+| rename month as "Month", severity as "Severity", avg_mttr as "Current MTTR", prev_mttr as "Previous MTTR", change as "Change (days)", trend as "Trend", count as "Count"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#DC4E41,"high":#F8BE34,"medium":#F1813F,"low":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Change (days)">
+          <colorPalette type="expression">if(value &lt; 0, "#53A051", if(value > 0, "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+        <format type="color" field="Trend">
+          <colorPalette type="expression">if(match(value, "Improving"), "#53A051", if(match(value, "Degrading"), "#DC4E41", "#006D9C"))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Remediation Velocity -->
+  <row>
+    <panel>
+      <title>Weekly Remediation Velocity</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval week=strftime(last_epoch, "%Y-W%W")
+| stats count as remediated by week severity
+| xyseries week, severity, remediated
+          </query>
+          <earliest>-90d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Findings Remediated</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Remediation Efficiency Score</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
+| where company_name LIKE "%$company_filter$%"
+| eval first_epoch=strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), last_epoch=strptime(last_seen, "%Y-%m-%dT%H:%M:%S")
+| eval mttr_days=(last_epoch-first_epoch)/86400
+| where mttr_days > 0
+| eval sla_days=case(severity="critical", 30, severity="high", 60, severity="medium", 90, 1=1, 180)
+| eval efficiency=sla_days / mttr_days
+| eval efficiency=if(efficiency > 1, 1, efficiency)
+| stats avg(efficiency) as avg_efficiency
+| eval score=round(avg_efficiency * 100, 0)
+| table score
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[50,80]</option>
+        <option name="underLabel">Efficiency Score</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+</dashboard>

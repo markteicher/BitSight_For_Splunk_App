@@ -1,0 +1,367 @@
+<dashboard version="1.1">
+  <label>Asset Risk Matrix</label>
+  <description>Asset Importance vs Finding Severity - Risk Matrix Visualization</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <search>
+        <query>index=security_bitsight sourcetype="bitsight:portfolio" OR sourcetype="bitsight:companies" | dedup company_name | table company_name</query>
+      </search>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_name</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-60d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- Risk Matrix Summary -->
+  <row>
+    <panel>
+      <title>Critical Assets - Bad Findings</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=stats.critical.grades.bad output=critical_bad
+| stats latest(critical_bad) as count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0xDC4E41"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Critical Assets - Warn Findings</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=stats.critical.grades.warn output=critical_warn
+| stats latest(critical_warn) as count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0xF1813F"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Critical Assets - Fair Findings</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=stats.critical.grades.fair output=critical_fair
+| stats latest(critical_fair) as count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34"]</option>
+        <option name="rangeValues">[0]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Critical Assets - Good Findings</title>
+      <single>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=stats.critical.grades.good output=critical_good
+| stats latest(critical_good) as count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Risk Matrix Heatmap by Score -->
+  <row>
+    <panel>
+      <title>Risk Matrix Heatmap - Findings by Asset Importance &amp; Severity Score</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| eval severity_score=case(
+    'stats.grades.bad'>0, 4,
+    'stats.grades.warn'>0, 3,
+    'stats.grades.fair'>0, 2,
+    'stats.grades.good'>0, 1,
+    1=1, 0
+)
+| eval importance_label=case(
+    importance_category="critical", "4-Critical",
+    importance_category="high", "3-High",
+    importance_category="medium", "2-Medium",
+    importance_category="low", "1-Low",
+    1=1, "0-Unknown"
+)
+| eval risk_score=severity_score * (importance+1)
+| stats count by importance_label, severity_score
+| xyseries importance_label, severity_score, count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Assets by Score -->
+  <row>
+    <panel>
+      <title>Assets by Finding Grade Score</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| eval bad='stats.grades.bad', warn='stats.grades.warn', fair='stats.grades.fair', good='stats.grades.good', neutral='stats.grades.neutral', total='stats.grades.total'
+| eval risk_score=(bad*4)+(warn*3)+(fair*2)+(good*1)
+| eval importance_multiplier=case(importance_category="critical", 4, importance_category="high", 3, importance_category="medium", 2, importance_category="low", 1, 1=1, 1)
+| eval weighted_risk=risk_score * importance_multiplier
+| table asset, importance_category, importance, total, bad, warn, fair, good, neutral, risk_score, weighted_risk
+| rename asset as "Asset", importance_category as "Importance", importance as "Importance Score", total as "Total Findings", bad as "Bad", warn as "Warn", fair as "Fair", good as "Good", neutral as "Neutral", risk_score as "Risk Score", weighted_risk as "Weighted Risk"
+| sort -"Weighted Risk"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">25</option>
+        <format type="color" field="Bad">
+          <colorPalette type="expression">if(value > 0, "#DC4E41", "#53A051")</colorPalette>
+        </format>
+        <format type="color" field="Warn">
+          <colorPalette type="expression">if(value > 0, "#F1813F", "#53A051")</colorPalette>
+        </format>
+        <format type="color" field="Fair">
+          <colorPalette type="expression">if(value > 0, "#F8BE34", "#53A051")</colorPalette>
+        </format>
+        <format type="color" field="Importance">
+          <colorPalette type="map">{"critical":#DC4E41,"high":#F1813F,"medium":#F8BE34,"low":#53A051}</colorPalette>
+        </format>
+        <format type="color" field="Weighted Risk">
+          <colorPalette type="expression">if(value > 50, "#DC4E41", if(value > 20, "#F1813F", if(value > 10, "#F8BE34", "#53A051")))</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- High Risk Assets -->
+  <row>
+    <panel>
+      <title>Critical Importance Assets with Bad/Warn Findings (Highest Risk)</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| where importance_category="critical" OR importance_category="high"
+| eval bad='stats.grades.bad', warn='stats.grades.warn'
+| where bad>0 OR warn>0
+| eval risk_priority=case(importance_category="critical" AND bad>0, "P1-Critical", importance_category="critical" AND warn>0, "P2-High", importance_category="high" AND bad>0, "P2-High", importance_category="high" AND warn>0, "P3-Medium", 1=1, "P4-Low")
+| table asset, importance_category, bad, warn, risk_priority, company_name
+| rename asset as "Asset", importance_category as "Importance", bad as "Bad Findings", warn as "Warn Findings", risk_priority as "Priority", company_name as "Company"
+| sort risk_priority
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">20</option>
+        <format type="color" field="Priority">
+          <colorPalette type="map">{"P1-Critical":#DC4E41,"P2-High":#F1813F,"P3-Medium":#F8BE34,"P4-Low":#006D9C}</colorPalette>
+        </format>
+        <format type="color" field="Bad Findings">
+          <colorPalette type="expression">if(value > 0, "#DC4E41", "#53A051")</colorPalette>
+        </format>
+        <format type="color" field="Warn Findings">
+          <colorPalette type="expression">if(value > 0, "#F1813F", "#53A051")</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Summary by Importance Category -->
+  <row>
+    <panel>
+      <title>Findings Summary by Asset Importance</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| eval bad='stats.grades.bad', warn='stats.grades.warn', fair='stats.grades.fair', good='stats.grades.good'
+| stats sum(bad) as Bad, sum(warn) as Warn, sum(fair) as Fair, sum(good) as Good by importance_category
+| eval sort_order=case(importance_category="critical", 1, importance_category="high", 2, importance_category="medium", 3, importance_category="low", 4, 1=1, 5)
+| sort sort_order
+| fields - sort_order
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"Bad":#DC4E41,"Warn":#F1813F,"Fair":#F8BE34,"Good":#53A051}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Risk Distribution by Grade</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| eval bad='stats.grades.bad', warn='stats.grades.warn', fair='stats.grades.fair', good='stats.grades.good', neutral='stats.grades.neutral'
+| stats sum(bad) as Bad, sum(warn) as Warn, sum(fair) as Fair, sum(good) as Good, sum(neutral) as Neutral
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.fieldColors">{"Bad":#DC4E41,"Warn":#F1813F,"Fair":#F8BE34,"Good":#53A051,"Neutral":#006D9C}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Asset Count by Category -->
+  <row>
+    <panel>
+      <title>Asset Count by Importance Category</title>
+      <chart>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| stats dc(asset) as assets by importance_category
+| eval sort_order=case(importance_category="critical", 1, importance_category="high", 2, importance_category="medium", 3, importance_category="low", 4, 1=1, 5)
+| sort sort_order
+| fields - sort_order
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top 10 Assets by Total Findings</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| where company_name LIKE "%$company_filter$%"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| eval total='stats.grades.total'
+| sort -total
+| head 10
+| table asset, importance_category, total
+| rename asset as "Asset", importance_category as "Importance", total as "Total Findings"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <format type="color" field="Importance">
+          <colorPalette type="map">{"critical":#DC4E41,"high":#F1813F,"medium":#F8BE34,"low":#53A051}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Company Comparison -->
+  <row>
+    <panel>
+      <title>Risk Score by Company</title>
+      <table>
+        <search>
+          <query>
+index=security_bitsight sourcetype="bitsight:assets:statistics"
+| spath path=assets{} output=asset_data
+| mvexpand asset_data
+| spath input=asset_data
+| eval bad='stats.grades.bad', warn='stats.grades.warn', fair='stats.grades.fair', good='stats.grades.good'
+| eval importance_multiplier=case(importance_category="critical", 4, importance_category="high", 3, importance_category="medium", 2, importance_category="low", 1, 1=1, 1)
+| eval weighted_risk=((bad*4)+(warn*3)+(fair*2)+(good*1)) * importance_multiplier
+| stats sum(weighted_risk) as total_risk, sum(bad) as total_bad, sum(warn) as total_warn, dc(asset) as asset_count by company_name
+| eval avg_risk_per_asset=round(total_risk/asset_count, 1)
+| table company_name, asset_count, total_bad, total_warn, total_risk, avg_risk_per_asset
+| rename company_name as "Company", asset_count as "Assets", total_bad as "Bad Findings", total_warn as "Warn Findings", total_risk as "Total Risk Score", avg_risk_per_asset as "Avg Risk/Asset"
+| sort -"Total Risk Score"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="count">20</option>
+        <format type="color" field="Total Risk Score">
+          <colorPalette type="expression">if(value > 100, "#DC4E41", if(value > 50, "#F1813F", if(value > 20, "#F8BE34", "#53A051")))</colorPalette>
+        </format>
+        <format type="color" field="Bad Findings">
+          <colorPalette type="expression">if(value > 0, "#DC4E41", "#53A051")</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</dashboard>

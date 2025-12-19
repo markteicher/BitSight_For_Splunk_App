@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Company Search</label>
+  <description>Search for companies across the Bitsight ecosystem by name, domain, or rating criteria</description>
+  
+  <fieldset submitButton="true" autoRun="false">
+    <input type="text" token="search_query" searchWhenChanged="false">
+      <label>Search Query</label>
+      <default></default>
+      <initialValue></initialValue>
+    </input>
+    <input type="dropdown" token="search_type">
+      <label>Search By</label>
+      <choice value="name">Company Name</choice>
+      <choice value="domain">Domain</choice>
+      <choice value="guid">Company GUID</choice>
+      <default>name</default>
+    </input>
+    <input type="dropdown" token="min_rating">
+      <label>Minimum Rating</label>
+      <choice value="">Any</choice>
+      <choice value="740">740+ (Advanced)</choice>
+      <choice value="640">640+ (Intermediate)</choice>
+      <choice value="500">500+ (Basic)</choice>
+      <choice value="400">400+ (At Risk)</choice>
+      <default></default>
+    </input>
+    <input type="dropdown" token="industry">
+      <label>Industry</label>
+      <choice value="">All Industries</choice>
+      <fieldForLabel>industry</fieldForLabel>
+      <fieldForValue>industry</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:portfolio" OR sourcetype="bitsight:ratings_tree"
+          | spath output=industry path=industry
+          | stats count by industry
+          | where isnotnull(industry) AND industry!=""
+          | sort industry
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <default></default>
+    </input>
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <html>
+        <div style="padding: 10px; background: #1E3A5F; border-radius: 4px; margin-bottom: 10px;">
+          <h3 style="margin: 0; color: #fff;">🔍 Search Tips</h3>
+          <ul style="color: #ccc; margin: 10px 0;">
+            <li><strong>Company Name:</strong> Search by partial or full company name (e.g., "Microsoft", "Acme")</li>
+            <li><strong>Domain:</strong> Search by domain (e.g., "microsoft.com", "acme.io")</li>
+            <li><strong>GUID:</strong> Search by exact Bitsight company GUID</li>
+            <li>Use filters to narrow results by rating or industry</li>
+          </ul>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Search Results</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` (sourcetype="bitsight:portfolio" OR sourcetype="bitsight:company" OR sourcetype="bitsight:ratings_tree")
+            | spath
+            | search $search_type$="*$search_query$*"
+            | where if("$min_rating$"!="", rating >= $min_rating$, 1=1)
+            | where if("$industry$"!="", industry="$industry$", 1=1)
+            | dedup guid
+            | eval rating_grade=case(
+                rating>=740, "A",
+                rating>=700, "B", 
+                rating>=640, "C",
+                rating>=500, "D",
+                rating<500, "F"
+              )
+            | eval rating_display=rating." (".rating_grade.")"
+            | eval subscribed=if(is_subscribed="true", "✓ Yes", "✗ No")
+            | table name, rating_display, industry, guid, subscribed, rating_type
+            | rename name as "Company", rating_display as "Rating", industry as "Industry", guid as "GUID", 
+                     subscribed as "Subscribed", rating_type as "Rating Type"
+            | sort - Rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="wrap">true</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+        <format type="color" field="Subscribed">
+          <colorPalette type="map">{"✓ Yes": #53A051, "✗ No": #999999}</colorPalette>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/search?q=`bitsight_index` guid="$row.GUID$" OR company_guid="$row.GUID$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Trending Companies (Recently Changed Ratings)</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings:history"
+            | spath
+            | stats earliest(rating) as old_rating, latest(rating) as new_rating, latest(name) as name, latest(industry) as industry by company_guid
+            | eval change = new_rating - old_rating
+            | where change != 0
+            | eval direction=if(change > 0, "↑ Improved", "↓ Declined")
+            | eval abs_change=abs(change)
+            | table name, old_rating, new_rating, change, direction, industry
+            | rename name as "Company", old_rating as "Previous", new_rating as "Current", change as "Change", direction as "Trend", industry as "Industry"
+            | sort - abs_change
+            | head 20
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Trend">
+          <colorPalette type="map">{"↑ Improved": #53A051, "↓ Declined": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Change">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="0"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_ratings_trending?form.company=$row.Company$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Companies by Rating Distribution</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` (sourcetype="bitsight:portfolio" OR sourcetype="bitsight:ratings_tree")
+            | spath
+            | where if("$search_query$"!="", $search_type$ LIKE "%$search_query$%", 1=1)
+            | where if("$min_rating$"!="", rating >= $min_rating$, 1=1)
+            | where if("$industry$"!="", industry="$industry$", 1=1)
+            | dedup guid
+            | eval rating_tier=case(
+                rating>=740, "740+ (Advanced)",
+                rating>=640, "640-739 (Intermediate)",
+                rating>=500, "500-639 (Basic)",
+                rating>=400, "400-499 (At Risk)",
+                rating<400, "&lt;400 (Critical)"
+              )
+            | stats count by rating_tier
+            | sort rating_tier
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"740+ (Advanced)": 0x53A051, "640-739 (Intermediate)": 0x6DB7C6, "500-639 (Basic)": 0xF8BE34, "400-499 (At Risk)": 0xF1813F, "&lt;400 (Critical)": 0xDC4E41}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Industry Distribution</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` (sourcetype="bitsight:portfolio" OR sourcetype="bitsight:ratings_tree")
+            | spath
+            | where if("$search_query$"!="", $search_type$ LIKE "%$search_query$%", 1=1)
+            | where if("$min_rating$"!="", rating >= $min_rating$, 1=1)
+            | dedup guid
+            | stats count by industry
+            | sort - count
+            | head 10
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Count</option>
+      </chart>
+    </panel>
+  </row>
+</form>

@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Remediation Tracking</label>
+  <description>Track finding remediation progress, SLA compliance, and time-to-fix metrics</description>
+  
+  <search id="base_findings">
+    <query>
+      `bitsight_index` sourcetype="bitsight:findings"
+      | eval days_open=round((now() - strptime(first_seen, "%Y-%m-%dT%H:%M:%S"))/86400, 0)
+      | eval sla_days=case(severity="critical", 7, severity="severe", 14, severity="high", 30, severity="moderate", 60, severity="minor", 90, 1=1, 120)
+      | eval sla_status=if(days_open > sla_days, "Overdue", "On Track")
+      | eval days_remaining=sla_days - days_open
+    </query>
+    <earliest>$time_range.earliest$</earliest>
+    <latest>$time_range.latest$</latest>
+  </search>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-90d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="company_filter">
+      <label>Company</label>
+      <choice value="*">All Companies</choice>
+      <default>*</default>
+      <fieldForLabel>company_name</fieldForLabel>
+      <fieldForValue>company_name</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:findings"
+          | dedup company_name
+          | table company_name
+          | sort company_name
+        </query>
+        <earliest>-90d@d</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="severity_filter">
+      <label>Severity</label>
+      <choice value="*">All Severities</choice>
+      <choice value="critical">Critical</choice>
+      <choice value="severe">Severe</choice>
+      <choice value="high">High</choice>
+      <choice value="moderate">Moderate</choice>
+      <choice value="minor">Minor</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <!-- SLA Legend -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="padding: 15px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
+          <h3 style="margin: 0 0 10px 0; color: #fff;">Remediation SLA Targets</h3>
+          <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+            <span style="color: #DC4E41;"><strong>&#9679; Critical:</strong> 7 days</span>
+            <span style="color: #F1813F;"><strong>&#9679; Severe:</strong> 14 days</span>
+            <span style="color: #F8BE34;"><strong>&#9679; High:</strong> 30 days</span>
+            <span style="color: #6DB7C6;"><strong>&#9679; Moderate:</strong> 60 days</span>
+            <span style="color: #53A051;"><strong>&#9679; Minor:</strong> 90 days</span>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>Open Findings</title>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[50,200]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>SLA Compliance</title>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats count(eval(sla_status="On Track")) as on_track, count as total
+            | eval pct=round((on_track/total)*100, 1)."%"
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[70,90]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">On Track</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Overdue</title>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where sla_status="Overdue"
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,20]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Past SLA</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Avg Days Open</title>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats avg(days_open) as avg_days
+            | eval avg_days=round(avg_days, 0)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[30,60]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Days</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Critical/Severe Open</title>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity IN ("critical", "severe")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">Urgent</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- SLA Status Charts -->
+  <row>
+    <panel>
+      <title>SLA Status by Severity</title>
+      <chart>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats count by severity, sla_status
+            | eval sort_order=case(severity="critical",1,severity="severe",2,severity="high",3,severity="moderate",4,severity="minor",5,1=1,6)
+            | sort sort_order
+            | fields - sort_order
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"On Track": 0x53A051, "Overdue": 0xDC4E41}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Findings Age Distribution</title>
+      <chart>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | eval age_bucket=case(
+                days_open&lt;=7, "0-7 days",
+                days_open&lt;=14, "8-14 days",
+                days_open&lt;=30, "15-30 days",
+                days_open&lt;=60, "31-60 days",
+                days_open&lt;=90, "61-90 days",
+                1=1, "90+ days"
+              )
+            | stats count by age_bucket
+            | eval sort_order=case(age_bucket="0-7 days",1,age_bucket="8-14 days",2,age_bucket="15-30 days",3,age_bucket="31-60 days",4,age_bucket="61-90 days",5,1=1,6)
+            | sort sort_order
+            | fields - sort_order
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"0-7 days": 0x53A051, "8-14 days": 0x84b957, "15-30 days": 0x6DB7C6, "31-60 days": 0xF8BE34, "61-90 days": 0xF1813F, "90+ days": 0xDC4E41}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Overdue Findings -->
+  <row>
+    <panel>
+      <title>&#9888; Overdue Findings Requiring Action</title>
+      <table>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | where sla_status="Overdue"
+            | eval severity_icon=case(severity="critical", "&#9679; Critical", severity="severe", "&#9679; Severe", severity="high", "&#9679; High", severity="moderate", "&#9679; Moderate", 1=1, "&#9679; Minor")
+            | eval days_overdue=days_open - sla_days
+            | table severity_icon, risk_vector, company_name, days_open, sla_days, days_overdue, assets
+            | rename severity_icon as "Severity", risk_vector as "Risk Vector", company_name as "Company", days_open as "Days Open", sla_days as "SLA (days)", days_overdue as "Days Overdue", assets as "Affected Assets"
+            | sort -"Days Overdue"
+          </query>
+        </search>
+        <option name="count">15</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"&#9679; Critical": #DC4E41, "&#9679; Severe": #F1813F, "&#9679; High": #F8BE34, "&#9679; Moderate": #6DB7C6, "&#9679; Minor": #53A051}</colorPalette>
+        </format>
+        <format type="color" field="Days Overdue">
+          <colorPalette type="minMidMax" maxColor="#DC4E41" minColor="#F8BE34"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/bitsight_findings_detailed?form.risk_vector=$row.Risk Vector$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Time-to-Fix Metrics -->
+  <row>
+    <panel>
+      <title>Average Days Open by Severity</title>
+      <chart>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | stats avg(days_open) as avg_days, avg(sla_days) as sla_target by severity
+            | eval avg_days=round(avg_days, 0), sla_target=round(sla_target, 0)
+            | eval sort_order=case(severity="critical",1,severity="severe",2,severity="high",3,severity="moderate",4,severity="minor",5,1=1,6)
+            | sort sort_order
+            | fields - sort_order
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.chart.overlayFields">sla_target</option>
+        <option name="charting.axisTitleY.text">Days</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Findings by Risk Vector</title>
+      <chart>
+        <search base="base_findings">
+          <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats count by risk_vector
+            | sort -count
+            | head 10
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleX.text">Risk Vector</option>
+        <option name="charting.axisTitleY.text">Finding Count</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Remediation Trend -->
+  <row>
+    <panel>
+      <title>Findings Volume Trend (New vs Resolved Proxy)</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:findings"
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | eval first_seen_date=strptime(first_seen, "%Y-%m-%dT%H:%M:%S")
+            | timechart span=1w count as "New Findings"
+          </query>
+          <earliest>-90d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Count</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Company SLA Performance -->
+  <row>
+    <panel>
+      <title>Company SLA Performance</title>
+      <table>
+        <search base="base_findings">
+          <query>
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats count as total, count(eval(sla_status="On Track")) as on_track, count(eval(sla_status="Overdue")) as overdue, avg(days_open) as avg_days by company_name
+            | eval compliance_pct=round((on_track/total)*100, 1)
+            | eval avg_days=round(avg_days, 0)
+            | eval status=case(compliance_pct>=90, "&#9679; Excellent", compliance_pct>=75, "&#9679; Good", compliance_pct>=50, "&#9679; Fair", 1=1, "&#9679; Poor")
+            | table company_name, total, on_track, overdue, compliance_pct, avg_days, status
+            | rename company_name as "Company", total as "Total", on_track as "On Track", overdue as "Overdue", compliance_pct as "Compliance %", avg_days as "Avg Days", status as "Status"
+            | sort -"Compliance %"
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Compliance %">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="75"></scale>
+        </format>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Excellent": #53A051, "&#9679; Good": #84b957, "&#9679; Fair": #F8BE34, "&#9679; Poor": #DC4E41}</colorPalette>
+        </format>
+        <drilldown>
+          <set token="company_filter">$row.Company$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</form>

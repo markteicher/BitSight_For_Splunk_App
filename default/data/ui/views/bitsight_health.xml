@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Data Health Monitor</label>
+  <description>Monitor API health, data freshness, collection status, and operational metrics</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- Health Status -->
+  <row>
+    <panel>
+      <html>
+        <![CDATA[
+        <div style="padding: 15px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
+          <h3 style="margin: 0 0 10px 0; color: #fff;">Health Status Legend</h3>
+          <div style="display: flex; gap: 30px;">
+            <span style="color: #53A051;"><strong>&#9679; Healthy:</strong> Data &lt; 1 hour old</span>
+            <span style="color: #F8BE34;"><strong>&#9679; Stale:</strong> Data 1-24 hours old</span>
+            <span style="color: #DC4E41;"><strong>&#9679; Critical:</strong> Data &gt; 24 hours old or missing</span>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Overall Health KPIs -->
+  <row>
+    <panel>
+      <single>
+        <title>Overall Health</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats latest(_time) as last_event
+            | eval age_hours=round((now() - last_event)/3600, 1)
+            | eval status=case(age_hours&lt;1, "Healthy", age_hours&lt;24, "Stale", 1=1, "Critical")
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Active Sourcetypes</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats dc(sourcetype) as count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[5,10]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Events (24h)</title>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats count
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[100,1000]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Companies Indexed</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:portfolio"
+            | stats dc(guid) as count
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x3D7EAA","0x3D7EAA"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Index Size</title>
+        <search>
+          <query>
+            | rest /services/data/indexes
+            | search title="security_bitsight" OR title="main"
+            | eval size_mb=round(currentDBSizeMB, 2)
+            | stats sum(size_mb) as total_mb
+            | eval display=total_mb." MB"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x6DB7C6","0x6DB7C6"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Sourcetype Health -->
+  <row>
+    <panel>
+      <title>Sourcetype Data Freshness</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats latest(_time) as last_event, count as event_count, earliest(_time) as first_event by sourcetype
+            | eval age_hours=round((now() - last_event)/3600, 2)
+            | eval status=case(age_hours&lt;1, "&#9679; Healthy", age_hours&lt;24, "&#9679; Stale", 1=1, "&#9679; Critical")
+            | eval last_event_fmt=strftime(last_event, "%Y-%m-%d %H:%M:%S")
+            | eval first_event_fmt=strftime(first_event, "%Y-%m-%d %H:%M:%S")
+            | table sourcetype, status, last_event_fmt, age_hours, event_count, first_event_fmt
+            | rename sourcetype as "Sourcetype", status as "Status", last_event_fmt as "Last Event", age_hours as "Age (hours)", event_count as "Events", first_event_fmt as "First Event"
+            | sort "Age (hours)"
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Healthy": #53A051, "&#9679; Stale": #F8BE34, "&#9679; Critical": #DC4E41}</colorPalette>
+        </format>
+        <format type="color" field="Age (hours)">
+          <colorPalette type="minMidMax" maxColor="#DC4E41" midColor="#F8BE34" minColor="#53A051"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="12"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/bitsight/search?q=`bitsight_index` sourcetype="$row.Sourcetype$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Collection Status -->
+  <row>
+    <panel>
+      <title>Event Volume by Sourcetype (24h)</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index`
+            | timechart span=1h count by sourcetype limit=10
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.axisTitleY.text">Events</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Event Distribution</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index`
+            | stats count by sourcetype
+            | sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Input Status -->
+  <row>
+    <panel>
+      <title>Modular Input Status</title>
+      <table>
+        <search>
+          <query>
+            | rest /services/data/inputs/bitsight splunk_server=local
+            | table title, disabled, interval, index, sourcetype
+            | eval status=if(disabled=0, "&#9679; Enabled", "&#9679; Disabled")
+            | rename title as "Input Name", status as "Status", interval as "Interval (sec)", index as "Index", sourcetype as "Sourcetype"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Enabled": #53A051, "&#9679; Disabled": #999999}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Errors and Warnings -->
+  <row>
+    <panel>
+      <title>Collection Errors (Last 24h)</title>
+      <table>
+        <search>
+          <query>
+            index=_internal sourcetype=splunkd component=ModularInputs (bitsight OR Bitsight)
+            | search log_level=ERROR OR log_level=WARN
+            | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | table time_fmt, log_level, message
+            | rename time_fmt as "Time", log_level as "Level", message as "Message"
+            | head 20
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Level">
+          <colorPalette type="map">{"ERROR": #DC4E41, "WARN": #F8BE34}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- API Health Indicators -->
+  <row>
+    <panel>
+      <title>Data Quality Checks</title>
+      <table>
+        <search>
+          <query>
+            | makeresults
+            | eval checks=split("Portfolio Data,Ratings Data,Findings Data,Alerts Data,User Data", ",")
+            | mvexpand checks
+            | eval sourcetype_map=case(
+                checks="Portfolio Data", "bitsight:portfolio",
+                checks="Ratings Data", "bitsight:ratings",
+                checks="Findings Data", "bitsight:findings",
+                checks="Alerts Data", "bitsight:alerts",
+                checks="User Data", "bitsight:users"
+              )
+            | map search="search `bitsight_index` sourcetype=\"$sourcetype_map$\" earliest=-24h | stats count as events, dc(guid) as unique_records | eval check=\"$checks$\", sourcetype=\"$sourcetype_map$\""
+            | eval status=case(events>0 AND unique_records>0, "&#9679; Pass", events>0, "&#9679; Warn", 1=1, "&#9679; Fail")
+            | table check, sourcetype, events, unique_records, status
+            | rename check as "Check", sourcetype as "Sourcetype", events as "Events (24h)", unique_records as "Unique Records", status as "Status"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Status">
+          <colorPalette type="map">{"&#9679; Pass": #53A051, "&#9679; Warn": #F8BE34, "&#9679; Fail": #DC4E41}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>

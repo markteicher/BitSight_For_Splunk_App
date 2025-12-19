@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form version="1.1" theme="dark">
+  <label>Company Hierarchy (Ratings Tree)</label>
+  <description>View company subsidiaries, organizational structure, and rating rollups across your portfolio</description>
+  
+  <search id="base_tree">
+    <query>
+      `bitsight_index` sourcetype="bitsight:ratings_tree"
+      | spath
+      | eval parent_guid=if(isnull(parent_guid), "ROOT", parent_guid)
+    </query>
+    <earliest>-24h@h</earliest>
+    <latest>now</latest>
+  </search>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="text" token="search_filter" searchWhenChanged="true">
+      <label>Search Companies</label>
+      <default>*</default>
+      <prefix>*</prefix>
+      <suffix>*</suffix>
+    </input>
+    <input type="dropdown" token="industry_filter">
+      <label>Industry</label>
+      <choice value="*">All Industries</choice>
+      <default>*</default>
+      <fieldForLabel>industry</fieldForLabel>
+      <fieldForValue>industry</fieldForValue>
+      <search>
+        <query>
+          `bitsight_index` sourcetype="bitsight:ratings_tree"
+          | spath output=industry path=industry
+          | stats count by industry
+          | where isnotnull(industry) AND industry!=""
+          | sort industry
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="rating_filter">
+      <label>Minimum Rating</label>
+      <choice value="0">All Ratings</choice>
+      <choice value="740">Advanced (740+)</choice>
+      <choice value="640">Intermediate (640+)</choice>
+      <choice value="500">Basic (500+)</choice>
+      <default>0</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <single>
+        <title>Total Organizations</title>
+        <search base="base_tree">
+          <query>
+            | where name LIKE "$search_filter$"
+            | stats dc(guid) as total
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x1E3A5F","0x3D7EAA"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Parent Companies</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath output=children path=children{}
+            | where isnotnull(children)
+            | stats dc(guid) as parents
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53A051","0x53A051"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Subsidiaries</title>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath output=is_bundled path=is_bundled
+            | where is_bundled="true"
+            | stats count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xF8BE34","0xF8BE34"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Avg. Portfolio Rating</title>
+        <search base="base_tree">
+          <query>
+            | where name LIKE "$search_filter$" AND rating >= $rating_filter$
+            | stats avg(rating) as avg_rating
+            | eval avg_rating=round(avg_rating, 0)
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
+        <option name="rangeValues">[500,700]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Rating Distribution by Organization Level</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath
+            | eval org_level=case(
+                is_primary="true", "Primary",
+                is_bundled="true", "Subsidiary",
+                1=1, "Independent"
+              )
+            | eval rating_tier=case(
+                rating>=740, "Advanced (740+)",
+                rating>=640, "Intermediate (640-739)",
+                rating>=500, "Basic (500-639)",
+                rating<500, "At Risk (<500)"
+              )
+            | where name LIKE "$search_filter$" AND industry LIKE "$industry_filter$" AND rating >= $rating_filter$
+            | stats count by org_level, rating_tier
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.fieldColors">{"Advanced (740+)": 0x53A051, "Intermediate (640-739)": 0x6DB7C6, "Basic (500-639)": 0xF8BE34, "At Risk (&lt;500)": 0xDC4E41}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Subsidiaries by Industry</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath
+            | where is_bundled="true"
+            | where name LIKE "$search_filter$" AND industry LIKE "$industry_filter$" AND rating >= $rating_filter$
+            | stats count by industry
+            | sort - count
+            | head 10
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Company Hierarchy Tree</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath
+            | eval hierarchy_level=case(
+                is_primary="true", "▪ Primary",
+                is_bundled="true", "├─ Subsidiary",
+                has_control="true", "├─ Controlled",
+                1=1, "│ Independent"
+              )
+            | eval rating_grade=case(
+                rating>=740, "A",
+                rating>=700, "B",
+                rating>=640, "C",
+                rating>=500, "D",
+                rating<500, "F"
+              )
+            | eval rating_display=rating." (".rating_grade.")"
+            | where name LIKE "$search_filter$" AND industry LIKE "$industry_filter$" AND rating >= $rating_filter$
+            | table hierarchy_level, name, rating_display, industry, rating_type, is_subscribed, is_service_provider
+            | rename hierarchy_level as "Level", name as "Company", rating_display as "Rating", industry as "Industry", 
+                     rating_type as "Rating Type", is_subscribed as "Subscribed", is_service_provider as "Service Provider"
+            | sort - Rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="wrap">true</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">search?q=`bitsight_index` sourcetype="bitsight:*" name="$row.Company$" OR company_name="$row.Company$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Subsidiary Rating Comparison</title>
+      <viz type="splunk_apps_viz.single_value_icon_viz">
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath
+            | where is_bundled="true" OR is_primary="true"
+            | eval org_type=if(is_primary="true", "Parent", "Subsidiary")
+            | stats avg(rating) as avg_rating by org_type
+            | eval avg_rating=round(avg_rating, 0)
+            | xyseries org_type avg_rating 
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+      </viz>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>At-Risk Subsidiaries (Rating &lt; 500)</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath
+            | where rating < 500 AND is_bundled="true"
+            | eval days_subscribed=if(is_subscribed="true", "Yes", "No")
+            | table name, rating, industry, rating_type, days_subscribed, is_service_provider
+            | rename name as "Company", rating as "Rating", industry as "Industry", rating_type as "Type", 
+                     days_subscribed as "Subscribed", is_service_provider as "Service Provider"
+            | sort rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">search?q=`bitsight_index` sourcetype="bitsight:findings" company_name="$row.Company$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <title>Service Provider Subsidiaries</title>
+      <table>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath
+            | where is_service_provider="true"
+            | table name, rating, industry, rating_type, is_bundled
+            | rename name as "Provider", rating as "Rating", industry as "Industry", rating_type as "Type", is_bundled as "Is Subsidiary"
+            | sort - rating
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">row</option>
+        <format type="color" field="Rating">
+          <colorPalette type="minMidMax" maxColor="#53A051" midColor="#F8BE34" minColor="#DC4E41"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="640"></scale>
+        </format>
+        <drilldown>
+          <link target="_blank">search?q=`bitsight_index` sourcetype="bitsight:providers" name="$row.Provider$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Rating Trends by Organization Type</title>
+      <chart>
+        <search>
+          <query>
+            `bitsight_index` sourcetype="bitsight:ratings_tree"
+            | spath
+            | eval org_type=case(
+                is_primary="true", "Primary Company",
+                is_bundled="true", "Subsidiary",
+                1=1, "Other"
+              )
+            | bin _time span=1d
+            | stats avg(rating) as avg_rating by _time, org_type
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.axisTitleY.text">Average Rating</option>
+      </chart>
+    </panel>
+  </row>
+</form>

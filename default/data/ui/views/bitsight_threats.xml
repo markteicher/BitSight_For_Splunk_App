@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dashboard>
+  <label>Bitsight Threats</label>
+  <description>Vulnerability and Threat Intelligence</description>
+  
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="timerange" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="severity_filter" searchWhenChanged="true">
+      <label>Severity</label>
+      <choice value="*">All Severities</choice>
+      <choice value="critical">Critical</choice>
+      <choice value="high">High</choice>
+      <choice value="medium">Medium</choice>
+      <choice value="low">Low</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+  
+  <row>
+    <panel>
+      <title>Total Threats</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:threats" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Critical Threats</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:threats" severity="critical"
+            | stats count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[0,5]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Unique CVEs</title>
+      <single>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:threats" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | stats dc(cve_id) as count
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Threats by Severity</title>
+      <chart>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:threats" 
+            | stats count by severity
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.fieldColors">{"critical": 0xdc4e41, "high": 0xf1813f, "medium": 0xf8be34, "low": 0x53a051}</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Threats Over Time</title>
+      <chart>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:threats" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | timechart span=1d count by severity
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.fieldColors">{"critical": 0xdc4e41, "high": 0xf1813f, "medium": 0xf8be34, "low": 0x53a051}</option>
+      </chart>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Threat Details</title>
+      <table>
+        <search>
+          <query>
+            index=security_bitsight sourcetype="bitsight:threats" 
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
+            | table _time, name, cve_id, severity, cvss_score, description, affected_products
+            | rename _time as "Time", name as "Name", cve_id as "CVE", severity as "Severity", cvss_score as "CVSS", description as "Description", affected_products as "Affected Products"
+            | sort -Time
+          </query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">true</option>
+        <format type="color" field="Severity">
+          <colorPalette type="map">{"critical":#dc4e41,"high":#f1813f,"medium":#f8be34,"low":#53a051}</colorPalette>
+        </format>
+        <format type="color" field="CVSS">
+          <colorPalette type="minMidMax" maxColor="#DC4E41" midColor="#F8BE34" minColor="#53A051"></colorPalette>
+          <scale type="minMidMax" midType="number" midValue="5"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+</dashboard>
