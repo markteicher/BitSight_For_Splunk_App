@@ -1,0 +1,6 @@
+rating_min,rating_max,category,color
+740,900,Advanced,#53a051
+700,739,Good,#84b957
+640,699,Fair,#f8be34
+400,639,Warning,#f1813f
+0,399,Critical,#dc4e41

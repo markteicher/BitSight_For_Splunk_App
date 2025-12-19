@@ -1,0 +1,18 @@
+risk_vector,display_name,description
+botnet_infections,Botnet Infections,Systems infected with botnet malware
+spam_propagation,Spam Propagation,Systems sending spam email
+malware_servers,Malware Servers,Systems hosting malware
+unsolicited_comm,Unsolicited Communications,Outbound unsolicited communications
+potentially_exploited,Potentially Exploited,Systems showing signs of exploitation
+open_ports,Open Ports,Unnecessarily exposed network services
+patching_cadence,Patching Cadence,Speed of applying security patches
+insecure_systems,Insecure Systems,Systems with known vulnerabilities
+ssl_certificates,SSL Certificates,SSL/TLS certificate issues
+ssl_configurations,SSL Configurations,SSL/TLS configuration problems
+spf,SPF,Sender Policy Framework configuration
+dkim,DKIM,DomainKeys Identified Mail configuration
+dnssec,DNSSEC,DNS Security Extensions
+mobile_app_security,Mobile App Security,Mobile application security issues
+file_sharing,File Sharing,File sharing exposure
+desktop_software,Desktop Software,Desktop software security
+server_software,Server Software,Server software security
