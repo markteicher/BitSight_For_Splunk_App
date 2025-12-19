@@ -13,7 +13,7 @@ Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ra
 - **User Management**: Track user activity and quota usage
 - **Trending Analysis**: WoW, MoM, QoQ, YoY rating and findings trends
 - **21 Risk Vectors**: Complete coverage of all Bitsight risk vectors
-- **10 Pre-built Dashboards**: Immediate insights out of the box
+- **26 Pre-built Dashboards**: Immediate insights out of the box
 - **Setup Validation**: Automatic configuration validation on first launch
 
 ## Installation
@@ -76,35 +76,78 @@ index=security_bitsight sourcetype=bitsight:*
 ## Directory Structure
 ```
 BitSight_For_Splunk_App/
-├── app.manifest              # App manifest for Splunk Cloud
-├── LICENSE                   # Apache 2.0 License
-├── README.md                 # This file
+├── app.manifest                    # App manifest for Splunk Cloud
+├── LICENSE                         # Apache 2.0 License
+├── README.md                       # This file
 ├── default/
-│   ├── app.conf              # App configuration
-│   ├── bitsight.conf         # Default settings
-│   ├── inputs.conf           # Input definitions
-│   ├── props.conf            # Field extraction rules
-│   ├── transforms.conf       # Field transformations
+│   ├── app.conf                    # App configuration
+│   ├── alert_actions.conf          # Alert action definitions
+│   ├── bitsight.conf               # Default settings
+│   ├── indexes.conf                # Index definitions
+│   ├── inputs.conf                 # Input definitions
+│   ├── macros.conf                 # Search macros
+│   ├── props.conf                  # Field extraction rules
+│   ├── restmap.conf                # REST API configuration
+│   ├── savedsearches.conf          # Saved searches & alerts
+│   ├── server.conf                 # Server configuration
+│   ├── transforms.conf             # Field transformations
+│   ├── web.conf                    # Web settings
+│   ├── workflow_actions.conf       # Workflow actions
 │   └── data/ui/
-│       ├── nav/default.xml   # Navigation menu
-│       └── views/            # Dashboard XML files
+│       ├── nav/default.xml         # Navigation menu
+│       └── views/                  # Dashboard XML files (26 dashboards)
+│           ├── setup.xml           # Setup wizard
+│           ├── bitsight_overview.xml
+│           ├── bitsight_search.xml
+│           ├── bitsight_portfolio.xml
+│           ├── bitsight_ratings.xml
+│           ├── bitsight_ratings_tree.xml
+│           ├── bitsight_ratings_trending.xml
+│           ├── bitsight_trending.xml
+│           ├── bitsight_benchmarking.xml
+│           ├── bitsight_findings.xml
+│           ├── bitsight_findings_detailed.xml
+│           ├── bitsight_findings_trending.xml
+│           ├── bitsight_remediation.xml
+│           ├── bitsight_mttr_executive.xml
+│           ├── bitsight_asset_risk_matrix.xml
+│           ├── bitsight_nist_csf.xml
+│           ├── bitsight_threats.xml
+│           ├── bitsight_exposed_credentials.xml
+│           ├── bitsight_users.xml
+│           ├── bitsight_users_access_review.xml
+│           ├── bitsight_alerts.xml
+│           ├── bitsight_health.xml
+│           ├── bitsight_health_check.xml
+│           ├── bitsight_operations.xml
+│           ├── bitsight_logs.xml
+│           ├── bitsight_reports.xml
+│           └── bitsight_help.xml
 ├── bin/
-│   ├── bitsight_input.py     # Modular input script
-│   ├── bitsight_setup_handler.py  # Setup REST handler
-│   └── bitsight_validation.py     # Configuration validation
+│   ├── bitsight_input.py           # Modular input script
+│   ├── bitsight_setup_handler.py   # Setup REST handler
+│   ├── bitsight_validation.py      # Configuration validation
+│   ├── bitsight_email_alert.py     # Email alert action
+│   ├── bitsight_webhook_alert.py   # Webhook alert action
+│   ├── bitsight_script_alert.py    # Script alert action
+│   └── bitsight_pagerduty_alert.py # PagerDuty alert action
 ├── lookups/
 │   ├── bitsight_rating_categories.csv
 │   ├── bitsight_risk_vectors.csv
 │   └── bitsight_severity_levels.csv
 ├── local/
-│   └── inputs.conf.example   # Example configuration
+│   └── inputs.conf.example         # Example configuration
 ├── metadata/
-│   ├── default.meta          # Default permissions
-│   └── local.meta            # Local permissions
+│   ├── default.meta                # Default permissions
+│   └── local.meta                  # Local permissions
+├── README/
+│   ├── bitsight.conf.spec          # Config specification
+│   └── alert_actions.conf.spec     # Alert actions spec
 └── static/
-    ├── appIcon.png           # App icon (36x36)
-    ├── appIcon_2x.png        # Retina app icon (72x72)
-    └── appIconAlt.png        # Alternative icon
+    ├── appIcon.png                 # App icon (36x36)
+    ├── appIcon_2x.png              # Retina app icon (72x72)
+    ├── appIconAlt.png              # Alternative icon (36x36)
+    └── appIconAlt_2x.png           # Retina alt icon (72x72)
 ```
 
 ## Dashboards
