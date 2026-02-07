@@ -3,6 +3,15 @@
 ## Overview
 Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ratings, portfolio companies, alerts, findings, exposed credentials, users, and threat intelligence from the Bitsight API.
 
+
+## ⚠️ Disclaimer
+
+This tool is **not an official BitSight product**.
+
+Use of this software is **not covered** by any license, warranty, or support agreement you may have with BitSight.
+All functionality is implemented independently using publicly available Bitsight API Documentation: https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview
+
+
 ## Features
 
 ### 🛡️ Core Capabilities
