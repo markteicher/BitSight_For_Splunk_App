@@ -55,6 +55,50 @@ All functionality is implemented independently using publicly available Bitsight
 | 🕐 Scheduled Health Checks | Daily validation and hourly API health checks |
 | 📋 Log Viewer | API activity and error monitoring |
 
+## Dashboards
+
+| Dashboard | Description |
+|-----------|-------------|
+| **Overview** | Executive summary with KPIs, rating trends, and alerts |
+| **Search** | Company search and lookup |
+| **Portfolio** | Third-party vendor portfolio management with sparklines |
+| **Ratings Tree** | Company hierarchy and subsidiary ratings |
+| **Benchmarking** | Peer and industry benchmarking comparisons |
+| **Ratings** | Detailed security rating analysis with risk vectors |
+| **Ratings Trending** | Company ratings trending over time |
+| **Trending** | WoW, MoM, QoQ, YoY comparative trending analysis |
+| **Findings** | Security findings summary by severity and risk vector |
+| **Findings Detailed** | Detailed findings with CVSS scores, assets, remediation |
+| **Findings Trending** | Findings WoW, MoM, QoQ, YoY trending analysis |
+| **Remediation** | Remediation tracking and SLA monitoring |
+| **MTTR Executive** | Mean Time to Remediate executive dashboard |
+| **Asset Risk Matrix** | Asset importance vs severity risk matrix |
+| **NIST CSF** | NIST Cybersecurity Framework compliance mapping |
+| **Threats** | CVE and threat intelligence dashboard |
+| **Exposed Credentials** | Data breach and credential exposure tracking |
+| **Users** | User management, activity, and quota tracking |
+| **Users Access Review** | User access review and audit dashboard |
+| **Alerts** | Alert management and tracking |
+| **Health** | Data health and ingestion monitoring |
+| **Health Check** | Configuration validation and scheduled health checks |
+| **Operations** | Records processed and ingestion metrics |
+| **Logs** | Log viewer and API activity monitoring |
+| **Reports** | Board-ready report generation |
+| **Help** | Executive help and glossary |
+
+## Risk Vectors Supported
+
+### Compromised Systems (5)
+- botnet_infections, spam_propagation, malware_servers, unsolicited_comm, potentially_exploited
+
+### Diligence (15)
+- spf, dkim, ssl_certificates, ssl_configurations, open_ports, web_appsec
+- patching_cadence, insecure_systems, server_software, desktop_software
+- mobile_software, dnssec, mobile_application_security, application_security, dmarc
+
+### User Behavior (1)
+- file_sharing
+
 ### 🚀 Deployment
 | Feature | Description |
 |---------|-------------|
@@ -197,49 +241,7 @@ BitSight_For_Splunk_App/
     └── appIconAlt_2x.png           # Retina alt icon (72x72)
 ```
 
-## Dashboards
 
-| Dashboard | Description |
-|-----------|-------------|
-| **Overview** | Executive summary with KPIs, rating trends, and alerts |
-| **Search** | Company search and lookup |
-| **Portfolio** | Third-party vendor portfolio management with sparklines |
-| **Ratings Tree** | Company hierarchy and subsidiary ratings |
-| **Benchmarking** | Peer and industry benchmarking comparisons |
-| **Ratings** | Detailed security rating analysis with risk vectors |
-| **Ratings Trending** | Company ratings trending over time |
-| **Trending** | WoW, MoM, QoQ, YoY comparative trending analysis |
-| **Findings** | Security findings summary by severity and risk vector |
-| **Findings Detailed** | Detailed findings with CVSS scores, assets, remediation |
-| **Findings Trending** | Findings WoW, MoM, QoQ, YoY trending analysis |
-| **Remediation** | Remediation tracking and SLA monitoring |
-| **MTTR Executive** | Mean Time to Remediate executive dashboard |
-| **Asset Risk Matrix** | Asset importance vs severity risk matrix |
-| **NIST CSF** | NIST Cybersecurity Framework compliance mapping |
-| **Threats** | CVE and threat intelligence dashboard |
-| **Exposed Credentials** | Data breach and credential exposure tracking |
-| **Users** | User management, activity, and quota tracking |
-| **Users Access Review** | User access review and audit dashboard |
-| **Alerts** | Alert management and tracking |
-| **Health** | Data health and ingestion monitoring |
-| **Health Check** | Configuration validation and scheduled health checks |
-| **Operations** | Records processed and ingestion metrics |
-| **Logs** | Log viewer and API activity monitoring |
-| **Reports** | Board-ready report generation |
-| **Help** | Executive help and glossary |
-
-## Risk Vectors Supported
-
-### Compromised Systems (5)
-- botnet_infections, spam_propagation, malware_servers, unsolicited_comm, potentially_exploited
-
-### Diligence (15)
-- spf, dkim, ssl_certificates, ssl_configurations, open_ports, web_appsec
-- patching_cadence, insecure_systems, server_software, desktop_software
-- mobile_software, dnssec, mobile_application_security, application_security, dmarc
-
-### User Behavior (1)
-- file_sharing
 
 ## Sourcetypes
 
