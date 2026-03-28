@@ -16,10 +16,13 @@ lower(_first)="vrm operations","None",
 lower(_first)="vrm admin","None",
 1=1,_first)
 | fields - first_val _first
-| eval age_icon=if(isnull(last_login_epoch) AND age_days<31,"☠️",
-if(age_days>1095,"❌",
-if(age_days>730,"🚨",
-if(age_days>365,"⚠️","ℹ️"))))
+| eval age_icon=case(
+    isnull(last_login_epoch) AND age_days<31,"☠️",
+    age_days>1095,"❌",
+    age_days>730,"🚨",
+    age_days>365,"⚠️",
+    1=1,"ℹ️"
+)
 </query>
 <earliest>-90d@d</earliest>
 <latest>now</latest>
