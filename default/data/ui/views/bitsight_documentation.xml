@@ -1,0 +1,126 @@
+<!--
+=============================================================================
+ default/data/ui/views/bitsight_documentation.xml
+ BitSight for Splunk App
+ Documentation Hub (tile layout)
+=============================================================================
+-->
+<dashboard version="1.1" theme="light">
+  <label>📚 BitSight API Documentation Hub</label>
+
+  <row>
+    <panel>
+      <html>
+
+        <style>
+          .portal-grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:22px;
+            margin-top:20px;
+          }
+          .portal-tile{
+            background:#ffffff;
+            border:1px solid #e5e5e5;
+            border-radius:8px;
+            padding:22px;
+            text-align:center;
+            transition:all .18s ease;
+          }
+          .portal-tile:hover{
+            box-shadow:0 4px 14px rgba(0,0,0,.18);
+            transform:translateY(-2px);
+          }
+          .portal-icon{font-size:34px;margin-bottom:10px;}
+          .portal-title{font-size:15px;font-weight:600;}
+          .portal-link{text-decoration:none;color:inherit;display:block;}
+        </style>
+
+        <div class="portal-grid">
+
+          <!-- BitSight Platform / API -->
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/categories/360005934253-Bitsight-API" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🌐</div>
+              <div class="portal-title">BitSight API Knowledge Base</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/206823987-Bitsight-API-Overview" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📘</div>
+              <div class="portal-title">BitSight API Overview</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/4411972074263-Bitsight-API-Guides" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📝</div>
+              <div class="portal-title">BitSight API Guides</div>
+            </div>
+          </a>
+
+          <!-- Core API References -->
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360012100533-API-Fields" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🧾</div>
+              <div class="portal-title">API Fields</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360007172434-Access-Groups-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🔐</div>
+              <div class="portal-title">Access Groups API Endpoint</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360003399233-Alerts-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🚨</div>
+              <div class="portal-title">Alerts API Endpoint</div>
+            </div>
+          </a>
+
+          <!-- Company / Portfolio -->
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360003211153-Companies-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏢</div>
+              <div class="portal-title">Companies API Endpoint</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/18060970603415-Current-Ratings-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">Current Ratings API Endpoint</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360003211893-Portfolio-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📁</div>
+              <div class="portal-title">Portfolio API Endpoint</div>
+            </div>
+          </a>
+
+          <!-- Operations -->
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360009646033-Remediations-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🛠️</div>
+              <div class="portal-title">Remediations API Endpoint</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360004740833-Users-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">👥</div>
+              <div class="portal-title">Users API Endpoint</div>
+            </div>
+          </a>
+          <a class="portal-link" href="https://help.bitsight.com/hc/en-us" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🧠</div>
+              <div class="portal-title">BitSight Support Home</div>
+            </div>
+          </a>
+
+        </div>
+
+      </html>
+    </panel>
+  </row>
+</dashboard>
