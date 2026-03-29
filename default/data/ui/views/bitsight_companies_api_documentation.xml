@@ -1,0 +1,123 @@
+<!--
+=============================================================================
+ default/data/ui/views/bitsight_companies_api_documentation.xml
+ BitSight for Splunk App
+ Companies API Documentation Hub (tile layout)
+=============================================================================
+-->
+<dashboard version="1.1" theme="light">
+  <label>📚 BitSight Companies API Documentation Hub</label>
+
+  <row>
+    <panel>
+      <html>
+
+        <style>
+          .portal-grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:22px;
+            margin-top:20px;
+          }
+          .portal-tile{
+            background:#ffffff;
+            border:1px solid #e5e5e5;
+            border-radius:8px;
+            padding:22px;
+            text-align:center;
+            transition:all .18s ease;
+          }
+          .portal-tile:hover{
+            box-shadow:0 4px 14px rgba(0,0,0,.18);
+            transform:translateY(-2px);
+          }
+          .portal-icon{font-size:34px;margin-bottom:10px;}
+          .portal-title{font-size:15px;font-weight:600;}
+          .portal-link{text-decoration:none;color:inherit;display:block;}
+        </style>
+
+        <div class="portal-grid">
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏢</div>
+              <div class="portal-title">Companies API Endpoint</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#4th-party" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🌐</div>
+              <div class="portal-title">4th Party</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#company-data" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📘</div>
+              <div class="portal-title">Company Data</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#cyber-insurance" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🛡️</div>
+              <div class="portal-title">Cyber Insurance</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#findings-and-observations" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🔎</div>
+              <div class="portal-title">Findings and Observations</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#infrastructure" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏗️</div>
+              <div class="portal-title">Infrastructure</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#infrastructure-tags" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏷️</div>
+              <div class="portal-title">Infrastructure Tags</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#issue-tracking" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📝</div>
+              <div class="portal-title">Issue Tracking</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#peer-analytics" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">Peer Analytics</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#portfolio" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📁</div>
+              <div class="portal-title">Portfolio</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#statistics" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📈</div>
+              <div class="portal-title">Statistics</div>
+            </div>
+          </a>
+
+        </div>
+
+      </html>
+    </panel>
+  </row>
+</dashboard>
