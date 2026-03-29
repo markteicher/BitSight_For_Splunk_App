@@ -38,83 +38,194 @@
 
         <div class="portal-grid">
 
-          <!-- BitSight Platform / API -->
+          <!-- API Overview -->
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📘</div>
+              <div class="portal-title">API Documentation Overview</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656047-Endpoints" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🧭</div>
+              <div class="portal-title">Endpoints</div>
+            </div>
+          </a>
+
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/categories/360005934253-Bitsight-API" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🌐</div>
               <div class="portal-title">BitSight API Knowledge Base</div>
             </div>
           </a>
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/206823987-Bitsight-API-Overview" target="_blank">
+
+          <!-- Endpoint Links -->
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/" target="_blank">
             <div class="portal-tile">
-              <div class="portal-icon">📘</div>
-              <div class="portal-title">BitSight API Overview</div>
-            </div>
-          </a>
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/4411972074263-Bitsight-API-Guides" target="_blank">
-            <div class="portal-tile">
-              <div class="portal-icon">📝</div>
-              <div class="portal-title">BitSight API Guides</div>
+              <div class="portal-icon">🏠</div>
+              <div class="portal-title">Overview Endpoint</div>
             </div>
           </a>
 
-          <!-- Core API References -->
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360012100533-API-Fields" target="_blank">
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/access-requests" target="_blank">
             <div class="portal-tile">
-              <div class="portal-icon">🧾</div>
-              <div class="portal-title">API Fields</div>
+              <div class="portal-icon">🤝</div>
+              <div class="portal-title">Client/Vendor Access Program</div>
             </div>
           </a>
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360007172434-Access-Groups-API-Endpoint" target="_blank">
-            <div class="portal-tile">
-              <div class="portal-icon">🔐</div>
-              <div class="portal-title">Access Groups API Endpoint</div>
-            </div>
-          </a>
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360003399233-Alerts-API-Endpoint" target="_blank">
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/alerts" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🚨</div>
-              <div class="portal-title">Alerts API Endpoint</div>
+              <div class="portal-title">Alerts</div>
             </div>
           </a>
 
-          <!-- Company / Portfolio -->
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360003211153-Companies-API-Endpoint" target="_blank">
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/client-access-links" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🔗</div>
+              <div class="portal-title">Client Access Links</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/companies" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🏢</div>
-              <div class="portal-title">Companies API Endpoint</div>
-            </div>
-          </a>
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/18060970603415-Current-Ratings-API-Endpoint" target="_blank">
-            <div class="portal-tile">
-              <div class="portal-icon">📊</div>
-              <div class="portal-title">Current Ratings API Endpoint</div>
-            </div>
-          </a>
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360003211893-Portfolio-API-Endpoint" target="_blank">
-            <div class="portal-tile">
-              <div class="portal-icon">📁</div>
-              <div class="portal-title">Portfolio API Endpoint</div>
+              <div class="portal-title">Companies</div>
             </div>
           </a>
 
-          <!-- Operations -->
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360009646033-Remediations-API-Endpoint" target="_blank">
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/company-relationships" target="_blank">
             <div class="portal-tile">
-              <div class="portal-icon">🛠️</div>
-              <div class="portal-title">Remediations API Endpoint</div>
+              <div class="portal-icon">🧩</div>
+              <div class="portal-title">Company Relationships</div>
             </div>
           </a>
-          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360004740833-Users-API-Endpoint" target="_blank">
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/company-requests" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📨</div>
+              <div class="portal-title">Company Requests</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/customers" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">👤</div>
+              <div class="portal-title">Customers</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/current-ratings" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">Current Ratings</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/defaults" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">⚙️</div>
+              <div class="portal-title">Defaults</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/exposed-credentials" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🪪</div>
+              <div class="portal-title">Exposed Credentials</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/folders" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📁</div>
+              <div class="portal-title">Folders</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/industries" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏭</div>
+              <div class="portal-title">Industries</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/insights" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">💡</div>
+              <div class="portal-title">Insights</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/news" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📰</div>
+              <div class="portal-title">News</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/peer-analytics" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📈</div>
+              <div class="portal-title">Peer Analytics</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/portfolio" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🗂️</div>
+              <div class="portal-title">Portfolio</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/fast-ratings" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">⚡</div>
+              <div class="portal-title">Rapid Underwriting Assessments</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/reports" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📄</div>
+              <div class="portal-title">Reports</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/subscriptions" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📬</div>
+              <div class="portal-title">Subscriptions</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/territories" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🗺️</div>
+              <div class="portal-title">Territories</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/threats" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🛡️</div>
+              <div class="portal-title">Threats</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/tiers" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🎚️</div>
+              <div class="portal-title">Tiers</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://api.bitsighttech.com/ratings/users" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">👥</div>
-              <div class="portal-title">Users API Endpoint</div>
-            </div>
-          </a>
-          <a class="portal-link" href="https://help.bitsight.com/hc/en-us" target="_blank">
-            <div class="portal-tile">
-              <div class="portal-icon">🧠</div>
-              <div class="portal-title">BitSight Support Home</div>
+              <div class="portal-title">Users</div>
             </div>
           </a>
 
