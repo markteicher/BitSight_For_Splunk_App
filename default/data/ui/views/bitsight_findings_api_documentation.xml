@@ -1,0 +1,88 @@
+<!--
+=============================================================================
+ default/data/ui/views/bitsight_findings_api_documentation.xml
+ BitSight for Splunk App
+ Findings API Documentation Hub (tile layout)
+=============================================================================
+-->
+<dashboard version="1.1" theme="light">
+  <label>📚 BitSight Findings API Documentation Hub</label>
+
+  <row>
+    <panel>
+      <html>
+
+        <style>
+          .portal-grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:22px;
+            margin-top:20px;
+          }
+          .portal-tile{
+            background:#ffffff;
+            border:1px solid #e5e5e5;
+            border-radius:8px;
+            padding:22px;
+            text-align:center;
+            transition:all .18s ease;
+          }
+          .portal-tile:hover{
+            box-shadow:0 4px 14px rgba(0,0,0,.18);
+            transform:translateY(-2px);
+          }
+          .portal-icon{font-size:34px;margin-bottom:10px;}
+          .portal-title{font-size:15px;font-weight:600;}
+          .portal-link{text-decoration:none;color:inherit;display:block;}
+        </style>
+
+        <div class="portal-grid">
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint#findings-observations" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🔎</div>
+              <div class="portal-title">Findings and Observations</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231671267-GET-Finding-Details" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📘</div>
+              <div class="portal-title">GET: Finding Details</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/230828607-GET-Findings-Statistics" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">GET: Findings Statistics</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/230521568-GET-Findings-Summaries" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📝</div>
+              <div class="portal-title">GET: Findings Summaries</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231671287-GET-Findings-Summary-of-a-Company" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏢</div>
+              <div class="portal-title">GET: Findings Summary of a Company</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231671307-GET-Detailed-Company-Observations" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">👁️</div>
+              <div class="portal-title">GET: Detailed Company Observations</div>
+            </div>
+          </a>
+
+        </div>
+
+      </html>
+    </panel>
+  </row>
+</dashboard>
