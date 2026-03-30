@@ -2,7 +2,7 @@
 =============================================================================
  default/data/ui/views/bitsight_api_documentation.xml
  BitSight for Splunk App
- Documentation Hub (tile layout)
+ Documentation Hub
 =============================================================================
 -->
 <dashboard version="1.1" theme="light">
@@ -68,7 +68,7 @@
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/access-requests" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360025589314-Access-Request-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🤝</div>
               <div class="portal-title">Client/Vendor Access Program</div>
