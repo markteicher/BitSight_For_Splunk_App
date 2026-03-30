@@ -1,6 +1,6 @@
 <!--
 =============================================================================
- default/data/ui/views/bitsight_documentation.xml
+ default/data/ui/views/bitsight_api_documentation.xml
  BitSight for Splunk App
  Documentation Hub (tile layout)
 =============================================================================
@@ -75,7 +75,7 @@
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/alerts" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231873368-Alerts-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🚨</div>
               <div class="portal-title">Alerts</div>
@@ -89,21 +89,21 @@
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/companies" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656647-Companies-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🏢</div>
               <div class="portal-title">Companies</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/company-relationships" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360044970974-GET-Company-Relationship-Details" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🧩</div>
               <div class="portal-title">Company Relationships</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/company-requests" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/115015931287-Company-Requests-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📨</div>
               <div class="portal-title">Company Requests</div>
