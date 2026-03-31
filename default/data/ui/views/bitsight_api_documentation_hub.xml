@@ -82,7 +82,7 @@
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/client-access-links" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360025589314-Access-Request-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🔗</div>
               <div class="portal-title">Client Access Links</div>
@@ -110,119 +110,119 @@
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/customers" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360025589314-Access-Request-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">👤</div>
               <div class="portal-title">Customers</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/current-ratings" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360025589314-Access-Request-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📊</div>
               <div class="portal-title">Current Ratings</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/defaults" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360061987354-GET-Static-Data" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">⚙️</div>
               <div class="portal-title">Defaults</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/exposed-credentials" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/4419000786711-Exposed-Credentials-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🪪</div>
               <div class="portal-title">Exposed Credentials</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/folders" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/232230788-Folders-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📁</div>
               <div class="portal-title">Folders</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/industries" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231656687-Industries-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🏭</div>
               <div class="portal-title">Industries</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/insights" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360006842894-GET-Insights" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">💡</div>
               <div class="portal-title">Insights</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/news" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360026746933-GET-Breach-News" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📰</div>
               <div class="portal-title">News</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/peer-analytics" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/5768683362711-Peer-Analytics-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📈</div>
               <div class="portal-title">Peer Analytics</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/portfolio" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/115004541128-Portfolio-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🗂️</div>
               <div class="portal-title">Portfolio</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/fast-ratings" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360021892834-POST-Rapid-Underwriting-Assessments" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">⚡</div>
               <div class="portal-title">Rapid Underwriting Assessments</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/reports" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360043674734-POST-Download-Report" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📄</div>
               <div class="portal-title">Reports</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/subscriptions" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231873648-Subscriptions-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📬</div>
               <div class="portal-title">Subscriptions</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/territories" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/4410794316823-GET-Grades-by-Country-Industry" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🗺️</div>
               <div class="portal-title">Territories</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/threats" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/21739353645463-Threats-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🛡️</div>
               <div class="portal-title">Threats</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/tiers" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360021277333-Tiers-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🎚️</div>
               <div class="portal-title">Tiers</div>
             </div>
           </a>
 
-          <a class="portal-link" href="https://api.bitsighttech.com/ratings/users" target="_blank">
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360012213993-Users-API-Endpoint" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">👥</div>
               <div class="portal-title">Users</div>
