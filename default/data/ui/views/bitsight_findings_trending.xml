@@ -1,7 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/findings_trending.xml
+ BitSight for Splunk App
+ Findings Trending Dashboard
+=============================================================================
+
+PURPOSE
+
+Trend analysis dashboard for BitSight findings across multiple reporting
+periods.
+
+This dashboard provides:
+
+- Week-over-Week (WoW) findings trend visibility
+- Month-over-Month (MoM) findings trend visibility
+- Quarter-over-Quarter (QoQ) findings trend visibility
+- Year-over-Year (YoY) findings trend visibility
+- Current period findings KPI monitoring
+- Findings trendline visualization
+- Findings trend analysis by severity
+- Findings trend analysis by risk vector
+- Company-level WoW and MoM comparison views
+- QoQ comparison by derived risk category
+- Daily / hourly findings heatmap visibility
+
+DATA SOURCE
+
+This dashboard is powered by BitSight findings events indexed in Splunk:
+
+- index=security_bitsight
+- sourcetype=bitsight:findings
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational trend view for analysts to monitor:
+
+- findings growth or reduction over time
+- short-term versus long-term findings movement
+- company-level period-over-period changes
+- severity-based findings trends
+- risk-vector-based trend concentration
+- distribution changes across derived risk categories
+- temporal concentration of findings by day and hour
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+- Company
+- Severity
+- Risk Vector
+
+TREND MODEL
+
+This dashboard includes:
+
+- current period KPI totals
+- WoW percentage change
+- MoM percentage change
+- QoQ percentage change
+- YoY percentage change
+- weekly time-based findings trend charts
+- derived trend states such as increasing, decreasing, and stable
+
+=============================================================================
+-->
+
 <dashboard version="1.1" theme="dark">
   <label>Findings Trending</label>
   <description>Week-over-Week, Month-over-Month, Quarter-over-Quarter, and Year-over-Year findings trends</description>
   
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range" searchWhenChanged="false">
       <label>Time Range</label>
@@ -46,7 +120,9 @@
     </input>
   </fieldset>
 
-  <!-- KPI Row: Current Period Findings -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: CURRENT PERIOD FINDINGS KPIS                             -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>This Week Findings</title>
@@ -114,7 +190,9 @@
     </panel>
   </row>
 
-  <!-- WoW Change Row -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: PERIOD-OVER-PERIOD CHANGE KPIS                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Week-over-Week (WoW) Change</title>
@@ -211,7 +289,9 @@
     </panel>
   </row>
 
-  <!-- Findings Trend Chart -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: OVERALL FINDINGS TREND                                   -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings Trend Over Time</title>
@@ -232,7 +312,9 @@
     </panel>
   </row>
 
-  <!-- Findings by Severity Trend -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: SEVERITY TREND                                            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings by Severity - Weekly Trend</title>
@@ -252,7 +334,9 @@
     </panel>
   </row>
 
-  <!-- Findings by Risk Vector Trend -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: RISK VECTOR TREND                                         -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Top Risk Vectors - Weekly Trend</title>
@@ -270,7 +354,9 @@
     </panel>
   </row>
 
-  <!-- WoW Detailed Comparison Table -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: WOW DETAILED COMPARISON                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Week-over-Week Findings by Company</title>
@@ -302,7 +388,9 @@
     </panel>
   </row>
 
-  <!-- MoM Detailed Comparison Table -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: MOM DETAILED COMPARISON                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Month-over-Month Findings by Company</title>
@@ -334,7 +422,9 @@
     </panel>
   </row>
 
-  <!-- Critical Findings Trend -->
+  <!-- =============================================================== -->
+  <!-- ROW 8: CRITICAL / SEVERE TREND AND RISK VECTOR CHANGE           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Critical/Severe Findings Trend</title>
@@ -373,7 +463,9 @@
     </panel>
   </row>
 
-  <!-- QoQ Findings by Risk Category -->
+  <!-- =============================================================== -->
+  <!-- ROW 9: QOQ BY DERIVED RISK CATEGORY                             -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Quarter-over-Quarter by Risk Category</title>
@@ -411,7 +503,9 @@
     </panel>
   </row>
 
-  <!-- Findings Heatmap -->
+  <!-- =============================================================== -->
+  <!-- ROW 10: FINDINGS HEATMAP                                        -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings Heatmap by Day of Week</title>
