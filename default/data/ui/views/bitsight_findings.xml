@@ -1,8 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/bitsight_findings.xml
+ BitSight for Splunk App
+ BitSight Findings Dashboard
+=============================================================================
+
+PURPOSE
+
+Operational dashboard for monitoring BitSight security findings and
+vulnerability-related findings across companies, assets, severities,
+and risk vectors.
+
+This dashboard provides:
+
+- Time-bounded findings monitoring
+- Severity-based findings filtering
+- Risk vector filtering
+- Company-specific findings filtering
+- Total findings volume monitoring
+- Severe and material findings tracking
+- Unique risk vector coverage
+- Findings trend analysis over time
+- Findings distribution by severity
+- Findings distribution by risk vector
+- Top company concentration analysis
+- Open versus remediated status distribution
+- Asset-level findings concentration
+- Detailed findings event review
+
+DATA SOURCE
+
+This dashboard is powered by BitSight findings events indexed in Splunk:
+
+- index=security_bitsight
+- sourcetype="bitsight:findings"
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational view for analysts to monitor:
+
+- total findings volume
+- severe and material findings concentration
+- risk vector concentration
+- findings trends over time
+- company exposure concentration
+- remediation status distribution
+- assets with the highest findings counts
+- detailed finding records for review and triage
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+- Severity
+- Risk Vector
+- Company
+
+STATUS MODEL
+
+Finding status is derived as:
+
+- Open        = remediated_date is null or empty
+- Remediated  = remediated_date is present
+
+=============================================================================
+-->
+
 <dashboard>
   <label>Bitsight Findings</label>
   <description>Security Findings and Vulnerabilities</description>
-  
+
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="timerange" searchWhenChanged="true">
       <label>Time Range</label>
@@ -11,6 +84,7 @@
         <latest>now</latest>
       </default>
     </input>
+
     <input type="dropdown" token="severity_filter" searchWhenChanged="true">
       <label>Severity</label>
       <choice value="*">All Severities</choice>
@@ -20,6 +94,7 @@
       <choice value="minor">Minor</choice>
       <default>*</default>
     </input>
+
     <input type="dropdown" token="risk_vector_filter" searchWhenChanged="true">
       <label>Risk Vector</label>
       <choice value="*">All Risk Vectors</choice>
@@ -28,15 +103,16 @@
       <fieldForValue>risk_vector</fieldForValue>
       <search>
         <query>
-          index=security_bitsight sourcetype="bitsight:findings" 
-          | dedup risk_vector 
-          | table risk_vector 
+          index=security_bitsight sourcetype="bitsight:findings"
+          | dedup risk_vector
+          | table risk_vector
           | sort risk_vector
         </query>
         <earliest>-30d@d</earliest>
         <latest>now</latest>
       </search>
     </input>
+
     <input type="dropdown" token="company_filter" searchWhenChanged="true">
       <label>Company</label>
       <choice value="*">All Companies</choice>
@@ -45,9 +121,9 @@
       <fieldForValue>company_guid</fieldForValue>
       <search>
         <query>
-          index=security_bitsight sourcetype="bitsight:findings" 
-          | dedup company_guid 
-          | table company_guid, company_name 
+          index=security_bitsight sourcetype="bitsight:findings"
+          | dedup company_guid
+          | table company_guid, company_name
           | sort company_name
         </query>
         <earliest>-30d@d</earliest>
@@ -55,14 +131,17 @@
       </search>
     </input>
   </fieldset>
-  
+
+  <!-- =============================================================== -->
+  <!-- ROW 1: CORE FINDINGS KPI SINGLES                                -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Total Findings</title>
       <single>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where risk_vector="$risk_vector_filter$" OR "$risk_vector_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
@@ -74,6 +153,7 @@
         <option name="drilldown">none</option>
       </single>
     </panel>
+
     <panel>
       <title>Severe Findings</title>
       <single>
@@ -94,6 +174,7 @@
         <option name="useColors">1</option>
       </single>
     </panel>
+
     <panel>
       <title>Material Findings</title>
       <single>
@@ -114,12 +195,13 @@
         <option name="useColors">1</option>
       </single>
     </panel>
+
     <panel>
       <title>Unique Risk Vectors</title>
       <single>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
             | stats dc(risk_vector) as count
@@ -131,14 +213,17 @@
       </single>
     </panel>
   </row>
-  
+
+  <!-- =============================================================== -->
+  <!-- ROW 2: FINDINGS TRENDING                                        -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings Over Time</title>
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where risk_vector="$risk_vector_filter$" OR "$risk_vector_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
@@ -155,14 +240,17 @@
       </chart>
     </panel>
   </row>
-  
+
+  <!-- =============================================================== -->
+  <!-- ROW 3: FINDINGS DISTRIBUTION                                    -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings by Severity</title>
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where risk_vector="$risk_vector_filter$" OR "$risk_vector_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
             | stats count by severity
@@ -176,12 +264,13 @@
         <option name="charting.fieldColors">{"severe": 0xdc4e41, "material": 0xf1813f, "moderate": 0xf8be34, "minor": 0x53a051}</option>
       </chart>
     </panel>
+
     <panel>
       <title>Findings by Risk Vector</title>
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
             | stats count by risk_vector
@@ -199,14 +288,17 @@
       </chart>
     </panel>
   </row>
-  
+
+  <!-- =============================================================== -->
+  <!-- ROW 4: COMPANY AND STATUS DISTRIBUTION                          -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Top Companies by Finding Count</title>
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where risk_vector="$risk_vector_filter$" OR "$risk_vector_filter$"="*"
             | stats count by company_name
@@ -223,12 +315,13 @@
         <option name="charting.axisTitleY.text">Finding Count</option>
       </chart>
     </panel>
+
     <panel>
       <title>Finding Status Distribution</title>
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where risk_vector="$risk_vector_filter$" OR "$risk_vector_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
@@ -244,14 +337,17 @@
       </chart>
     </panel>
   </row>
-  
+
+  <!-- =============================================================== -->
+  <!-- ROW 5: ASSET CONCENTRATION                                      -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Assets with Findings</title>
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where risk_vector="$risk_vector_filter$" OR "$risk_vector_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
@@ -269,14 +365,17 @@
       </table>
     </panel>
   </row>
-  
+
+  <!-- =============================================================== -->
+  <!-- ROW 6: DETAILED FINDING EVENT LISTING                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Finding Details</title>
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight:findings" 
+            index=security_bitsight sourcetype="bitsight:findings"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where risk_vector="$risk_vector_filter$" OR "$risk_vector_filter$"="*"
             | where company_guid="$company_filter$" OR "$company_filter$"="*"
