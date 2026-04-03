@@ -1,8 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/operations_dashboard.xml
+ BitSight for Splunk App
+ Operations Dashboard
+=============================================================================
+
+PURPOSE
+
+Operational dashboard for monitoring BitSight data ingestion, record counts,
+processing rates, growth trends, quality metrics, collection performance,
+and index-level operational health.
+
+This dashboard provides:
+
+- net new record visibility
+- day-over-day growth visibility
+- week-over-week growth visibility
+- month-over-month growth visibility
+- collection success rate visibility
+- portfolio coverage visibility
+- deduplication visibility
+- error rate visibility
+- net new records by sourcetype
+- API response latency visibility
+- records-per-collection visibility
+- collection run statistics
+- total processed record counts
+- unique company and finding counts
+- ingestion rate visibility
+- data freshness visibility
+- sourcetype-level record distribution
+- ingestion timeline visibility
+- company-level processing metrics
+- daily processing summary
+- hourly processing rate visibility
+- index statistics visibility
+- scheduled collection runtime visibility
+- data completeness checks
+
+DATA SOURCE
+
+This dashboard is powered by the following data sources:
+
+- `bitsight_index`
+- index=_internal sourcetype=scheduler
+- index=_internal sourcetype=splunkd
+- REST endpoint /services/data/indexes
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational view for administrators and analysts to monitor:
+
+- data ingestion health
+- record growth across time periods
+- sourcetype-level record distribution
+- company-level data concentration
+- collection run performance
+- scheduler runtime behavior
+- API and processing efficiency
+- data completeness and freshness
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+
+=============================================================================
+-->
+
 <form version="1.1" theme="dark">
   <label>Operations Dashboard</label>
   <description>Data ingestion metrics, record counts, processing rates, and operational KPIs</description>
   
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
       <label>Time Range</label>
@@ -13,7 +88,9 @@
     </input>
   </fieldset>
 
-  <!-- Key Operational Metrics -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: DASHBOARD HEADER                                         -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <html>
@@ -27,7 +104,9 @@
     </panel>
   </row>
 
-  <!-- Net New Records & Growth KPIs -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: NET NEW RECORDS AND GROWTH KPIS                          -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -123,7 +202,9 @@
     </panel>
   </row>
 
-  <!-- Collection Success & Quality KPIs -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: COLLECTION SUCCESS AND QUALITY KPIS                      -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -225,7 +306,9 @@
     </panel>
   </row>
 
-  <!-- Net New by Sourcetype -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: NET NEW BY SOURCETYPE                                    -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>📈 Net New Records by Data Type (Today vs Yesterday)</title>
@@ -283,7 +366,9 @@
     </panel>
   </row>
 
-  <!-- API Performance Metrics -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: API PERFORMANCE METRICS                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>⚡ API Response Latency</title>
@@ -374,7 +459,9 @@
     </panel>
   </row>
 
-  <!-- Total Records KPIs -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: TOTAL RECORDS KPIS                                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -472,7 +559,9 @@
     </panel>
   </row>
 
-  <!-- Records by Sourcetype -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: RECORDS BY SOURCETYPE                                    -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Records Processed by Data Type</title>
@@ -524,7 +613,9 @@
     </panel>
   </row>
 
-  <!-- Ingestion Timeline -->
+  <!-- =============================================================== -->
+  <!-- ROW 8: INGESTION TIMELINE                                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Ingestion Rate Over Time</title>
@@ -563,7 +654,9 @@
     </panel>
   </row>
 
-  <!-- Company-Level Metrics -->
+  <!-- =============================================================== -->
+  <!-- ROW 9: COMPANY-LEVEL METRICS                                    -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Records by Company (Top 20)</title>
@@ -594,7 +687,9 @@
     </panel>
   </row>
 
-  <!-- Processing Statistics -->
+  <!-- =============================================================== -->
+  <!-- ROW 10: PROCESSING STATISTICS                                   -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Daily Processing Summary (Last 7 Days)</title>
@@ -642,7 +737,9 @@
     </panel>
   </row>
 
-  <!-- Index Statistics -->
+  <!-- =============================================================== -->
+  <!-- ROW 11: INDEX STATISTICS                                        -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Index Statistics</title>
@@ -689,7 +786,9 @@
     </panel>
   </row>
 
-  <!-- Data Quality -->
+  <!-- =============================================================== -->
+  <!-- ROW 12: DATA QUALITY                                            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Data Completeness Check</title>
