@@ -1,15 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/portfolio_overview.xml
+ BitSight for Splunk App
+ Portfolio Overview Dashboard
+=============================================================================
+
+PURPOSE
+
+Executive portfolio dashboard for monitoring BitSight company ratings,
+portfolio health, rating trends, industry segmentation, tier breakdowns,
+and companies requiring attention.
+
+This dashboard provides:
+
+- portfolio size visibility
+- average portfolio rating visibility
+- portfolio health visibility
+- at-risk company visibility
+- 30-day decline visibility
+- rating distribution visibility
+- 30-day portfolio rating trend visibility
+- rating by industry visibility
+- rating by tier visibility
+- attention-required company visibility
+- detailed portfolio company table with sparkline trends
+
+DATA SOURCE
+
+This dashboard is powered by:
+
+- `bitsight_index`
+- sourcetype="bitsight_portfolio"
+- sourcetype="bitsight_ratings_history"
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide executive and analyst visibility into:
+
+- current portfolio size and health
+- portfolio-wide average rating posture
+- companies with critical or warning ratings
+- companies with declining ratings over the last 30 days
+- rating distribution across severity bands
+- rating performance by industry and tier
+- company-level 30-day trend behavior
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+- Industry
+- Tier
+- Search Company
+
+RATING CATEGORY MODEL
+
+Ratings are grouped into:
+
+- Advanced = 740+
+- Good     = 700-739
+- Fair     = 640-699
+- Warning  = 500-639
+- Critical = <500
+
+=============================================================================
+-->
+
 <form version="1.1" theme="dark">
   <label>Portfolio Overview</label>
   <description>Executive Portfolio Analysis with Trends</description>
-  
+
+  <!-- =============================================================== -->
+  <!-- BASE SEARCH: PORTFOLIO DATA                                     -->
+  <!-- =============================================================== -->
   <search id="base_portfolio">
     <query>
-      `bitsight_index` sourcetype="bitsight:portfolio"
+      `bitsight_index` sourcetype="bitsight_portfolio"
       | dedup guid
       | eval rating_category=case(
           rating>=740, "Advanced",
-          rating>=700, "Good", 
+          rating>=700, "Good",
           rating>=640, "Fair",
           rating>=500, "Warning",
           1=1, "Critical"
@@ -18,7 +91,10 @@
     <earliest>-24h@h</earliest>
     <latest>now</latest>
   </search>
-  
+
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="timerange" searchWhenChanged="true">
       <label>Time Range</label>
@@ -27,6 +103,7 @@
         <latest>now</latest>
       </default>
     </input>
+
     <input type="dropdown" token="industry_filter" searchWhenChanged="true">
       <label>Industry</label>
       <choice value="*">All Industries</choice>
@@ -35,15 +112,16 @@
       <fieldForValue>industry</fieldForValue>
       <search>
         <query>
-          `bitsight_index` sourcetype="bitsight:portfolio" 
-          | dedup industry 
-          | table industry 
+          `bitsight_index` sourcetype="bitsight_portfolio"
+          | dedup industry
+          | table industry
           | sort industry
         </query>
         <earliest>-24h@h</earliest>
         <latest>now</latest>
       </search>
     </input>
+
     <input type="dropdown" token="tier_filter" searchWhenChanged="true">
       <label>Tier</label>
       <choice value="*">All Tiers</choice>
@@ -52,22 +130,25 @@
       <fieldForValue>tier</fieldForValue>
       <search>
         <query>
-          `bitsight_index` sourcetype="bitsight:portfolio" 
-          | dedup tier 
-          | table tier 
+          `bitsight_index` sourcetype="bitsight_portfolio"
+          | dedup tier
+          | table tier
           | sort tier
         </query>
         <earliest>-24h@h</earliest>
         <latest>now</latest>
       </search>
     </input>
+
     <input type="text" token="search_filter" searchWhenChanged="true">
       <label>Search Company</label>
       <default>*</default>
     </input>
   </fieldset>
 
-  <!-- Severity Legend -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: RATING CATEGORY LEGEND                                   -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <html>
@@ -84,7 +165,9 @@
     </panel>
   </row>
 
-  <!-- Executive KPIs -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: EXECUTIVE KPIS                                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -104,6 +187,7 @@
         <option name="useColors">1</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>Average Rating</title>
@@ -124,6 +208,7 @@
         <option name="useColors">1</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>Portfolio Health</title>
@@ -144,6 +229,7 @@
         <option name="useColors">1</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>At Risk</title>
@@ -164,12 +250,13 @@
         <option name="underLabel">Rating &lt; 500</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>Declined (30d)</title>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `bitsight_index` sourcetype="bitsight_ratings_history"
             | stats earliest(rating) as old_rating, latest(rating) as new_rating by company_guid
             | where new_rating &lt; old_rating
             | stats count
@@ -187,7 +274,9 @@
     </panel>
   </row>
 
-  <!-- Rating Distribution & Trend -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: RATING DISTRIBUTION &amp; TREND                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Rating Distribution</title>
@@ -209,12 +298,13 @@
         <option name="charting.fieldColors">{"Advanced": 0x53A051, "Good": 0x84b957, "Fair": 0xF8BE34, "Warning": 0xF1813F, "Critical": 0xDC4E41}</option>
       </chart>
     </panel>
+
     <panel>
       <title>Portfolio Rating Trend (30 Days)</title>
       <chart>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `bitsight_index` sourcetype="bitsight_ratings_history"
             | timechart span=1d avg(rating) as "Avg Rating" perc25(rating) as "25th %ile" perc75(rating) as "75th %ile"
           </query>
           <earliest>-30d@d</earliest>
@@ -231,7 +321,9 @@
     </panel>
   </row>
 
-  <!-- Industry & Tier Analysis -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: INDUSTRY &amp; TIER ANALYSIS                              -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Rating by Industry</title>
@@ -254,6 +346,7 @@
         <option name="charting.axisTitleY.text">Average Rating</option>
       </chart>
     </panel>
+
     <panel>
       <title>Rating by Tier</title>
       <chart>
@@ -276,20 +369,22 @@
     </panel>
   </row>
 
-  <!-- Companies Requiring Attention -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: COMPANIES REQUIRING ATTENTION                            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#9888; Companies Requiring Attention</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `bitsight_index` sourcetype="bitsight_ratings_history"
             | stats earliest(rating) as old_rating, latest(rating) as new_rating, latest(name) as name, latest(industry) as industry by company_guid
             | eval change=new_rating - old_rating
-            | eval trend=case(change>10, "&#9650; +".change, change>0, "&#9650; +".change, change<-10, "&#9660; ".change, change<0, "&#9660; ".change, 1=1, "&#9644; 0")
-            | eval attention=if(new_rating<500 OR change<-20, "Yes", "No")
+            | eval trend=case(change>10, "&#9650; +".change, change>0, "&#9650; +".change, change&lt;-10, "&#9660; ".change, change&lt;0, "&#9660; ".change, 1=1, "&#9644; 0")
+            | eval attention=if(new_rating&lt;500 OR change&lt;-20, "Yes", "No")
             | where attention="Yes"
-            | eval severity=case(new_rating<400, "&#9679; Critical", new_rating<500, "&#9679; Warning", change<-50, "&#9679; High", 1=1, "&#9679; Medium")
+            | eval severity=case(new_rating&lt;400, "&#9679; Critical", new_rating&lt;500, "&#9679; Warning", change&lt;-50, "&#9679; High", 1=1, "&#9679; Medium")
             | table severity, name, new_rating, trend, industry
             | rename severity as "Status", name as "Company", new_rating as "Current Rating", trend as "30d Change", industry as "Industry"
             | sort "Current Rating"
@@ -313,23 +408,25 @@
     </panel>
   </row>
 
-  <!-- Main Portfolio Table with Sparklines -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: MAIN PORTFOLIO TABLE                                     -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Portfolio Companies</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `bitsight_index` sourcetype="bitsight_ratings_history"
             | where industry="$industry_filter$" OR "$industry_filter$"="*"
             | where tier="$tier_filter$" OR "$tier_filter$"="*"
             | search name="*$search_filter$*"
             | stats sparkline(avg(rating), 1d) as trend, latest(rating) as rating, latest(name) as name, latest(industry) as industry, latest(tier) as tier, earliest(rating) as old_rating by company_guid
             | eval change=rating - old_rating
-            | eval change_indicator=case(change>0, "&#9650; +".change, change<0, "&#9660; ".change, 1=1, "&#9644; 0")
+            | eval change_indicator=case(change>0, "&#9650; +".change, change&lt;0, "&#9660; ".change, 1=1, "&#9644; 0")
             | eval rating_category=case(
                 rating>=740, "&#9679; Advanced",
-                rating>=700, "&#9679; Good", 
+                rating>=700, "&#9679; Good",
                 rating>=640, "&#9679; Fair",
                 rating>=500, "&#9679; Warning",
                 1=1, "&#9679; Critical"
