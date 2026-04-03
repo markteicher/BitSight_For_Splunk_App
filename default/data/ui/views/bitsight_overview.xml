@@ -1,8 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/executive_overview.xml
+ BitSight for Splunk App
+ Executive Overview Dashboard
+=============================================================================
+
+PURPOSE
+
+Executive summary dashboard for BitSight Security Ratings, portfolio health,
+critical alerts, findings exposure, trend movement, and composite risk
+scoring.
+
+This dashboard provides:
+
+- composite risk score visibility
+- composite score component breakdown
+- primary executive KPI visibility
+- secondary risk and exposure KPI visibility
+- portfolio rating distribution
+- 30-day portfolio rating trend
+- risk vector performance visibility
+- findings severity distribution
+- declining company action list
+- recent critical alert visibility
+- top performers and lowest performers visibility
+
+DATA SOURCE
+
+This dashboard is powered by BitSight data indexed in Splunk:
+
+- `bitsight_index`
+- sourcetype="bitsight:portfolio"
+- sourcetype="bitsight:ratings:history"
+- sourcetype="bitsight:findings"
+- sourcetype="bitsight:alerts"
+- sourcetype="bitsight:risk_vectors"
+- sourcetype="bitsight:credentials"
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an executive-facing single-pane summary for monitoring:
+
+- overall portfolio security posture
+- composite risk score and score contributors
+- rating movement over time
+- alert and findings exposure
+- company-level deterioration requiring action
+- highest and lowest portfolio performers
+
+COMPOSITE RISK SCORE MODEL
+
+The composite risk score is derived from:
+
+- rating component
+- portfolio health component
+- findings component
+- SLA compliance component
+
+Higher composite scores indicate stronger portfolio security posture.
+
+=============================================================================
+-->
+
 <form version="1.1" theme="dark">
   <label>Executive Overview</label>
   <description>Security Ratings Executive Dashboard</description>
   
+  <!-- =============================================================== -->
+  <!-- BASE SEARCHES                                                   -->
+  <!-- =============================================================== -->
   <search id="base_portfolio">
     <query>
       `bitsight_index` sourcetype="bitsight:portfolio"
@@ -12,7 +80,9 @@
     <latest>now</latest>
   </search>
 
-  <!-- Composite Risk Score -->
+  <!-- =============================================================== -->
+  <!-- BASE SEARCH: COMPOSITE RISK SCORE                               -->
+  <!-- =============================================================== -->
   <search id="composite_risk">
     <query>
       `bitsight_index` sourcetype="bitsight:portfolio"
@@ -41,7 +111,9 @@
     <latest>now</latest>
   </search>
 
-  <!-- Header with Risk Score & Legend -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: HEADER / LEGEND                                          -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <html>
@@ -72,7 +144,9 @@
     </panel>
   </row>
 
-  <!-- Composite Risk Score Display -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: COMPOSITE RISK SCORE DISPLAY                             -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -161,7 +235,9 @@
     </panel>
   </row>
 
-  <!-- Primary KPIs -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: PRIMARY KPIS                                             -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -262,7 +338,9 @@
     </panel>
   </row>
 
-  <!-- Secondary KPIs -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: SECONDARY KPIS                                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -353,7 +431,9 @@
     </panel>
   </row>
 
-  <!-- Charts Row -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: CHARTS                                                   -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Portfolio Rating Distribution</title>
@@ -402,7 +482,9 @@
     </panel>
   </row>
 
-  <!-- Risk Vectors & Findings -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: RISK VECTORS AND FINDINGS                                -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Risk Vector Performance</title>
@@ -450,7 +532,9 @@
     </panel>
   </row>
 
-  <!-- Action Items -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: ACTION ITEMS                                             -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#9888; Action Required - Companies with Declining Ratings</title>
@@ -513,7 +597,9 @@
     </panel>
   </row>
 
-  <!-- Top/Bottom Performers -->
+  <!-- =============================================================== -->
+  <!-- ROW 8: TOP / BOTTOM PERFORMERS                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#9650; Top Performers</title>
