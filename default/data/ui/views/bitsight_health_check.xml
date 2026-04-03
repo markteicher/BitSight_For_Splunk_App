@@ -1,7 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/health_check.xml
+ BitSight for Splunk App
+ Health Check Dashboard
+=============================================================================
+
+PURPOSE
+
+Operational dashboard for BitSight app configuration validation, health
+status monitoring, and scheduled check visibility.
+
+This dashboard provides:
+
+- configuration validation visibility
+- last validation execution visibility
+- data collection activity status
+- scheduled validation job status
+- API configuration review
+- proxy configuration review
+- enabled data input visibility
+- collection interval visibility
+- logging configuration review
+- 24-hour data collection summary
+- validation history visibility
+- recent validation message review
+- API error tracking
+- scheduled validation job inventory
+
+DATA SOURCE
+
+This dashboard is powered by:
+
+- REST configuration endpoints under /services/admin/bitsight/*
+- REST saved search inventory under /services/saved/searches
+- REST index and internal Splunk configuration data
+- index=security_bitsight
+- index=_internal sourcetype=splunkd
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational health view for administrators to validate:
+
+- BitSight app configuration state
+- scheduled validation readiness
+- active data collection state
+- enabled inputs and intervals
+- recent validation execution history
+- error conditions and operational issues
+
+HEALTH MODEL
+
+This dashboard uses simple operational health indicators such as:
+
+- Configured / Not Configured
+- Active / Stale
+- Enabled / Disabled
+- Active / Stale by sourcetype freshness
+- Recent validation and API error visibility
+
+=============================================================================
+-->
+
 <dashboard version="1.1">
   <label>Health Check</label>
   <description>Configuration validation, health status, and scheduled checks</description>
   
+  <!-- =============================================================== -->
+  <!-- ROW 1: CORE HEALTH STATUS KPIS                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Configuration Status</title>
@@ -85,6 +153,9 @@
     </panel>
   </row>
   
+  <!-- =============================================================== -->
+  <!-- ROW 2: API AND PROXY CONFIGURATION                              -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>API Configuration</title>
@@ -136,6 +207,9 @@
     </panel>
   </row>
   
+  <!-- =============================================================== -->
+  <!-- ROW 3: ENABLED DATA INPUTS                                      -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Enabled Data Inputs</title>
@@ -163,6 +237,9 @@
     </panel>
   </row>
   
+  <!-- =============================================================== -->
+  <!-- ROW 4: COLLECTION INTERVALS AND LOGGING                         -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Collection Intervals</title>
@@ -202,6 +279,9 @@
     </panel>
   </row>
   
+  <!-- =============================================================== -->
+  <!-- ROW 5: DATA COLLECTION SUMMARY                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Data Collection Summary (Last 24 Hours)</title>
@@ -226,6 +306,9 @@
     </panel>
   </row>
   
+  <!-- =============================================================== -->
+  <!-- ROW 6: VALIDATION HISTORY                                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Validation History (Last 7 Days)</title>
@@ -264,6 +347,9 @@
     </panel>
   </row>
   
+  <!-- =============================================================== -->
+  <!-- ROW 7: API ERROR TRACKING                                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>API Error Tracking</title>
@@ -285,6 +371,9 @@
     </panel>
   </row>
   
+  <!-- =============================================================== -->
+  <!-- ROW 8: SCHEDULED VALIDATION JOBS                                -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Scheduled Validation Jobs</title>
