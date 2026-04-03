@@ -1,8 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/peer_benchmarking.xml
+ BitSight for Splunk App
+ Peer Benchmarking Dashboard
+=============================================================================
+
+PURPOSE
+
+Operational benchmarking dashboard for comparing an organization’s security
+rating against industry peers and benchmark distributions.
+
+This dashboard provides:
+
+- Organization-specific rating visibility
+- Industry average comparison
+- Industry percentile placement
+- Rating delta versus industry average
+- Peer population counts
+- Rating distribution visibility
+- Industry-to-industry rating comparison
+- Percentile breakdown visibility
+- Risk vector comparison versus industry averages
+- Peer company comparison table
+- Trend comparison for organization versus industry average
+
+DATA SOURCE
+
+This dashboard is powered by BitSight events indexed in Splunk:
+
+- `bitsight_index` sourcetype="bitsight:portfolio"
+- `bitsight_index` sourcetype="bitsight:risk_vectors"
+- `bitsight_index` sourcetype="bitsight:ratings:history"
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational view for analysts and leadership to understand:
+
+- where the organization ranks versus industry peers
+- how the organization compares to average industry posture
+- whether key risk vectors outperform or underperform industry averages
+- how peer ratings are distributed across the selected industry
+- how the organization trends over time relative to the industry average
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+- My Organization
+- Compare Industry
+
+BENCHMARK MODEL
+
+This dashboard uses BitSight rating values and peer distributions to derive:
+
+- industry average
+- percentile positioning
+- peer ranking
+- rating delta versus industry average
+- risk vector variance versus industry average
+
+=============================================================================
+-->
+
 <form version="1.1" theme="dark">
   <label>Peer Benchmarking</label>
   <description>Compare your security ratings against industry peers and benchmarks</description>
-  
+
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
       <label>Time Range</label>
@@ -11,6 +80,7 @@
         <latest>now</latest>
       </default>
     </input>
+
     <input type="dropdown" token="my_company">
       <label>My Organization</label>
       <default>*</default>
@@ -27,6 +97,7 @@
         <latest>now</latest>
       </search>
     </input>
+
     <input type="dropdown" token="industry_filter">
       <label>Compare Industry</label>
       <choice value="*">All Industries</choice>
@@ -46,7 +117,9 @@
     </input>
   </fieldset>
 
-  <!-- Your Position -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: YOUR POSITION VERSUS INDUSTRY                            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -66,6 +139,7 @@
         <option name="useColors">1</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>Industry Average</title>
@@ -85,6 +159,7 @@
         <option name="useColors">1</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>Your Percentile</title>
@@ -96,10 +171,10 @@
             | eventstats perc25(rating) as p25, perc50(rating) as p50, perc75(rating) as p75, perc90(rating) as p90
             | where guid="$my_company$"
             | eval percentile=case(
-                rating >= p90, "Top 10%",
-                rating >= p75, "Top 25%",
-                rating >= p50, "Top 50%",
-                rating >= p25, "Top 75%",
+                rating &gt;= p90, "Top 10%",
+                rating &gt;= p75, "Top 25%",
+                rating &gt;= p50, "Top 50%",
+                rating &gt;= p25, "Top 75%",
                 1=1, "Bottom 25%"
               )
           </query>
@@ -112,6 +187,7 @@
         <option name="underLabel">vs Industry Peers</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>vs Industry Avg</title>
@@ -123,7 +199,7 @@
             | eventstats avg(rating) as industry_avg
             | where guid="$my_company$"
             | eval diff=rating - industry_avg
-            | eval display=if(diff>=0, "+".round(diff,0), round(diff,0))
+            | eval display=if(diff&gt;=0, "+".round(diff,0), round(diff,0))
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -135,6 +211,7 @@
         <option name="underLabel">Points Difference</option>
       </single>
     </panel>
+
     <panel>
       <single>
         <title>Industry Peers</title>
@@ -155,7 +232,9 @@
     </panel>
   </row>
 
-  <!-- Distribution Chart -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: DISTRIBUTION AND INDUSTRY COMPARISON                     -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Your Position vs Industry Distribution</title>
@@ -166,15 +245,15 @@
             | where industry="$industry_filter$" OR "$industry_filter$"="*"
             | dedup guid
             | eval rating_bucket=case(
-                rating>=800, "800-900",
-                rating>=750, "750-799",
-                rating>=700, "700-749",
-                rating>=650, "650-699",
-                rating>=600, "600-649",
-                rating>=550, "550-599",
-                rating>=500, "500-549",
-                rating>=450, "450-499",
-                rating>=400, "400-449",
+                rating&gt;=800, "800-900",
+                rating&gt;=750, "750-799",
+                rating&gt;=700, "700-749",
+                rating&gt;=650, "650-699",
+                rating&gt;=600, "600-649",
+                rating&gt;=550, "550-599",
+                rating&gt;=500, "500-549",
+                rating&gt;=450, "450-499",
+                rating&gt;=400, "400-449",
                 1=1, "Below 400"
               )
             | stats count by rating_bucket
@@ -190,6 +269,7 @@
         <option name="charting.axisTitleY.text">Number of Companies</option>
       </chart>
     </panel>
+
     <panel>
       <title>Industry Rating Comparison</title>
       <chart>
@@ -214,7 +294,9 @@
     </panel>
   </row>
 
-  <!-- Percentile Breakdown -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: PERCENTILES AND RISK VECTOR COMPARISON                   -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Industry Percentiles</title>
@@ -240,6 +322,7 @@
         </format>
       </table>
     </panel>
+
     <panel>
       <title>Risk Vector Comparison vs Industry</title>
       <chart>
@@ -266,7 +349,9 @@
     </panel>
   </row>
 
-  <!-- Peer Comparison Table -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: PEER COMPARISON TABLE                                    -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Peer Company Comparison</title>
@@ -278,12 +363,12 @@
             | dedup guid
             | eventstats avg(rating) as industry_avg
             | eval vs_avg=rating - industry_avg
-            | eval vs_avg_display=if(vs_avg>=0, "+".round(vs_avg,0), round(vs_avg,0))
+            | eval vs_avg_display=if(vs_avg&gt;=0, "+".round(vs_avg,0), round(vs_avg,0))
             | eval rank=1
             | sort -rating
             | streamstats count as rank
             | eval is_you=if(guid="$my_company$", "&#9733; YOU", "")
-            | eval rating_category=case(rating>=740, "&#9679; Advanced", rating>=700, "&#9679; Good", rating>=640, "&#9679; Fair", rating>=500, "&#9679; Warning", 1=1, "&#9679; Critical")
+            | eval rating_category=case(rating&gt;=740, "&#9679; Advanced", rating&gt;=700, "&#9679; Good", rating&gt;=640, "&#9679; Fair", rating&gt;=500, "&#9679; Warning", 1=1, "&#9679; Critical")
             | table rank, is_you, name, rating, rating_category, vs_avg_display, industry
             | rename rank as "#", is_you as "", name as "Company", rating as "Rating", rating_category as "Status", vs_avg_display as "vs Avg", industry as "Industry"
           </query>
@@ -310,7 +395,9 @@
     </panel>
   </row>
 
-  <!-- Trend Comparison -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: TREND COMPARISON                                         -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Rating Trend: You vs Industry Average</title>
