@@ -1,8 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/nist_csf_compliance.xml
+ BitSight for Splunk App
+ NIST CSF Compliance Dashboard
+=============================================================================
+
+PURPOSE
+
+Compliance and risk alignment dashboard for mapping BitSight risk vectors
+to the NIST Cybersecurity Framework (CSF).
+
+This dashboard provides:
+
+- NIST CSF function alignment visibility
+- NIST category alignment visibility
+- overall CSF score visibility
+- function-level score visibility
+- category-level score visibility
+- risk-vector-to-NIST mapping visibility
+- compliance gap identification
+- recommended remediation guidance
+- 30-day NIST function trend visibility
+
+DATA SOURCE
+
+This dashboard is powered by BitSight risk vector events indexed in Splunk:
+
+- `bitsight_index`
+- sourcetype="bitsight:risk_vectors"
+- sourcetype="bitsight:portfolio"
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational and executive view for understanding:
+
+- how BitSight risk vectors align to NIST CSF functions
+- which NIST functions score strongest or weakest
+- which NIST categories contain the largest compliance gaps
+- which mapped risk vectors require remediation priority
+- how NIST-aligned scores trend over time
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+- Company
+
+NIST CSF MAPPING MODEL
+
+This dashboard derives NIST alignment by mapping BitSight risk vectors
+to NIST CSF functions and categories, including:
+
+- Identify
+- Protect
+- Detect
+- Respond
+- Recover
+
+=============================================================================
+-->
+
 <form version="1.1" theme="dark">
   <label>NIST CSF Compliance</label>
   <description>NIST Cybersecurity Framework alignment based on Bitsight risk vectors</description>
   
+  <!-- =============================================================== -->
+  <!-- BASE SEARCH: NIST MAPPED RISK VECTOR DATA                       -->
+  <!-- =============================================================== -->
   <search id="base_nist">
     <query>
       `bitsight_index` sourcetype="bitsight:risk_vectors"
@@ -42,6 +109,9 @@
     <latest>now</latest>
   </search>
   
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
       <label>Time Range</label>
@@ -70,7 +140,9 @@
     </input>
   </fieldset>
 
-  <!-- NIST Framework Legend -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: NIST FRAMEWORK LEGEND                                    -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <html>
@@ -90,7 +162,9 @@
     </panel>
   </row>
 
-  <!-- Overall NIST Scores -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: OVERALL NIST FUNCTION SCORES                             -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -179,7 +253,9 @@
     </panel>
   </row>
 
-  <!-- NIST Function Breakdown -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: NIST FUNCTION BREAKDOWN                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>NIST Function Scores</title>
@@ -220,7 +296,9 @@
     </panel>
   </row>
 
-  <!-- Category Breakdown -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: CATEGORY BREAKDOWN                                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>NIST Category Scores</title>
@@ -253,7 +331,9 @@
     </panel>
   </row>
 
-  <!-- Risk Vector Detail -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: RISK VECTOR DETAIL                                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Risk Vector NIST Mapping</title>
@@ -287,7 +367,9 @@
     </panel>
   </row>
 
-  <!-- Compliance Gap Analysis -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: COMPLIANCE GAP ANALYSIS                                  -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Compliance Gaps (Score &lt; 600)</title>
@@ -330,7 +412,9 @@
     </panel>
   </row>
 
-  <!-- Trend by Function -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: TREND BY NIST FUNCTION                                   -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>NIST Function Trend (30 Days)</title>
