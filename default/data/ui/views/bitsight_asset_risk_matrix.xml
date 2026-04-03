@@ -1,7 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/asset_risk_matrix.xml
+ BitSight for Splunk App
+ Asset Risk Matrix Dashboard
+=============================================================================
+
+PURPOSE
+
+Operational dashboard for visualizing asset importance against finding severity
+through a risk-matrix-oriented set of charts, tables, and summary metrics.
+
+This dashboard provides:
+
+- Company-scoped asset risk review
+- Time-bounded asset findings analysis
+- Critical asset grade summaries
+- Risk matrix heatmap visualization
+- Asset-level weighted risk analysis
+- High-risk asset prioritization
+- Findings summaries by importance category
+- Grade distribution analysis
+- Asset count by importance category
+- Company-level comparative risk analysis
+
+DATA SOURCE
+
+This dashboard is powered by BitSight asset statistics events indexed in Splunk:
+
+- index=security_bitsight
+- sourcetype="bitsight:assets:statistics"
+
+Supporting company values for filter population are sourced from:
+
+- sourcetype="bitsight:portfolio"
+- sourcetype="bitsight:companies"
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational view for analysts to identify:
+
+- critical assets with severe findings
+- assets with the highest weighted risk
+- concentration of findings by importance category
+- top assets by total findings
+- comparative company risk posture based on asset findings
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Company
+- Time Range
+
+RISK MODEL
+
+This dashboard derives risk-oriented metrics from asset importance and
+finding grades. Weighted risk is calculated from grade counts multiplied by
+an importance multiplier.
+
+Grade weighting:
+- Bad   = 4
+- Warn  = 3
+- Fair  = 2
+- Good  = 1
+
+Importance weighting:
+- critical = 4
+- high     = 3
+- medium   = 2
+- low      = 1
+
+=============================================================================
+-->
+
 <dashboard version="1.1">
   <label>Asset Risk Matrix</label>
   <description>Asset Importance vs Finding Severity - Risk Matrix Visualization</description>
-  
+
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="company_filter">
       <label>Company</label>
@@ -13,6 +93,7 @@
       <fieldForValue>company_name</fieldForValue>
       <default>*</default>
     </input>
+
     <input type="time" token="time_range">
       <label>Time Range</label>
       <default>
@@ -22,7 +103,9 @@
     </input>
   </fieldset>
 
-  <!-- Risk Matrix Summary -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: RISK MATRIX SUMMARY - CRITICAL ASSETS                    -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Critical Assets - Bad Findings</title>
@@ -44,6 +127,7 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
         <option name="rangeValues">[0]</option>
       </single>
     </panel>
+
     <panel>
       <title>Critical Assets - Warn Findings</title>
       <single>
@@ -64,6 +148,7 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
         <option name="rangeValues">[0]</option>
       </single>
     </panel>
+
     <panel>
       <title>Critical Assets - Fair Findings</title>
       <single>
@@ -84,6 +169,7 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
         <option name="rangeValues">[0]</option>
       </single>
     </panel>
+
     <panel>
       <title>Critical Assets - Good Findings</title>
       <single>
@@ -105,7 +191,9 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
     </panel>
   </row>
 
-  <!-- Risk Matrix Heatmap by Score -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: RISK MATRIX HEATMAP                                      -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Risk Matrix Heatmap - Findings by Asset Importance &amp; Severity Score</title>
@@ -118,10 +206,10 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
 | mvexpand asset_data
 | spath input=asset_data
 | eval severity_score=case(
-    'stats.grades.bad'>0, 4,
-    'stats.grades.warn'>0, 3,
-    'stats.grades.fair'>0, 2,
-    'stats.grades.good'>0, 1,
+    'stats.grades.bad'&gt;0, 4,
+    'stats.grades.warn'&gt;0, 3,
+    'stats.grades.fair'&gt;0, 2,
+    'stats.grades.good'&gt;0, 1,
     1=1, 0
 )
 | eval importance_label=case(
@@ -146,7 +234,9 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
     </panel>
   </row>
 
-  <!-- Assets by Score -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: ASSET-LEVEL RISK SCORING                                 -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Assets by Finding Grade Score</title>
@@ -172,25 +262,27 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
         <option name="drilldown">cell</option>
         <option name="count">25</option>
         <format type="color" field="Bad">
-          <colorPalette type="expression">if(value > 0, "#DC4E41", "#53A051")</colorPalette>
+          <colorPalette type="expression">if(value &gt; 0, "#DC4E41", "#53A051")</colorPalette>
         </format>
         <format type="color" field="Warn">
-          <colorPalette type="expression">if(value > 0, "#F1813F", "#53A051")</colorPalette>
+          <colorPalette type="expression">if(value &gt; 0, "#F1813F", "#53A051")</colorPalette>
         </format>
         <format type="color" field="Fair">
-          <colorPalette type="expression">if(value > 0, "#F8BE34", "#53A051")</colorPalette>
+          <colorPalette type="expression">if(value &gt; 0, "#F8BE34", "#53A051")</colorPalette>
         </format>
         <format type="color" field="Importance">
           <colorPalette type="map">{"critical":#DC4E41,"high":#F1813F,"medium":#F8BE34,"low":#53A051}</colorPalette>
         </format>
         <format type="color" field="Weighted Risk">
-          <colorPalette type="expression">if(value > 50, "#DC4E41", if(value > 20, "#F1813F", if(value > 10, "#F8BE34", "#53A051")))</colorPalette>
+          <colorPalette type="expression">if(value &gt; 50, "#DC4E41", if(value &gt; 20, "#F1813F", if(value &gt; 10, "#F8BE34", "#53A051")))</colorPalette>
         </format>
       </table>
     </panel>
   </row>
 
-  <!-- High Risk Assets -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: HIGH-RISK ASSET PRIORITIZATION                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Critical Importance Assets with Bad/Warn Findings (Highest Risk)</title>
@@ -204,8 +296,8 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
 | spath input=asset_data
 | where importance_category="critical" OR importance_category="high"
 | eval bad='stats.grades.bad', warn='stats.grades.warn'
-| where bad>0 OR warn>0
-| eval risk_priority=case(importance_category="critical" AND bad>0, "P1-Critical", importance_category="critical" AND warn>0, "P2-High", importance_category="high" AND bad>0, "P2-High", importance_category="high" AND warn>0, "P3-Medium", 1=1, "P4-Low")
+| where bad&gt;0 OR warn&gt;0
+| eval risk_priority=case(importance_category="critical" AND bad&gt;0, "P1-Critical", importance_category="critical" AND warn&gt;0, "P2-High", importance_category="high" AND bad&gt;0, "P2-High", importance_category="high" AND warn&gt;0, "P3-Medium", 1=1, "P4-Low")
 | table asset, importance_category, bad, warn, risk_priority, company_name
 | rename asset as "Asset", importance_category as "Importance", bad as "Bad Findings", warn as "Warn Findings", risk_priority as "Priority", company_name as "Company"
 | sort risk_priority
@@ -219,16 +311,18 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
           <colorPalette type="map">{"P1-Critical":#DC4E41,"P2-High":#F1813F,"P3-Medium":#F8BE34,"P4-Low":#006D9C}</colorPalette>
         </format>
         <format type="color" field="Bad Findings">
-          <colorPalette type="expression">if(value > 0, "#DC4E41", "#53A051")</colorPalette>
+          <colorPalette type="expression">if(value &gt; 0, "#DC4E41", "#53A051")</colorPalette>
         </format>
         <format type="color" field="Warn Findings">
-          <colorPalette type="expression">if(value > 0, "#F1813F", "#53A051")</colorPalette>
+          <colorPalette type="expression">if(value &gt; 0, "#F1813F", "#53A051")</colorPalette>
         </format>
       </table>
     </panel>
   </row>
 
-  <!-- Summary by Importance Category -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: IMPORTANCE AND GRADE DISTRIBUTION                        -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings Summary by Asset Importance</title>
@@ -256,6 +350,7 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
         <option name="charting.fieldColors">{"Bad":#DC4E41,"Warn":#F1813F,"Fair":#F8BE34,"Good":#53A051}</option>
       </chart>
     </panel>
+
     <panel>
       <title>Risk Distribution by Grade</title>
       <chart>
@@ -279,7 +374,9 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
     </panel>
   </row>
 
-  <!-- Asset Count by Category -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: ASSET INVENTORY CONCENTRATION                            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Asset Count by Importance Category</title>
@@ -303,6 +400,7 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
         <option name="charting.drilldown">none</option>
       </chart>
     </panel>
+
     <panel>
       <title>Top 10 Assets by Total Findings</title>
       <table>
@@ -330,7 +428,9 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
     </panel>
   </row>
 
-  <!-- Company Comparison -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: COMPANY COMPARATIVE RISK                                 -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Risk Score by Company</title>
@@ -356,10 +456,10 @@ index=security_bitsight sourcetype="bitsight:assets:statistics"
         <option name="drilldown">cell</option>
         <option name="count">20</option>
         <format type="color" field="Total Risk Score">
-          <colorPalette type="expression">if(value > 100, "#DC4E41", if(value > 50, "#F1813F", if(value > 20, "#F8BE34", "#53A051")))</colorPalette>
+          <colorPalette type="expression">if(value &gt; 100, "#DC4E41", if(value &gt; 50, "#F1813F", if(value &gt; 20, "#F8BE34", "#53A051")))</colorPalette>
         </format>
         <format type="color" field="Bad Findings">
-          <colorPalette type="expression">if(value > 0, "#DC4E41", "#53A051")</colorPalette>
+          <colorPalette type="expression">if(value &gt; 0, "#DC4E41", "#53A051")</colorPalette>
         </format>
       </table>
     </panel>
