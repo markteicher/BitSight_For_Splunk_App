@@ -1,8 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/logs_viewer.xml
+ BitSight for Splunk App
+ Logs Viewer Dashboard
+=============================================================================
+
+PURPOSE
+
+Operational dashboard for browsing and searching BitSight data collection
+logs, API activity, internal Splunk log messages, and recent indexed
+BitSight data events.
+
+This dashboard provides:
+
+- log level summary visibility
+- internal log activity timeline
+- internal BitSight log review
+- API collection activity visibility
+- recent indexed BitSight data event review
+- error detail and stack trace visibility
+- sourcetype-scoped data event browsing
+- free-text search across logs and events
+
+DATA SOURCE
+
+This dashboard is powered by:
+
+- index=_internal sourcetype=splunkd
+- component=ModularInputs
+- `bitsight_index`
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational log analysis view for administrators and analysts to
+monitor:
+
+- errors, warnings, info, and debug activity
+- API collection behavior
+- internal modular input messages
+- recent BitSight data events
+- log patterns and stack traces
+- sourcetype-specific data visibility
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+- Log Level
+- Sourcetype
+- Search Term
+
+=============================================================================
+-->
+
 <form version="1.1" theme="dark">
   <label>Logs Viewer</label>
   <description>Browse and search Bitsight data collection logs, API responses, and internal messages</description>
   
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
       <label>Time Range</label>
@@ -42,7 +102,9 @@
     </input>
   </fieldset>
 
-  <!-- Log Level Summary -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: LOG LEVEL SUMMARY                                        -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <single>
@@ -120,7 +182,9 @@
     </panel>
   </row>
 
-  <!-- Log Timeline -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: LOG TIMELINE                                             -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Log Activity Timeline</title>
@@ -141,7 +205,9 @@
     </panel>
   </row>
 
-  <!-- Internal Logs -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: INTERNAL LOGS                                            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Bitsight Internal Logs</title>
@@ -170,7 +236,9 @@
     </panel>
   </row>
 
-  <!-- API Response Logs -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: API RESPONSE / COLLECTION ACTIVITY                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>API Collection Activity</title>
@@ -198,7 +266,9 @@
     </panel>
   </row>
 
-  <!-- Bitsight Data Events -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: RECENT BITSIGHT DATA EVENTS                              -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Recent Bitsight Data Events</title>
@@ -227,7 +297,9 @@
     </panel>
   </row>
 
-  <!-- Error Details -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: ERROR DETAILS AND STACK TRACES                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Error Details &amp; Stack Traces</title>
