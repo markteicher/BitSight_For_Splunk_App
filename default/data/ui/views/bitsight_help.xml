@@ -1,9 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/help_glossary.xml
+ BitSight for Splunk App
+ Help & Glossary Dashboard
+=============================================================================
+
+PURPOSE
+
+Executive reference dashboard for BitSight terminology, metrics, scoring
+logic, dashboard navigation, SLA expectations, report export guidance,
+and support resources.
+
+This dashboard provides:
+
+- quick navigation to key BitSight dashboards
+- composite risk score explanation
+- BitSight security rating category definitions
+- executive glossary of common terms
+- remediation SLA reference guidance
+- report export and scheduling guidance
+- support and documentation resource links
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide executives and stakeholders with a single reference page that
+explains:
+
+- how to interpret core BitSight metrics
+- how to interpret dashboard terminology
+- how to navigate the BitSight app
+- how remediation SLA targets are defined
+- how reports can be exported and scheduled
+- where to find official documentation and support resources
+
+DESIGN CHARACTERISTICS
+
+- Static executive help and glossary view
+- Dark theme layout
+- HTML-based informational panels
+- Navigation-oriented landing content
+- Reference-style explanatory sections
+
+=============================================================================
+-->
+
 <dashboard version="1.1" theme="dark">
   <label>Help &amp; Glossary</label>
   <description>Executive guide to Bitsight metrics, terminology, and dashboard navigation</description>
 
-  <!-- Quick Navigation -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: QUICK NAVIGATION                                         -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <html>
@@ -40,7 +89,9 @@
     </panel>
   </row>
 
-  <!-- Composite Risk Score Explanation -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: COMPOSITE RISK SCORE EXPLANATION                         -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#127919; Composite Risk Score Explained</title>
@@ -102,7 +153,9 @@
     </panel>
   </row>
 
-  <!-- Rating Categories -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: SECURITY RATING CATEGORIES                               -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#127775; Security Rating Categories</title>
@@ -155,7 +208,9 @@
     </panel>
   </row>
 
-  <!-- Key Terms Glossary -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: KEY TERMS GLOSSARY                                       -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#128214; Key Terms Glossary</title>
@@ -208,7 +263,9 @@
     </panel>
   </row>
 
-  <!-- SLA Reference -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: SLA REFERENCE                                            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#9201; SLA Remediation Targets</title>
@@ -245,7 +302,9 @@
     </panel>
   </row>
 
-  <!-- Exporting & Scheduling -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: EXPORTING AND SCHEDULING                                 -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#128202; Exporting Reports &amp; Scheduling</title>
@@ -316,7 +375,9 @@
     </panel>
   </row>
 
-  <!-- Contact & Support -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: CONTACT AND SUPPORT                                      -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>&#128222; Support &amp; Resources</title>
