@@ -1,7 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/mttr_executive_dashboard.xml
+ BitSight for Splunk App
+ MTTR Executive Dashboard
+=============================================================================
+
+PURPOSE
+
+Executive dashboard for Mean Time to Remediate (MTTR) performance tracking
+with SLA compliance visibility across severity tiers, companies, and
+risk vectors.
+
+This dashboard provides:
+
+- SLA threshold reference guidance
+- overall SLA compliance KPI visibility
+- total remediated findings visibility
+- SLA breach visibility
+- average overdue duration visibility
+- MTTR by severity versus SLA targets
+- SLA compliance by severity
+- MTTR weekly trend visibility
+- SLA compliance trend visibility
+- company MTTR performance ranking
+- top SLA breach offender visibility
+- longest open findings approaching SLA breach
+- month-over-month MTTR comparison
+- weekly remediation velocity
+- remediation efficiency scoring
+
+DATA SOURCE
+
+This dashboard is powered by BitSight findings events indexed in Splunk:
+
+- index=security_bitsight
+- sourcetype="bitsight:findings"
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an executive and operational view for monitoring:
+
+- remediation performance over time
+- compliance against severity-based SLA targets
+- breach counts and overdue duration
+- company-level remediation performance
+- severity-specific MTTR behavior
+- trend movement in MTTR and SLA compliance
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Company
+- Time Range
+
+SLA MODEL
+
+This dashboard uses the following remediation SLA thresholds:
+
+- Critical = 30 days
+- High     = 60 days
+- Medium   = 90 days
+- Low      = 180 days
+
+MTTR CALCULATION MODEL
+
+MTTR is calculated as:
+
+- MTTR Days = (last_seen - first_seen) / 86400
+
+For remediated findings:
+- first_seen represents discovery time
+- last_seen represents remediation / closure time proxy
+
+=============================================================================
+-->
+
 <dashboard version="1.1">
   <label>MTTR Executive Dashboard</label>
   <description>Mean Time to Remediate Performance Tracking with SLA Compliance</description>
   
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="company_filter">
       <label>Company</label>
@@ -22,7 +105,9 @@
     </input>
   </fieldset>
 
-  <!-- SLA Thresholds Reference -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: SLA THRESHOLDS REFERENCE                                 -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>📋 MTTR SLA Thresholds</title>
@@ -59,7 +144,9 @@
     </panel>
   </row>
 
-  <!-- Overall SLA Compliance KPIs -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: OVERALL SLA COMPLIANCE KPIS                              -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Overall SLA Compliance Rate</title>
@@ -167,7 +254,9 @@ index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
     </panel>
   </row>
 
-  <!-- MTTR by Severity with SLA Status -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: MTTR BY SEVERITY VERSUS SLA                              -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Critical MTTR vs 30-Day SLA</title>
@@ -275,7 +364,9 @@ index=security_bitsight sourcetype="bitsight:findings" severity="low" first_seen
     </panel>
   </row>
 
-  <!-- SLA Compliance by Severity Table -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: SLA COMPLIANCE BY SEVERITY                               -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>SLA Compliance by Severity</title>
@@ -315,7 +406,9 @@ index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
     </panel>
   </row>
 
-  <!-- MTTR Trend with Sparklines -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: MTTR AND SLA COMPLIANCE TRENDS                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>MTTR Weekly Trend (Last 12 Weeks)</title>
@@ -373,7 +466,9 @@ index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
     </panel>
   </row>
 
-  <!-- Company Performance Comparison -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: COMPANY PERFORMANCE COMPARISON                           -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Company MTTR Performance Ranking</title>
@@ -414,7 +509,9 @@ index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
     </panel>
   </row>
 
-  <!-- Top SLA Breaches -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: SLA BREACH OFFENDERS AND URGENT OPEN FINDINGS            -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>⚠ Top SLA Breach Offenders (Risk Vectors)</title>
@@ -476,7 +573,9 @@ index=security_bitsight sourcetype="bitsight:findings" first_seen=* (NOT last_se
     </panel>
   </row>
 
-  <!-- Month-over-Month Comparison -->
+  <!-- =============================================================== -->
+  <!-- ROW 8: MONTH-OVER-MONTH COMPARISON                              -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>MTTR Month-over-Month Change</title>
@@ -516,7 +615,9 @@ index=security_bitsight sourcetype="bitsight:findings" first_seen=* last_seen=*
     </panel>
   </row>
 
-  <!-- Remediation Velocity -->
+  <!-- =============================================================== -->
+  <!-- ROW 9: REMEDIATION VELOCITY AND EFFICIENCY                      -->
+  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Weekly Remediation Velocity</title>
