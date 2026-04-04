@@ -1,65 +1,412 @@
 #
-# Example Bitsight Input Configuration
-# Copy this file to inputs.conf and configure your API token
+# File:
+# local/inputs.conf.example
 #
-# To enable:
-# 1. Copy this file: cp inputs.conf.example inputs.conf
-# 2. Replace YOUR_BITSIGHT_API_TOKEN_HERE with your actual API token
-# 3. Restart Splunk: $SPLUNK_HOME/bin/splunk restart
+# =============================================================================
+# PURPOSE
+# =============================================================================
+# Example BitSight input configuration
+# for local deployment
+# for API token configuration
+# for modular input enablement
+# for interval configuration
+# for sourcetype alignment
 #
+# =============================================================================
+# FILE LOCATION
+# =============================================================================
+# App-relative path:
+# local/inputs.conf.example
+#
+# Target runtime copy path:
+# local/inputs.conf
+#
+# =============================================================================
+# GRANULAR DOCUMENTATION SPECIFICATION
+# =============================================================================
+# Usage:
+# 1. Copy this file:
+#    cp inputs.conf.example inputs.conf
+# 2. Replace:
+#    YOUR_BITSIGHT_API_TOKEN_HERE
+# 3. Review:
+#    index values
+#    collection intervals
+#    disabled flags
+# 4. Enable the inputs you want:
+#    disabled = 0
+# 5. Restart Splunk:
+#    $SPLUNK_HOME/bin/splunk restart
+#
+# Common fields:
+# api_token
+# - BitSight API token
+#
+# interval
+# - collection interval in seconds
+#
+# index
+# - target Splunk index
+#
+# disabled
+# - 1 = disabled
+# - 0 = enabled
+#
+# endpoint
+# - BitSight API endpoint identifier
+#
+# sourcetype
+# - normalized sourcetype for indexed data
+#
+# risk_vectors
+# - optional comma-separated risk vector filter
+#
+# days_back
+# - optional historical collection window in days
+#
+# NOTE:
+# This is an example file.
+# It is intentionally disabled by default.
+#
+# =============================================================================
+# EXAMPLE INPUT DEFINITIONS
+# =============================================================================
 
 [bitsight://portfolio]
 api_token = YOUR_BITSIGHT_API_TOKEN_HERE
 interval = 3600
-index = main
-disabled = 0
+index = security_bitsight
+disabled = 1
 endpoint = portfolio
+sourcetype = bitsight_portfolio
 
-[bitsight://companies]
+[bitsight://current-ratings]
 api_token = YOUR_BITSIGHT_API_TOKEN_HERE
 interval = 3600
-index = main
-disabled = 0
-endpoint = companies
+index = security_bitsight
+disabled = 1
+endpoint = current-ratings
+sourcetype = bitsight_ratings
 
-[bitsight://alerts]
+[bitsight://ratings-history]
 api_token = YOUR_BITSIGHT_API_TOKEN_HERE
-interval = 1800
-index = main
-disabled = 0
-endpoint = alerts
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = ratings-history
+days_back = 365
+sourcetype = bitsight_ratings_history
+
+[bitsight://ratings-history-csv]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = ratings-history-csv
+sourcetype = bitsight_ratings_history_csv
+
+[bitsight://company-details]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = company-details
+sourcetype = bitsight_company
+
+[bitsight://country-details]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = country-details
+sourcetype = bitsight_country
+
+[bitsight://company-requests-summary]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = company-requests-summary
+sourcetype = bitsight_company_requests
 
 [bitsight://findings]
 api_token = YOUR_BITSIGHT_API_TOKEN_HERE
 interval = 3600
-index = main
-disabled = 0
+index = security_bitsight
+disabled = 1
 endpoint = findings
+sourcetype = bitsight_findings
 
-[bitsight://current_ratings]
+[bitsight://findings-compromised]
 api_token = YOUR_BITSIGHT_API_TOKEN_HERE
 interval = 3600
-index = main
-disabled = 0
-endpoint = current-ratings
+index = security_bitsight
+disabled = 1
+endpoint = findings
+risk_vectors = botnet_infections,spam_propagation,malware_servers,unsolicited_comm,potentially_exploited
+sourcetype = bitsight_findings_compromised
 
-[bitsight://industries]
-api_token = YOUR_BITSIGHT_API_TOKEN_HERE
-interval = 86400
-index = main
-disabled = 0
-endpoint = industries
-
-[bitsight://exposed_credentials]
+[bitsight://findings-diligence]
 api_token = YOUR_BITSIGHT_API_TOKEN_HERE
 interval = 3600
-index = main
-disabled = 0
-endpoint = exposed-credentials
+index = security_bitsight
+disabled = 1
+endpoint = findings
+risk_vectors = spf,dkim,ssl_certificates,ssl_configurations,open_ports,web_appsec,patching_cadence,insecure_systems,server_software,desktop_software,mobile_software,dnssec,mobile_application_security,application_security,dmarc
+sourcetype = bitsight_findings_diligence
+
+[bitsight://findings-summary]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = findings-summary
+sourcetype = bitsight_findings_summary
+
+[bitsight://finding-comments]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = finding-comments
+sourcetype = bitsight_findings_comments
+
+[bitsight://risk-vectors]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = risk-vectors
+sourcetype = bitsight_risk_vectors
+
+[bitsight://alerts]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 900
+index = security_bitsight
+disabled = 1
+endpoint = alerts
+sourcetype = bitsight_alerts
 
 [bitsight://threats]
 api_token = YOUR_BITSIGHT_API_TOKEN_HERE
 interval = 3600
-index = main
-disabled = 0
+index = security_bitsight
+disabled = 1
 endpoint = threats
+sourcetype = bitsight_threats
+
+[bitsight://exposed-credentials]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = exposed-credentials
+sourcetype = bitsight_credentials
+
+[bitsight://users]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = users
+sourcetype = bitsight_users
+
+[bitsight://user-quota]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = user-quota
+sourcetype = bitsight_users_quota
+
+[bitsight://user-company-views]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = user-company-views
+sourcetype = bitsight_users_views
+
+[bitsight://folders]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = folders
+sourcetype = bitsight_folders
+
+[bitsight://tiers]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = tiers
+sourcetype = bitsight_tiers
+
+[bitsight://industries]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 604800
+index = security_bitsight
+disabled = 1
+endpoint = industries
+sourcetype = bitsight_industries
+
+[bitsight://assets]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = assets
+sourcetype = bitsight_assets
+
+[bitsight://asset-risk-matrix]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = asset-risk-matrix
+sourcetype = bitsight_assets_statistics
+
+[bitsight://infrastructure]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = infrastructure
+sourcetype = bitsight_infrastructure
+
+[bitsight://infrastructure-changes]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = infrastructure-changes
+sourcetype = bitsight_infrastructure_changes
+
+[bitsight://ip-by-country]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = ip-by-country
+sourcetype = bitsight_ip_by_country
+
+[bitsight://diligence-statistics]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = diligence-statistics
+sourcetype = bitsight_diligence_statistics
+
+[bitsight://observations-statistics]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = observations-statistics
+sourcetype = bitsight_observations_statistics
+
+[bitsight://industry-statistics]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = industry-statistics
+sourcetype = bitsight_industry_statistics
+
+[bitsight://user-behavior-statistics]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = user-behavior-statistics
+sourcetype = bitsight_user_behavior_statistics
+
+[bitsight://service-providers]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = service-providers
+sourcetype = bitsight_providers
+
+[bitsight://products]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = products
+sourcetype = bitsight_products
+
+[bitsight://ratings-tree]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = ratings-tree
+sourcetype = bitsight_ratings_tree
+
+[bitsight://observations]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = observations
+sourcetype = bitsight_observations
+
+[bitsight://findings-summaries]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = findings-summaries
+sourcetype = bitsight_findings_summaries
+
+[bitsight://findings-statistics]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 3600
+index = security_bitsight
+disabled = 1
+endpoint = findings-statistics
+sourcetype = bitsight_findings_statistics
+
+[bitsight://peer-analytics]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = peer-analytics
+sourcetype = bitsight_peer_analytics
+
+[bitsight://rating-distribution]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 604800
+index = security_bitsight
+disabled = 1
+endpoint = rating-distribution
+sourcetype = bitsight_rating_distribution
+
+[bitsight://nist-csf-report]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 604800
+index = security_bitsight
+disabled = 1
+endpoint = nist-csf-report
+sourcetype = bitsight_nist_csf
+
+[bitsight://preview-report]
+api_token = YOUR_BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = preview-report
+sourcetype = bitsight_preview_report
+
+[bitsight://risk-vectors-summary]
+api_token = BITSIGHT_API_TOKEN_HERE
+interval = 86400
+index = security_bitsight
+disabled = 1
+endpoint = risk-vectors-summary
+sourcetype = bitsight_risk_vectors_summary
