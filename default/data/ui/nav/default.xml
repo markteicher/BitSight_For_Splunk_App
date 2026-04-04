@@ -18,7 +18,7 @@
     local/data/ui/nav/default.xml
 
   =============================================================================
-  SOURCETYPE-TO-COLLECTION COVERAGE
+  COLLECTION COVERAGE
   =============================================================================
 
   Portfolio collection covers:
@@ -28,15 +28,14 @@
   - bitsight_company_requests
   - bitsight_tiers
   - bitsight_industries
-  - bitsight_peer_analytics
-  - bitsight_rating_distribution
-  - bitsight_preview_report
 
   Ratings collection covers:
   - bitsight_ratings
   - bitsight_ratings_history
   - bitsight_ratings_history_csv
   - bitsight_ratings_tree
+  - bitsight_peer_analytics
+  - bitsight_rating_distribution
   - bitsight_industry_statistics
 
   Findings collection covers:
@@ -65,10 +64,15 @@
 
   Compliance collection covers:
   - bitsight_nist_csf
+  - bitsight_preview_report
+
+  Alerts collection covers:
+  - bitsight_alerts
 
   Threats collection covers:
-  - bitsight_alerts
   - bitsight_threats
+
+  Credentials collection covers:
   - bitsight_credentials
 
   Users collection covers:
@@ -78,32 +82,28 @@
   - bitsight_folders
 
   Operations collection covers:
-  - operational monitoring and reporting views for all app data sources
+  - operational monitoring views for all app data sources
 -->
 <nav search_view="bitsight_search" color="#1E3A5F">
 
-  <!-- Default landing page -->
   <view name="bitsight_overview" default="true"/>
-
-  <!-- Search -->
   <view name="bitsight_search"/>
 
-  <!-- Portfolio, organization, benchmarking, and reference datasets -->
+  <!-- Portfolio -->
   <collection label="Portfolio">
     <view name="bitsight_portfolio"/>
     <view name="bitsight_ratings_tree"/>
     <view name="bitsight_benchmarking"/>
-    <view name="bitsight_reports"/>
   </collection>
 
-  <!-- Ratings, historical trends, and rating analytics -->
+  <!-- Ratings -->
   <collection label="Ratings">
     <view name="bitsight_ratings"/>
     <view name="bitsight_ratings_trending"/>
     <view name="bitsight_trending"/>
   </collection>
 
-  <!-- Findings, observations, remediation, and risk vector analysis -->
+  <!-- Findings -->
   <collection label="Findings">
     <view name="bitsight_findings"/>
     <view name="bitsight_findings_detailed"/>
@@ -112,30 +112,38 @@
     <view name="bitsight_mttr_executive"/>
   </collection>
 
-  <!-- Assets, infrastructure, 4th-party dependencies, and asset risk -->
+  <!-- Assets -->
   <collection label="Assets">
     <view name="bitsight_asset_risk_matrix"/>
   </collection>
 
-  <!-- Compliance and control mapping -->
+  <!-- Compliance -->
   <collection label="Compliance">
     <view name="bitsight_nist_csf"/>
   </collection>
 
-  <!-- Alerts, threats, and exposed credentials -->
-  <collection label="Threats">
+  <!-- Alerts -->
+  <collection label="Alerts">
     <view name="bitsight_alerts"/>
+  </collection>
+
+  <!-- Threats -->
+  <collection label="Threats">
     <view name="bitsight_threats"/>
+  </collection>
+
+  <!-- Credentials -->
+  <collection label="Credentials">
     <view name="bitsight_exposed_credentials"/>
   </collection>
 
-  <!-- Users, access, folders, quota, and governance -->
+  <!-- Users -->
   <collection label="Users">
     <view name="bitsight_users"/>
     <view name="bitsight_users_access_review"/>
   </collection>
 
-  <!-- Health, logs, operations, and report execution -->
+  <!-- Operations -->
   <collection label="Operations">
     <view name="bitsight_health_check"/>
     <view name="bitsight_health"/>
@@ -144,13 +152,16 @@
     <view name="bitsight_reports"/>
   </collection>
 
-  <!-- Help and app configuration -->
-  <collection label="Settings">
+  <!-- Help -->
+  <collection label="Help">
     <view name="bitsight_help"/>
+  </collection>
+
+  <!-- Settings -->
+  <collection label="Settings">
     <view name="setup"/>
     <view name="data_inputs" source="unclassified"/>
   </collection>
 
-  <!-- External documentation -->
   <a href="https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview">Bitsight API Docs</a>
 </nav>
