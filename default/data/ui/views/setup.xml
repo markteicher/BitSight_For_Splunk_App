@@ -1,3 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  File:
+  default/data/ui/views/setup.xml
+
+  =============================================================================
+  PURPOSE
+  =============================================================================
+  BitSight app setup view
+  for API configuration
+  for proxy configuration
+  for data input enablement
+  for collection interval settings
+  for logging configuration
+  for connection testing
+
+  =============================================================================
+  FILE LOCATION
+  =============================================================================
+  App-relative path:
+  default/data/ui/views/setup.xml
+
+  Local override path:
+  local/data/ui/views/setup.xml
+
+  =============================================================================
+  GRANULAR DOCUMENTATION SPECIFICATION
+  =============================================================================
+  View type:
+  Splunk setup view
+
+  Endpoint mappings:
+  - admin/bitsight_settings
+  - admin/bitsight_test
+
+  Entities used:
+  - settings
+  - proxy
+  - inputs
+  - collection
+  - logging
+  - test
+
+  Settings fields:
+  - api_token
+  - base_url
+  - verify_ssl
+  - timeout
+
+  Proxy fields:
+  - proxy_enabled
+  - proxy_url
+  - proxy_username
+  - proxy_password
+
+  Input fields:
+  - input_portfolio
+  - input_ratings
+  - input_ratings_history
+  - input_ratings_history_csv
+  - input_company_details
+  - input_country_details
+  - input_company_requests_summary
+  - input_findings
+  - input_findings_compromised
+  - input_findings_diligence
+  - input_findings_summary
+  - input_finding_comments
+  - input_risk_vectors
+  - input_alerts
+  - input_threats
+  - input_exposed_credentials
+  - input_users
+  - input_user_quota
+  - input_user_company_views
+  - input_folders
+  - input_tiers
+  - input_industries
+  - input_assets
+  - input_asset_risk_matrix
+  - input_infrastructure
+  - input_infrastructure_changes
+  - input_ip_by_country
+  - input_diligence_statistics
+  - input_observations_statistics
+  - input_industry_statistics
+  - input_user_behavior_statistics
+  - input_service_providers
+  - input_products
+  - input_ratings_tree
+  - input_observations
+  - input_findings_summaries
+  - input_findings_statistics
+  - input_peer_analytics
+  - input_rating_distribution
+  - input_nist_csf_report
+  - input_preview_report
+  - input_risk_vectors_summary
+
+  Collection fields:
+  - portfolio_interval
+  - ratings_interval
+  - ratings_history_interval
+  - ratings_history_csv_interval
+  - company_details_interval
+  - country_details_interval
+  - company_requests_summary_interval
+  - findings_interval
+  - findings_compromised_interval
+  - findings_diligence_interval
+  - findings_summary_interval
+  - finding_comments_interval
+  - risk_vectors_interval
+  - alerts_interval
+  - threats_interval
+  - exposed_credentials_interval
+  - users_interval
+  - user_quota_interval
+  - user_company_views_interval
+  - folders_interval
+  - tiers_interval
+  - industries_interval
+  - assets_interval
+  - asset_risk_matrix_interval
+  - infrastructure_interval
+  - infrastructure_changes_interval
+  - ip_by_country_interval
+  - diligence_statistics_interval
+  - observations_statistics_interval
+  - industry_statistics_interval
+  - user_behavior_statistics_interval
+  - service_providers_interval
+  - products_interval
+  - ratings_tree_interval
+  - observations_interval
+  - findings_summaries_interval
+  - findings_statistics_interval
+  - peer_analytics_interval
+  - rating_distribution_interval
+  - nist_csf_report_interval
+  - preview_report_interval
+  - risk_vectors_summary_interval
+  - days_back
+
+  Logging fields:
+  - log_level
+
+  Test fields:
+  - test_api
+  - test_proxy
+-->
 <setup>
   <block title="Bitsight API Configuration" endpoint="admin/bitsight_settings" entity="settings">
     <input field="api_token">
@@ -20,7 +171,7 @@
       <content>Click "Test API Connection" after saving to validate your API token.</content>
     </text>
   </block>
-  
+
   <block title="Proxy Configuration" endpoint="admin/bitsight_settings" entity="proxy">
     <input field="proxy_enabled">
       <label>Use Proxy</label>
@@ -42,11 +193,12 @@
       <content>If proxy is enabled, click "Test Proxy Connection" after saving to validate connectivity.</content>
     </text>
   </block>
-  
+
   <block title="Data Inputs" endpoint="admin/bitsight_settings" entity="inputs">
     <text>
       <content>Select which data inputs to enable. Disabled inputs will not collect data.</content>
     </text>
+
     <input field="input_portfolio">
       <label>Portfolio Companies</label>
       <type>bool</type>
@@ -56,46 +208,334 @@
       <type>bool</type>
     </input>
     <input field="input_ratings_history">
-      <label>Ratings History (Trending)</label>
+      <label>Ratings History</label>
+      <type>bool</type>
+    </input>
+    <input field="input_ratings_history_csv">
+      <label>Ratings History CSV Export</label>
+      <type>bool</type>
+    </input>
+    <input field="input_company_details">
+      <label>Company Details</label>
+      <type>bool</type>
+    </input>
+    <input field="input_country_details">
+      <label>Country Details</label>
+      <type>bool</type>
+    </input>
+    <input field="input_company_requests_summary">
+      <label>Company Requests Summary</label>
       <type>bool</type>
     </input>
     <input field="input_findings">
       <label>Security Findings</label>
       <type>bool</type>
     </input>
+    <input field="input_findings_compromised">
+      <label>Findings - Compromised Systems</label>
+      <type>bool</type>
+    </input>
+    <input field="input_findings_diligence">
+      <label>Findings - Diligence</label>
+      <type>bool</type>
+    </input>
     <input field="input_findings_summary">
       <label>Findings Summary</label>
+      <type>bool</type>
+    </input>
+    <input field="input_finding_comments">
+      <label>Finding Comments</label>
+      <type>bool</type>
+    </input>
+    <input field="input_risk_vectors">
+      <label>Risk Vectors</label>
       <type>bool</type>
     </input>
     <input field="input_alerts">
       <label>Alerts</label>
       <type>bool</type>
     </input>
-    <input field="input_exposed_credentials">
-      <label>Exposed Credentials</label>
-      <type>bool</type>
-    </input>
     <input field="input_threats">
       <label>Threat Intelligence</label>
       <type>bool</type>
     </input>
+    <input field="input_exposed_credentials">
+      <label>Exposed Credentials</label>
+      <type>bool</type>
+    </input>
     <input field="input_users">
-      <label>Users &amp; Quota</label>
+      <label>Users</label>
+      <type>bool</type>
+    </input>
+    <input field="input_user_quota">
+      <label>User Quota</label>
+      <type>bool</type>
+    </input>
+    <input field="input_user_company_views">
+      <label>User Company Views</label>
+      <type>bool</type>
+    </input>
+    <input field="input_folders">
+      <label>Folders</label>
+      <type>bool</type>
+    </input>
+    <input field="input_tiers">
+      <label>Tiers</label>
+      <type>bool</type>
+    </input>
+    <input field="input_industries">
+      <label>Industries</label>
+      <type>bool</type>
+    </input>
+    <input field="input_assets">
+      <label>Assets</label>
+      <type>bool</type>
+    </input>
+    <input field="input_asset_risk_matrix">
+      <label>Asset Risk Matrix</label>
+      <type>bool</type>
+    </input>
+    <input field="input_infrastructure">
+      <label>Infrastructure</label>
+      <type>bool</type>
+    </input>
+    <input field="input_infrastructure_changes">
+      <label>Infrastructure Changes</label>
+      <type>bool</type>
+    </input>
+    <input field="input_ip_by_country">
+      <label>IP by Country</label>
+      <type>bool</type>
+    </input>
+    <input field="input_diligence_statistics">
+      <label>Diligence Statistics</label>
+      <type>bool</type>
+    </input>
+    <input field="input_observations_statistics">
+      <label>Observations Statistics</label>
+      <type>bool</type>
+    </input>
+    <input field="input_industry_statistics">
+      <label>Industry Statistics</label>
+      <type>bool</type>
+    </input>
+    <input field="input_user_behavior_statistics">
+      <label>User Behavior Statistics</label>
+      <type>bool</type>
+    </input>
+    <input field="input_service_providers">
+      <label>Service Providers</label>
+      <type>bool</type>
+    </input>
+    <input field="input_products">
+      <label>Products</label>
+      <type>bool</type>
+    </input>
+    <input field="input_ratings_tree">
+      <label>Ratings Tree</label>
+      <type>bool</type>
+    </input>
+    <input field="input_observations">
+      <label>Observations</label>
+      <type>bool</type>
+    </input>
+    <input field="input_findings_summaries">
+      <label>Findings Summaries</label>
+      <type>bool</type>
+    </input>
+    <input field="input_findings_statistics">
+      <label>Findings Statistics</label>
+      <type>bool</type>
+    </input>
+    <input field="input_peer_analytics">
+      <label>Peer Analytics</label>
+      <type>bool</type>
+    </input>
+    <input field="input_rating_distribution">
+      <label>Rating Distribution</label>
+      <type>bool</type>
+    </input>
+    <input field="input_nist_csf_report">
+      <label>NIST CSF Report</label>
+      <type>bool</type>
+    </input>
+    <input field="input_preview_report">
+      <label>Preview Report</label>
+      <type>bool</type>
+    </input>
+    <input field="input_risk_vectors_summary">
+      <label>Risk Vectors Summary</label>
       <type>bool</type>
     </input>
   </block>
-  
+
   <block title="Data Collection Settings" endpoint="admin/bitsight_settings" entity="collection">
     <input field="portfolio_interval">
       <label>Portfolio Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="ratings_interval">
+      <label>Ratings Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="ratings_history_interval">
+      <label>Ratings History Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="ratings_history_csv_interval">
+      <label>Ratings History CSV Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="company_details_interval">
+      <label>Company Details Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="country_details_interval">
+      <label>Country Details Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="company_requests_summary_interval">
+      <label>Company Requests Summary Interval (seconds)</label>
       <type>text</type>
     </input>
     <input field="findings_interval">
       <label>Findings Collection Interval (seconds)</label>
       <type>text</type>
     </input>
+    <input field="findings_compromised_interval">
+      <label>Compromised Findings Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="findings_diligence_interval">
+      <label>Diligence Findings Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="findings_summary_interval">
+      <label>Findings Summary Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="finding_comments_interval">
+      <label>Finding Comments Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="risk_vectors_interval">
+      <label>Risk Vectors Interval (seconds)</label>
+      <type>text</type>
+    </input>
     <input field="alerts_interval">
       <label>Alerts Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="threats_interval">
+      <label>Threats Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="exposed_credentials_interval">
+      <label>Exposed Credentials Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="users_interval">
+      <label>Users Collection Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="user_quota_interval">
+      <label>User Quota Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="user_company_views_interval">
+      <label>User Company Views Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="folders_interval">
+      <label>Folders Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="tiers_interval">
+      <label>Tiers Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="industries_interval">
+      <label>Industries Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="assets_interval">
+      <label>Assets Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="asset_risk_matrix_interval">
+      <label>Asset Risk Matrix Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="infrastructure_interval">
+      <label>Infrastructure Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="infrastructure_changes_interval">
+      <label>Infrastructure Changes Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="ip_by_country_interval">
+      <label>IP by Country Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="diligence_statistics_interval">
+      <label>Diligence Statistics Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="observations_statistics_interval">
+      <label>Observations Statistics Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="industry_statistics_interval">
+      <label>Industry Statistics Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="user_behavior_statistics_interval">
+      <label>User Behavior Statistics Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="service_providers_interval">
+      <label>Service Providers Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="products_interval">
+      <label>Products Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="ratings_tree_interval">
+      <label>Ratings Tree Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="observations_interval">
+      <label>Observations Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="findings_summaries_interval">
+      <label>Findings Summaries Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="findings_statistics_interval">
+      <label>Findings Statistics Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="peer_analytics_interval">
+      <label>Peer Analytics Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="rating_distribution_interval">
+      <label>Rating Distribution Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="nist_csf_report_interval">
+      <label>NIST CSF Report Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="preview_report_interval">
+      <label>Preview Report Interval (seconds)</label>
+      <type>text</type>
+    </input>
+    <input field="risk_vectors_summary_interval">
+      <label>Risk Vectors Summary Interval (seconds)</label>
       <type>text</type>
     </input>
     <input field="days_back">
@@ -103,7 +543,7 @@
       <type>text</type>
     </input>
   </block>
-  
+
   <block title="Logging" endpoint="admin/bitsight_settings" entity="logging">
     <input field="log_level">
       <label>Log Level</label>
@@ -116,7 +556,7 @@
       </options>
     </input>
   </block>
-  
+
   <block title="Connection Tests" endpoint="admin/bitsight_test" entity="test">
     <text>
       <content>Use these buttons to validate your configuration after saving.</content>
