@@ -1,23 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  File: default/data/ui/nav/default.xml
+  Bitsight app navigation definition
+
+  =============================================================================
+  PURPOSE
+  =============================================================================
+  Defines the Splunk Classic XML navigation menu for the Bitsight app.
+
+  =============================================================================
+  FILE LOCATION
+  =============================================================================
+  App-relative path:
+    default/data/ui/nav/default.xml
+
+  Local override path:
+    local/data/ui/nav/default.xml
+
+  =============================================================================
+  SOURCETYPE-TO-COLLECTION COVERAGE
+  =============================================================================
+
+  Portfolio collection covers:
+  - bitsight_portfolio
+  - bitsight_company
+  - bitsight_country
+  - bitsight_company_requests
+  - bitsight_tiers
+  - bitsight_industries
+  - bitsight_peer_analytics
+  - bitsight_rating_distribution
+  - bitsight_preview_report
+
+  Ratings collection covers:
+  - bitsight_ratings
+  - bitsight_ratings_history
+  - bitsight_ratings_history_csv
+  - bitsight_ratings_tree
+  - bitsight_industry_statistics
+
+  Findings collection covers:
+  - bitsight_findings
+  - bitsight_findings_compromised
+  - bitsight_findings_diligence
+  - bitsight_findings_summary
+  - bitsight_findings_comments
+  - bitsight_findings_summaries
+  - bitsight_findings_statistics
+  - bitsight_observations
+  - bitsight_observations_statistics
+  - bitsight_diligence_statistics
+  - bitsight_user_behavior_statistics
+  - bitsight_risk_vectors
+  - bitsight_risk_vectors_summary
+
+  Assets collection covers:
+  - bitsight_assets
+  - bitsight_assets_statistics
+  - bitsight_infrastructure
+  - bitsight_infrastructure_changes
+  - bitsight_ip_by_country
+  - bitsight_providers
+  - bitsight_products
+
+  Compliance collection covers:
+  - bitsight_nist_csf
+
+  Threats collection covers:
+  - bitsight_alerts
+  - bitsight_threats
+  - bitsight_credentials
+
+  Users collection covers:
+  - bitsight_users
+  - bitsight_users_quota
+  - bitsight_users_views
+  - bitsight_folders
+
+  Operations collection covers:
+  - operational monitoring and reporting views for all app data sources
+-->
 <nav search_view="bitsight_search" color="#1E3A5F">
+
+  <!-- Default landing page -->
   <view name="bitsight_overview" default="true"/>
+
+  <!-- Search -->
   <view name="bitsight_search"/>
-  
-  <!-- Portfolio & Organization -->
+
+  <!-- Portfolio, organization, benchmarking, and reference datasets -->
   <collection label="Portfolio">
     <view name="bitsight_portfolio"/>
     <view name="bitsight_ratings_tree"/>
     <view name="bitsight_benchmarking"/>
+    <view name="bitsight_reports"/>
   </collection>
-  
-  <!-- Security Ratings -->
+
+  <!-- Ratings, historical trends, and rating analytics -->
   <collection label="Ratings">
     <view name="bitsight_ratings"/>
     <view name="bitsight_ratings_trending"/>
     <view name="bitsight_trending"/>
   </collection>
-  
-  <!-- Findings & Remediation -->
+
+  <!-- Findings, observations, remediation, and risk vector analysis -->
   <collection label="Findings">
     <view name="bitsight_findings"/>
     <view name="bitsight_findings_detailed"/>
@@ -26,32 +112,30 @@
     <view name="bitsight_mttr_executive"/>
   </collection>
 
-  
-  <!-- Assets & Infrastructure -->
+  <!-- Assets, infrastructure, 4th-party dependencies, and asset risk -->
   <collection label="Assets">
     <view name="bitsight_asset_risk_matrix"/>
   </collection>
-  
-  <!-- Compliance -->
+
+  <!-- Compliance and control mapping -->
   <collection label="Compliance">
     <view name="bitsight_nist_csf"/>
   </collection>
-  
-  <!-- Threats & Incidents -->
+
+  <!-- Alerts, threats, and exposed credentials -->
   <collection label="Threats">
+    <view name="bitsight_alerts"/>
     <view name="bitsight_threats"/>
     <view name="bitsight_exposed_credentials"/>
   </collection>
-  
-  <!-- Access & Governance -->
+
+  <!-- Users, access, folders, quota, and governance -->
   <collection label="Users">
     <view name="bitsight_users"/>
     <view name="bitsight_users_access_review"/>
   </collection>
-  
-  <view name="bitsight_alerts"/>
-  
-  <!-- Operations -->
+
+  <!-- Health, logs, operations, and report execution -->
   <collection label="Operations">
     <view name="bitsight_health_check"/>
     <view name="bitsight_health"/>
@@ -59,14 +143,14 @@
     <view name="bitsight_logs"/>
     <view name="bitsight_reports"/>
   </collection>
-  
-  <!-- Help & Settings -->
-  <view name="bitsight_help"/>
-  
+
+  <!-- Help and app configuration -->
   <collection label="Settings">
+    <view name="bitsight_help"/>
     <view name="setup"/>
     <view name="data_inputs" source="unclassified"/>
   </collection>
-  
+
+  <!-- External documentation -->
   <a href="https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview">Bitsight API Docs</a>
 </nav>
