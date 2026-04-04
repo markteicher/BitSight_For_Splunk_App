@@ -1,8 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  File: default/data/ui/views/bitsight_reports.xml
+
+  =============================================================================
+  PURPOSE
+  =============================================================================
+  Reports dashboard for generating and exporting executive reports, compliance
+  summaries, audit exports, and operational reporting tables.
+
+  =============================================================================
+  FILE LOCATION
+  =============================================================================
+  App-relative path:
+    default/data/ui/views/bitsight_reports.xml
+
+  Local override path:
+    local/data/ui/views/bitsight_reports.xml
+
+  =============================================================================
+  GRANULAR DOCUMENTATION SPECIFICATION
+  =============================================================================
+  Dashboard type:
+    Splunk Classic XML form
+
+  Index macro standard:
+    All searches in this view use:
+    - `get_index`
+
+  Input tokens:
+    time_range
+    - purpose: controls report period
+
+    company_filter
+    - purpose: filters reports by company name
+    - default: *
+    - source: bitsight_portfolio
+
+  Sourcetypes used in this view:
+    - bitsight_portfolio
+    - bitsight_ratings_history
+    - bitsight_findings
+    - bitsight_risk_vectors
+    - bitsight_alerts
+    - bitsight_users
+
+  Panels:
+    - Board-Ready Report Generation
+    - Executive Summary - Key Metrics
+    - Rating Trend Summary
+    - Portfolio Report - All Companies
+    - Findings Report - Open Issues
+    - Risk Vector Performance Report
+    - Alert History Report
+    - User Activity Report
+-->
 <form version="1.1" theme="dark">
   <label>Reports</label>
   <description>Generate and schedule executive reports, compliance summaries, and audit exports</description>
-  
+
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
       <label>Report Period</label>
@@ -19,7 +74,7 @@
       <fieldForValue>name</fieldForValue>
       <search>
         <query>
-          `bitsight_index` sourcetype="bitsight:portfolio"
+          `get_index` sourcetype="bitsight_portfolio"
           | dedup name
           | table name
           | sort name
@@ -30,7 +85,6 @@
     </input>
   </fieldset>
 
-  <!-- Report Info -->
   <row>
     <panel>
       <html>
@@ -38,7 +92,7 @@
         <div style="padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
           <h2 style="margin: 0 0 15px 0; color: #fff;">&#128202; Board-Ready Report Generation</h2>
           <p style="color: #ccc; margin: 0 0 15px 0;">Export any panel below by clicking the <strong>Export</strong> button (&#8942;) in the panel header. Available formats: CSV, XML, JSON, PDF.</p>
-          
+
           <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="background: rgba(83,160,81,0.2); padding: 15px; border-radius: 8px; flex: 1; min-width: 180px; border-left: 4px solid #53A051;">
               <strong style="color: #53A051;">&#128196; Full Dashboard PDF</strong><br/>
@@ -110,7 +164,6 @@
     </panel>
   </row>
 
-  <!-- Executive Summary Section -->
   <row>
     <panel>
       <title>Executive Summary - Key Metrics</title>
@@ -120,36 +173,37 @@
             | makeresults
             | eval metric="placeholder"
             | append [
-              search `bitsight_index` sourcetype="bitsight:portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
+              search `get_index` sourcetype="bitsight_portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
               | where name="$company_filter$" OR "$company_filter$"="*"
               | stats dc(guid) as value
               | eval metric="Total Companies Monitored"
             ]
             | append [
-              search `bitsight_index` sourcetype="bitsight:portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
+              search `get_index` sourcetype="bitsight_portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
               | where name="$company_filter$" OR "$company_filter$"="*"
               | stats avg(rating) as value
               | eval value=round(value, 0), metric="Average Portfolio Rating"
             ]
             | append [
-              search `bitsight_index` sourcetype="bitsight:portfolio" rating>=700 earliest=$time_range.earliest$ latest=$time_range.latest$
+              search `get_index` sourcetype="bitsight_portfolio" rating>=700 earliest=$time_range.earliest$ latest=$time_range.latest$
               | where name="$company_filter$" OR "$company_filter$"="*"
               | stats dc(guid) as healthy
               | appendcols [
-                search `bitsight_index` sourcetype="bitsight:portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
+                search `get_index` sourcetype="bitsight_portfolio" earliest=$time_range.earliest$ latest=$time_range.latest$
                 | where name="$company_filter$" OR "$company_filter$"="*"
                 | stats dc(guid) as total
               ]
               | eval value=round((healthy/total)*100, 1)."%", metric="Portfolio Health (700+ Rating)"
             ]
             | append [
-              search `bitsight_index` sourcetype="bitsight:findings" (severity="critical" OR severity="severe") earliest=$time_range.earliest$ latest=$time_range.latest$
+              search `get_index` sourcetype="bitsight_findings" (severity="critical" OR severity="severe") earliest=$time_range.earliest$ latest=$time_range.latest$
               | where company_name="$company_filter$" OR "$company_filter$"="*"
               | stats count as value
               | eval metric="Critical/Severe Findings"
             ]
             | append [
-              search `bitsight_index` sourcetype="bitsight:alerts" earliest=$time_range.earliest$ latest=$time_range.latest$
+              search `get_index` sourcetype="bitsight_alerts" earliest=$time_range.earliest$ latest=$time_range.latest$
+              | where company_name="$company_filter$" OR "$company_filter$"="*"
               | stats count as value
               | eval metric="Alerts Generated"
             ]
@@ -169,7 +223,7 @@
       <chart>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | timechart span=1d avg(rating) as "Portfolio Average"
           </query>
@@ -184,14 +238,13 @@
     </panel>
   </row>
 
-  <!-- Portfolio Report -->
   <row>
     <panel>
       <title>Portfolio Report - All Companies</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:portfolio"
+            `get_index` sourcetype="bitsight_portfolio"
             | where name="$company_filter$" OR "$company_filter$"="*"
             | dedup guid
             | eval rating_category=case(rating>=740, "Advanced", rating>=700, "Good", rating>=640, "Fair", rating>=500, "Warning", 1=1, "Critical")
@@ -216,14 +269,13 @@
     </panel>
   </row>
 
-  <!-- Findings Report -->
   <row>
     <panel>
       <title>Findings Report - Open Issues</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:findings"
+            `get_index` sourcetype="bitsight_findings"
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | eval first_seen_fmt=strftime(strptime(first_seen, "%Y-%m-%dT%H:%M:%S"), "%Y-%m-%d")
             | eval days_open=round((now() - strptime(first_seen, "%Y-%m-%dT%H:%M:%S"))/86400, 0)
@@ -243,14 +295,13 @@
     </panel>
   </row>
 
-  <!-- Risk Vector Summary -->
   <row>
     <panel>
       <title>Risk Vector Performance Report</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:risk_vectors"
+            `get_index` sourcetype="bitsight_risk_vectors"
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | stats avg(rating) as avg_rating, min(rating) as min_rating, max(rating) as max_rating, dc(company_guid) as companies by name
             | eval avg_rating=round(avg_rating, 0), grade=case(avg_rating>=740, "A", avg_rating>=700, "B", avg_rating>=640, "C", avg_rating>=500, "D", 1=1, "F")
@@ -274,14 +325,14 @@
     </panel>
   </row>
 
-  <!-- Alerts Report -->
   <row>
     <panel>
       <title>Alert History Report</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:alerts"
+            `get_index` sourcetype="bitsight_alerts"
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
             | eval alert_time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
             | table alert_time_fmt, company_name, alert_type, severity, message
             | rename alert_time_fmt as "Alert Time", company_name as "Company", alert_type as "Type", severity as "Severity", message as "Message"
@@ -299,14 +350,13 @@
     </panel>
   </row>
 
-  <!-- User Activity Report -->
   <row>
     <panel>
       <title>User Activity Report</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:users"
+            `get_index` sourcetype="bitsight_users"
             | dedup email
             | eval last_login_fmt=strftime(strptime(last_login, "%Y-%m-%dT%H:%M:%S"), "%Y-%m-%d %H:%M")
             | eval status=if(isnotnull(last_login) AND (now() - strptime(last_login, "%Y-%m-%dT%H:%M:%S")) &lt; 2592000, "Active", "Inactive")
