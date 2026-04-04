@@ -1,16 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  File: default/data/ui/views/bitsight_ratings.xml
+
+  =============================================================================
+  PURPOSE
+  =============================================================================
+  Ratings Analysis dashboard for detailed security ratings analysis with trends,
+  company filtering, rating category filtering, rating history, risk vector
+  performance, industry comparison, and company trend analysis.
+
+  =============================================================================
+  FILE LOCATION
+  =============================================================================
+  App-relative path:
+    default/data/ui/views/bitsight_ratings.xml
+
+  Local override path:
+    local/data/ui/views/bitsight_ratings.xml
+
+  =============================================================================
+  GRANULAR DOCUMENTATION SPECIFICATION
+  =============================================================================
+  Dashboard type:
+    Splunk Classic XML form
+
+  Base search:
+    base_ratings
+    - source macro: bitsight_index
+    - sourcetype: bitsight_ratings
+    - purpose: provide current ratings dataset for KPI and risk vector panels
+
+  Input tokens:
+    timerange
+    - purpose: controls dashboard time range
+
+    company_filter
+    - purpose: filters results by company guid
+    - default: *
+    - source: bitsight_portfolio
+
+    rating_category
+    - purpose: filters results by derived rating category
+    - values:
+      - Advanced
+      - Good
+      - Fair
+      - Warning
+      - Critical
+      - *
+
+  Sourcetypes used in this view:
+    - bitsight_ratings
+    - bitsight_portfolio
+    - bitsight_ratings_history
+
+  Panels:
+    - Severity legend
+    - Average Rating
+    - Rating Range
+    - Period Change
+    - Companies Analyzed
+    - Rating History
+    - Risk Vector Performance
+    - Risk Vector Grades
+    - Industry Comparison
+    - Company Ratings with Trends
+-->
 <form version="1.1" theme="dark">
   <label>Ratings Analysis</label>
   <description>Detailed Security Ratings Analysis with Trends</description>
-  
+
   <search id="base_ratings">
     <query>
-      `bitsight_index` sourcetype="bitsight:ratings"
+      `bitsight_index` sourcetype="bitsight_ratings"
+      | dedup guid
     </query>
     <earliest>$timerange.earliest$</earliest>
     <latest>$timerange.latest$</latest>
   </search>
-  
+
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="timerange" searchWhenChanged="true">
       <label>Time Range</label>
@@ -27,9 +95,9 @@
       <fieldForValue>guid</fieldForValue>
       <search>
         <query>
-          `bitsight_index` sourcetype="bitsight:portfolio" 
-          | dedup guid 
-          | table guid, name 
+          `bitsight_index` sourcetype="bitsight_portfolio"
+          | dedup guid
+          | table guid, name
           | sort name
         </query>
         <earliest>-24h@h</earliest>
@@ -48,7 +116,6 @@
     </input>
   </fieldset>
 
-  <!-- Severity Legend -->
   <row>
     <panel>
       <html>
@@ -65,7 +132,6 @@
     </panel>
   </row>
 
-  <!-- KPI Row -->
   <row>
     <panel>
       <single>
@@ -75,6 +141,7 @@
             | where guid="$company_filter$" OR "$company_filter$"="*"
             | stats avg(rating) as avg_rating
             | eval avg_rating=round(avg_rating, 0)
+            | table avg_rating
           </query>
         </search>
         <option name="drilldown">none</option>
@@ -92,7 +159,8 @@
           <query>
             | where guid="$company_filter$" OR "$company_filter$"="*"
             | stats min(rating) as min_rating, max(rating) as max_rating
-            | eval range=min_rating." - ".max_rating
+            | eval display=min_rating." - ".max_rating
+            | table display
           </query>
         </search>
         <option name="drilldown">none</option>
@@ -104,11 +172,12 @@
         <title>Period Change</title>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `bitsight_index` sourcetype="bitsight_ratings_history"
             | where guid="$company_filter$" OR "$company_filter$"="*"
             | stats earliest(rating) as old_rating, latest(rating) as new_rating
             | eval change=new_rating - old_rating
             | eval display=if(change>=0, "&#9650; +".change, "&#9660; ".change)
+            | table display
           </query>
           <earliest>$timerange.earliest$</earliest>
           <latest>$timerange.latest$</latest>
@@ -129,6 +198,7 @@
           <query>
             | where guid="$company_filter$" OR "$company_filter$"="*"
             | stats dc(guid) as count
+            | table count
           </query>
         </search>
         <option name="drilldown">none</option>
@@ -139,14 +209,13 @@
     </panel>
   </row>
 
-  <!-- Rating History Chart -->
   <row>
     <panel>
       <title>Rating History</title>
       <chart>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `bitsight_index` sourcetype="bitsight_ratings_history"
             | where guid="$company_filter$" OR "$company_filter$"="*"
             | timechart span=1d avg(rating) as "Rating" by name limit=10
           </query>
@@ -165,7 +234,6 @@
     </panel>
   </row>
 
-  <!-- Risk Vectors -->
   <row>
     <panel>
       <title>Risk Vector Performance</title>
@@ -173,11 +241,12 @@
         <search base="base_ratings">
           <query>
             | where guid="$company_filter$" OR "$company_filter$"="*"
-            | spath input=rating_details 
-            | rename rating_details{}.name as risk_vector, rating_details{}.rating as vector_rating
-            | mvexpand risk_vector
-            | mvexpand vector_rating
+            | spath input=rating_details path={} output=rating_detail
+            | mvexpand rating_detail
+            | spath input=rating_detail path=name output=risk_vector
+            | spath input=rating_detail path=rating output=vector_rating
             | stats latest(vector_rating) as rating by risk_vector
+            | eval rating=round(rating, 0)
             | sort -rating
           </query>
         </search>
@@ -197,12 +266,13 @@
         <search base="base_ratings">
           <query>
             | where guid="$company_filter$" OR "$company_filter$"="*"
-            | spath input=rating_details 
-            | rename rating_details{}.name as risk_vector, rating_details{}.rating as vector_rating, rating_details{}.grade as vector_grade
-            | mvexpand risk_vector
-            | mvexpand vector_rating
-            | mvexpand vector_grade
+            | spath input=rating_details path={} output=rating_detail
+            | mvexpand rating_detail
+            | spath input=rating_detail path=name output=risk_vector
+            | spath input=rating_detail path=rating output=vector_rating
+            | spath input=rating_detail path=grade output=vector_grade
             | stats latest(vector_rating) as Rating, latest(vector_grade) as Grade by risk_vector
+            | eval Rating=round(Rating, 0)
             | eval status=case(Grade="A", "&#9679; A", Grade="B", "&#9679; B", Grade="C", "&#9679; C", Grade="D", "&#9679; D", Grade="F", "&#9679; F", 1=1, Grade)
             | rename risk_vector as "Risk Vector", status as "Grade"
             | sort -Rating
@@ -221,14 +291,14 @@
     </panel>
   </row>
 
-  <!-- Industry Comparison -->
   <row>
     <panel>
       <title>Industry Comparison</title>
       <chart>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:portfolio"
+            `bitsight_index` sourcetype="bitsight_portfolio"
+            | dedup guid
             | stats avg(rating) as avg_rating by industry
             | eval avg_rating=round(avg_rating, 0)
             | sort -avg_rating
@@ -246,29 +316,28 @@
     </panel>
   </row>
 
-  <!-- Rating Details with Sparklines -->
   <row>
     <panel>
       <title>Company Ratings with Trends</title>
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `bitsight_index` sourcetype="bitsight_ratings_history"
             | where guid="$company_filter$" OR "$company_filter$"="*"
             | eval rating_category=case(
                 rating>=740, "Advanced",
-                rating>=700, "Good", 
+                rating>=700, "Good",
                 rating>=640, "Fair",
                 rating>=500, "Warning",
                 1=1, "Critical"
               )
             | where rating_category="$rating_category$" OR "$rating_category$"="*"
-            | stats sparkline(avg(rating), 1d) as trend, latest(rating) as rating, latest(name) as name, latest(industry) as industry, earliest(rating) as old_rating by company_guid
+            | stats sparkline(avg(rating), 1d) as trend, latest(rating) as rating, latest(name) as name, latest(industry) as industry, earliest(rating) as old_rating by guid
             | eval change=rating - old_rating
             | eval change_display=case(change>0, "&#9650; +".change, change<0, "&#9660; ".change, 1=1, "&#9644; 0")
             | eval status=case(
                 rating>=740, "&#9679; Advanced",
-                rating>=700, "&#9679; Good", 
+                rating>=700, "&#9679; Good",
                 rating>=640, "&#9679; Fair",
                 rating>=500, "&#9679; Warning",
                 1=1, "&#9679; Critical"
