@@ -24,6 +24,10 @@
   Dashboard type:
     Splunk Classic XML dashboard
 
+  Index macro standard:
+    All searches in this view use:
+    - `get_index`
+
   Input tokens:
     company_filter
     - purpose: filters results by company name
@@ -70,7 +74,7 @@
       <choice value="*">All Companies</choice>
       <search>
         <query>
-          index=security_bitsight sourcetype="bitsight_portfolio"
+          `get_index` sourcetype="bitsight_portfolio"
           | eval company_name=coalesce(company_name,name)
           | dedup company_name
           | table company_name
@@ -86,7 +90,7 @@
       <choice value="*">All Tiers</choice>
       <search>
         <query>
-          index=security_bitsight sourcetype="bitsight_portfolio"
+          `get_index` sourcetype="bitsight_portfolio"
           | dedup tier
           | where isnotnull(tier) AND tier!=""
           | table tier
@@ -112,7 +116,7 @@
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_portfolio"
+            `get_index` sourcetype="bitsight_portfolio"
             | eval company_name=coalesce(company_name,name)
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where tier="$tier_filter$" OR "$tier_filter$"="*"
@@ -149,11 +153,11 @@
       <single>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -178,11 +182,11 @@
       <single>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -207,11 +211,11 @@
       <single>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -236,11 +240,11 @@
       <single>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | stats latest(rating) as current_rating, earliest(rating) as prev_rating by company_name
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -270,29 +274,29 @@
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_portfolio"
+            `get_index` sourcetype="bitsight_portfolio"
             | eval company_name=coalesce(company_name,name)
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where tier="$tier_filter$" OR "$tier_filter$"="*"
             | dedup company_name
             | rename rating as current_rating
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_ratings_history" earliest=-14d latest=-7d
+              search `get_index` sourcetype="bitsight_ratings_history" earliest=-14d latest=-7d
               | eval company_name=coalesce(company_name,name)
               | stats latest(rating) as week_ago_rating by company_name
             ]
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_ratings_history" earliest=-60d latest=-30d
+              search `get_index` sourcetype="bitsight_ratings_history" earliest=-60d latest=-30d
               | eval company_name=coalesce(company_name,name)
               | stats latest(rating) as month_ago_rating by company_name
             ]
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_ratings_history" earliest=-120d latest=-90d
+              search `get_index` sourcetype="bitsight_ratings_history" earliest=-120d latest=-90d
               | eval company_name=coalesce(company_name,name)
               | stats latest(rating) as quarter_ago_rating by company_name
             ]
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_ratings_history" earliest=-400d latest=-365d
+              search `get_index` sourcetype="bitsight_ratings_history" earliest=-400d latest=-365d
               | eval company_name=coalesce(company_name,name)
               | stats latest(rating) as year_ago_rating by company_name
             ]
@@ -338,10 +342,10 @@
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -369,14 +373,14 @@
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_portfolio"
+            `get_index` sourcetype="bitsight_portfolio"
             | eval company_name=coalesce(company_name,name)
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where tier="$tier_filter$" OR "$tier_filter$"="*"
             | dedup company_name
             | rename rating as current_rating
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_ratings_history" earliest=-30d@d latest=-29d@d
+              search `get_index` sourcetype="bitsight_ratings_history" earliest=-30d@d latest=-29d@d
               | eval company_name=coalesce(company_name,name)
               | stats earliest(rating) as month_ago_rating by company_name
             ]
@@ -402,14 +406,14 @@
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_portfolio"
+            `get_index` sourcetype="bitsight_portfolio"
             | eval company_name=coalesce(company_name,name)
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where tier="$tier_filter$" OR "$tier_filter$"="*"
             | dedup company_name
             | rename rating as current_rating
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_ratings_history" earliest=-30d@d latest=-29d@d
+              search `get_index` sourcetype="bitsight_ratings_history" earliest=-30d@d latest=-29d@d
               | eval company_name=coalesce(company_name,name)
               | stats earliest(rating) as month_ago_rating by company_name
             ]
@@ -438,10 +442,10 @@
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -470,10 +474,10 @@
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -512,10 +516,10 @@
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -547,10 +551,10 @@
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -576,10 +580,10 @@
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -618,10 +622,10 @@
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -646,10 +650,10 @@
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -685,10 +689,10 @@
       <chart>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
@@ -721,10 +725,10 @@
       <table>
         <search>
           <query>
-            index=security_bitsight sourcetype="bitsight_ratings_history"
+            `get_index` sourcetype="bitsight_ratings_history"
             | eval company_name=coalesce(company_name,name)
             | join type=left company_name [
-              search index=security_bitsight sourcetype="bitsight_portfolio"
+              search `get_index` sourcetype="bitsight_portfolio"
               | eval company_name=coalesce(company_name,name)
               | dedup company_name
               | table company_name tier
