@@ -1,11 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  File: default/data/ui/views/bitsight_remediation.xml
+
+  =============================================================================
+  PURPOSE
+  =============================================================================
+  Remediation Tracking dashboard for monitoring finding remediation progress,
+  SLA compliance, overdue items, and time-to-fix metrics.
+
+  =============================================================================
+  FILE LOCATION
+  =============================================================================
+  App-relative path:
+    default/data/ui/views/bitsight_remediation.xml
+
+  Local override path:
+    local/data/ui/views/bitsight_remediation.xml
+
+  =============================================================================
+  GRANULAR DOCUMENTATION SPECIFICATION
+  =============================================================================
+  Dashboard type:
+    Splunk Classic XML form
+
+  Index macro standard:
+    All searches in this view use:
+    - `get_index`
+
+  Base search:
+    base_findings
+    - source macro: get_index
+    - sourcetype: bitsight_findings
+    - purpose: provide open finding remediation metrics, SLA targets, and age
+
+  Input tokens:
+    time_range
+    - purpose: controls dashboard time range
+
+    company_filter
+    - purpose: filters results by company name
+    - default: *
+    - source: bitsight_findings
+
+    severity_filter
+    - purpose: filters results by severity
+    - default: *
+    - values:
+      - critical
+      - severe
+      - high
+      - moderate
+      - minor
+      - *
+
+  Sourcetypes used in this view:
+    - bitsight_findings
+
+  Panels:
+    - Remediation SLA Targets
+    - Open Findings
+    - SLA Compliance
+    - Overdue
+    - Avg Days Open
+    - Critical/Severe Open
+    - SLA Status by Severity
+    - Findings Age Distribution
+    - Overdue Findings Requiring Action
+    - Average Days Open by Severity
+    - Findings by Risk Vector
+    - Findings Volume Trend
+    - Company SLA Performance
+-->
 <form version="1.1" theme="dark">
   <label>Remediation Tracking</label>
   <description>Track finding remediation progress, SLA compliance, and time-to-fix metrics</description>
-  
+
   <search id="base_findings">
     <query>
-      `bitsight_index` sourcetype="bitsight:findings"
+      `get_index` sourcetype="bitsight_findings"
       | eval days_open=round((now() - strptime(first_seen, "%Y-%m-%dT%H:%M:%S"))/86400, 0)
       | eval sla_days=case(severity="critical", 7, severity="severe", 14, severity="high", 30, severity="moderate", 60, severity="minor", 90, 1=1, 120)
       | eval sla_status=if(days_open > sla_days, "Overdue", "On Track")
@@ -14,7 +86,7 @@
     <earliest>$time_range.earliest$</earliest>
     <latest>$time_range.latest$</latest>
   </search>
-  
+
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
       <label>Time Range</label>
@@ -31,7 +103,7 @@
       <fieldForValue>company_name</fieldForValue>
       <search>
         <query>
-          `bitsight_index` sourcetype="bitsight:findings"
+          `get_index` sourcetype="bitsight_findings"
           | dedup company_name
           | table company_name
           | sort company_name
@@ -52,7 +124,6 @@
     </input>
   </fieldset>
 
-  <!-- SLA Legend -->
   <row>
     <panel>
       <html>
@@ -72,7 +143,6 @@
     </panel>
   </row>
 
-  <!-- KPIs -->
   <row>
     <panel>
       <single>
@@ -82,6 +152,7 @@
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | stats count
+            | table count
           </query>
         </search>
         <option name="colorMode">block</option>
@@ -98,13 +169,15 @@
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | stats count(eval(sla_status="On Track")) as on_track, count as total
-            | eval pct=round((on_track/total)*100, 1)."%"
+            | eval pct=round((on_track/total)*100, 1)
+            | table pct
           </query>
         </search>
         <option name="colorMode">block</option>
         <option name="rangeColors">["0xDC4E41","0xF8BE34","0x53A051"]</option>
         <option name="rangeValues">[70,90]</option>
         <option name="useColors">1</option>
+        <option name="unit">%</option>
         <option name="underLabel">On Track</option>
       </single>
     </panel>
@@ -117,6 +190,7 @@
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | where sla_status="Overdue"
             | stats count
+            | table count
           </query>
         </search>
         <option name="colorMode">block</option>
@@ -135,6 +209,7 @@
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | stats avg(days_open) as avg_days
             | eval avg_days=round(avg_days, 0)
+            | table avg_days
           </query>
         </search>
         <option name="colorMode">block</option>
@@ -152,6 +227,7 @@
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where severity IN ("critical", "severe")
             | stats count
+            | table count
           </query>
         </search>
         <option name="colorMode">block</option>
@@ -163,7 +239,6 @@
     </panel>
   </row>
 
-  <!-- SLA Status Charts -->
   <row>
     <panel>
       <title>SLA Status by Severity</title>
@@ -212,7 +287,6 @@
     </panel>
   </row>
 
-  <!-- Overdue Findings -->
   <row>
     <panel>
       <title>&#9888; Overdue Findings Requiring Action</title>
@@ -224,9 +298,9 @@
             | where sla_status="Overdue"
             | eval severity_icon=case(severity="critical", "&#9679; Critical", severity="severe", "&#9679; Severe", severity="high", "&#9679; High", severity="moderate", "&#9679; Moderate", 1=1, "&#9679; Minor")
             | eval days_overdue=days_open - sla_days
+            | sort - days_overdue
             | table severity_icon, risk_vector, company_name, days_open, sla_days, days_overdue, assets
             | rename severity_icon as "Severity", risk_vector as "Risk Vector", company_name as "Company", days_open as "Days Open", sla_days as "SLA (days)", days_overdue as "Days Overdue", assets as "Affected Assets"
-            | sort -"Days Overdue"
           </query>
         </search>
         <option name="count">15</option>
@@ -245,7 +319,6 @@
     </panel>
   </row>
 
-  <!-- Time-to-Fix Metrics -->
   <row>
     <panel>
       <title>Average Days Open by Severity</title>
@@ -253,6 +326,7 @@
         <search base="base_findings">
           <query>
             | where company_name="$company_filter$" OR "$company_filter$"="*"
+            | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | stats avg(days_open) as avg_days, avg(sla_days) as sla_target by severity
             | eval avg_days=round(avg_days, 0), sla_target=round(sla_target, 0)
             | eval sort_order=case(severity="critical",1,severity="severe",2,severity="high",3,severity="moderate",4,severity="minor",5,1=1,6)
@@ -288,17 +362,15 @@
     </panel>
   </row>
 
-  <!-- Remediation Trend -->
   <row>
     <panel>
       <title>Findings Volume Trend (New vs Resolved Proxy)</title>
       <chart>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:findings"
+            `get_index` sourcetype="bitsight_findings"
             | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
-            | eval first_seen_date=strptime(first_seen, "%Y-%m-%dT%H:%M:%S")
             | timechart span=1w count as "New Findings"
           </query>
           <earliest>-90d@d</earliest>
@@ -311,21 +383,21 @@
     </panel>
   </row>
 
-  <!-- Company SLA Performance -->
   <row>
     <panel>
       <title>Company SLA Performance</title>
       <table>
         <search base="base_findings">
           <query>
+            | where company_name="$company_filter$" OR "$company_filter$"="*"
             | where severity="$severity_filter$" OR "$severity_filter$"="*"
             | stats count as total, count(eval(sla_status="On Track")) as on_track, count(eval(sla_status="Overdue")) as overdue, avg(days_open) as avg_days by company_name
             | eval compliance_pct=round((on_track/total)*100, 1)
             | eval avg_days=round(avg_days, 0)
             | eval status=case(compliance_pct>=90, "&#9679; Excellent", compliance_pct>=75, "&#9679; Good", compliance_pct>=50, "&#9679; Fair", 1=1, "&#9679; Poor")
+            | sort - compliance_pct
             | table company_name, total, on_track, overdue, compliance_pct, avg_days, status
             | rename company_name as "Company", total as "Total", on_track as "On Track", overdue as "Overdue", compliance_pct as "Compliance %", avg_days as "Avg Days", status as "Status"
-            | sort -"Compliance %"
           </query>
         </search>
         <option name="count">20</option>
