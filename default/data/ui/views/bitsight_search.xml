@@ -1,8 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  File:
+  default/data/ui/views/bitsight_search.xml
+
+  =============================================================================
+  PURPOSE
+  =============================================================================
+  Company Search dashboard
+  for searching companies
+  across the BitSight dataset
+  by company name
+  by domain
+  by GUID
+  with rating filters
+  with industry filters
+
+  =============================================================================
+  FILE LOCATION
+  =============================================================================
+  App-relative path:
+  default/data/ui/views/bitsight_search.xml
+
+  Local override path:
+  local/data/ui/views/bitsight_search.xml
+
+  =============================================================================
+  GRANULAR DOCUMENTATION SPECIFICATION
+  =============================================================================
+  Dashboard type:
+  Splunk Classic XML form
+
+  Index macro standard:
+  All searches in this view use:
+  - `get_index`
+
+  Input tokens:
+  search_query
+  - purpose:
+    free-text search input
+  - default:
+    empty
+
+  search_type
+  - purpose:
+    selects which field to search
+  - values:
+    - name
+    - domain
+    - guid
+  - default:
+    name
+
+  min_rating
+  - purpose:
+    optional minimum rating filter
+  - default:
+    empty
+
+  industry
+  - purpose:
+    optional industry filter
+  - default:
+    empty
+
+  time_range
+  - purpose:
+    controls dashboard time range
+
+  Sourcetypes used in this view:
+  - bitsight_portfolio
+  - bitsight_company
+  - bitsight_ratings_tree
+  - bitsight_ratings_history
+
+  Panels:
+  - Search Tips
+  - Search Results
+  - Trending Companies (Recently Changed Ratings)
+  - Companies by Rating Distribution
+  - Industry Distribution
+-->
 <form version="1.1" theme="dark">
   <label>Company Search</label>
   <description>Search for companies across the Bitsight ecosystem by name, domain, or rating criteria</description>
-  
+
   <fieldset submitButton="true" autoRun="false">
     <input type="text" token="search_query" searchWhenChanged="false">
       <label>Search Query</label>
@@ -32,7 +113,8 @@
       <fieldForValue>industry</fieldForValue>
       <search>
         <query>
-          `bitsight_index` sourcetype="bitsight:portfolio" OR sourcetype="bitsight:ratings_tree"
+          `get_index`
+          (sourcetype="bitsight_portfolio" OR sourcetype="bitsight_ratings_tree")
           | spath output=industry path=industry
           | stats count by industry
           | where isnotnull(industry) AND industry!=""
@@ -55,6 +137,7 @@
   <row>
     <panel>
       <html>
+        <![CDATA[
         <div style="padding: 10px; background: #1E3A5F; border-radius: 4px; margin-bottom: 10px;">
           <h3 style="margin: 0; color: #fff;">🔍 Search Tips</h3>
           <ul style="color: #ccc; margin: 10px 0;">
@@ -64,6 +147,7 @@
             <li>Use filters to narrow results by rating or industry</li>
           </ul>
         </div>
+        ]]>
       </html>
     </panel>
   </row>
@@ -74,24 +158,45 @@
       <table>
         <search>
           <query>
-            `bitsight_index` (sourcetype="bitsight:portfolio" OR sourcetype="bitsight:company" OR sourcetype="bitsight:ratings_tree")
+            `get_index`
+            (sourcetype="bitsight_portfolio" OR sourcetype="bitsight_company" OR sourcetype="bitsight_ratings_tree")
             | spath
-            | search $search_type$="*$search_query$*"
+            | eval name=coalesce(name, company_name)
+            | eval domain=coalesce(primary_domain, domain)
+            | eval search_value=case(
+                "$search_type$"="name", name,
+                "$search_type$"="domain", domain,
+                "$search_type$"="guid", guid,
+                1=1, name
+              )
+            | where if("$search_query$"!="", like(search_value, "%$search_query$%"), 1=1)
             | where if("$min_rating$"!="", rating >= $min_rating$, 1=1)
             | where if("$industry$"!="", industry="$industry$", 1=1)
             | dedup guid
             | eval rating_grade=case(
                 rating>=740, "A",
-                rating>=700, "B", 
+                rating>=700, "B",
                 rating>=640, "C",
                 rating>=500, "D",
-                rating<500, "F"
+                rating&lt;500, "F"
               )
-            | eval rating_display=rating." (".rating_grade.")"
             | eval subscribed=if(is_subscribed="true", "✓ Yes", "✗ No")
-            | table name, rating_display, industry, guid, subscribed, rating_type
-            | rename name as "Company", rating_display as "Rating", industry as "Industry", guid as "GUID", 
-                     subscribed as "Subscribed", rating_type as "Rating Type"
+            | table
+                name,
+                rating,
+                rating_grade,
+                industry,
+                guid,
+                subscribed,
+                rating_type
+            | rename
+                name as "Company",
+                rating as "Rating",
+                rating_grade as "Grade",
+                industry as "Industry",
+                guid as "GUID",
+                subscribed as "Subscribed",
+                rating_type as "Rating Type"
             | sort - Rating
           </query>
           <earliest>$time_range.earliest$</earliest>
@@ -108,7 +213,7 @@
           <colorPalette type="map">{"✓ Yes": #53A051, "✗ No": #999999}</colorPalette>
         </format>
         <drilldown>
-          <link target="_blank">/app/bitsight/search?q=`bitsight_index` guid="$row.GUID$" OR company_guid="$row.GUID$"&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
+          <link target="_blank">/app/bitsight/search?q=`get_index` (guid="$row.GUID$" OR company_guid="$row.GUID$")&amp;earliest=$time_range.earliest$&amp;latest=$time_range.latest$</link>
         </drilldown>
       </table>
     </panel>
@@ -120,15 +225,34 @@
       <table>
         <search>
           <query>
-            `bitsight_index` sourcetype="bitsight:ratings:history"
+            `get_index`
+            sourcetype="bitsight_ratings_history"
             | spath
-            | stats earliest(rating) as old_rating, latest(rating) as new_rating, latest(name) as name, latest(industry) as industry by company_guid
-            | eval change = new_rating - old_rating
-            | where change != 0
-            | eval direction=if(change > 0, "↑ Improved", "↓ Declined")
+            | eval name=coalesce(name, company_name)
+            | stats
+                earliest(rating) as old_rating,
+                latest(rating) as new_rating,
+                latest(name) as name,
+                latest(industry) as industry
+              by company_guid
+            | eval change=new_rating - old_rating
+            | where change!=0
+            | eval direction=if(change &gt; 0, "↑ Improved", "↓ Declined")
             | eval abs_change=abs(change)
-            | table name, old_rating, new_rating, change, direction, industry
-            | rename name as "Company", old_rating as "Previous", new_rating as "Current", change as "Change", direction as "Trend", industry as "Industry"
+            | table
+                name,
+                old_rating,
+                new_rating,
+                change,
+                direction,
+                industry
+            | rename
+                name as "Company",
+                old_rating as "Previous",
+                new_rating as "Current",
+                change as "Change",
+                direction as "Trend",
+                industry as "Industry"
             | sort - abs_change
             | head 20
           </query>
@@ -157,9 +281,18 @@
       <chart>
         <search>
           <query>
-            `bitsight_index` (sourcetype="bitsight:portfolio" OR sourcetype="bitsight:ratings_tree")
+            `get_index`
+            (sourcetype="bitsight_portfolio" OR sourcetype="bitsight_ratings_tree")
             | spath
-            | where if("$search_query$"!="", $search_type$ LIKE "%$search_query$%", 1=1)
+            | eval name=coalesce(name, company_name)
+            | eval domain=coalesce(primary_domain, domain)
+            | eval search_value=case(
+                "$search_type$"="name", name,
+                "$search_type$"="domain", domain,
+                "$search_type$"="guid", guid,
+                1=1, name
+              )
+            | where if("$search_query$"!="", like(search_value, "%$search_query$%"), 1=1)
             | where if("$min_rating$"!="", rating >= $min_rating$, 1=1)
             | where if("$industry$"!="", industry="$industry$", 1=1)
             | dedup guid
@@ -168,10 +301,9 @@
                 rating>=640, "640-739 (Intermediate)",
                 rating>=500, "500-639 (Basic)",
                 rating>=400, "400-499 (At Risk)",
-                rating<400, "&lt;400 (Critical)"
+                rating&lt;400, "&lt;400 (Critical)"
               )
             | stats count by rating_tier
-            | sort rating_tier
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -186,10 +318,20 @@
       <chart>
         <search>
           <query>
-            `bitsight_index` (sourcetype="bitsight:portfolio" OR sourcetype="bitsight:ratings_tree")
+            `get_index`
+            (sourcetype="bitsight_portfolio" OR sourcetype="bitsight_ratings_tree")
             | spath
-            | where if("$search_query$"!="", $search_type$ LIKE "%$search_query$%", 1=1)
+            | eval name=coalesce(name, company_name)
+            | eval domain=coalesce(primary_domain, domain)
+            | eval search_value=case(
+                "$search_type$"="name", name,
+                "$search_type$"="domain", domain,
+                "$search_type$"="guid", guid,
+                1=1, name
+              )
+            | where if("$search_query$"!="", like(search_value, "%$search_query$%"), 1=1)
             | where if("$min_rating$"!="", rating >= $min_rating$, 1=1)
+            | where if("$industry$"!="", industry="$industry$", 1=1)
             | dedup guid
             | stats count by industry
             | sort - count
