@@ -1,7 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  File:
+  default/data/ui/views/bitsight_users.xml
+
+  =============================================================================
+  PURPOSE
+  =============================================================================
+  BitSight Users dashboard
+  for user management
+  for activity monitoring
+  for quota visibility
+  for access review
+  for inactivity tracking
+
+  =============================================================================
+  FILE LOCATION
+  =============================================================================
+  App-relative path:
+  default/data/ui/views/bitsight_users.xml
+
+  Local override path:
+  local/data/ui/views/bitsight_users.xml
+
+  =============================================================================
+  GRANULAR DOCUMENTATION SPECIFICATION
+  =============================================================================
+  Dashboard type:
+  Splunk Classic XML dashboard
+
+  Index macro standard:
+  All searches in this view use:
+  - `get_index`
+
+  Input tokens:
+  time_range
+  - purpose:
+    controls dashboard time range
+
+  role_filter
+  - purpose:
+    filters results by role
+  - default:
+    *
+  - source:
+    bitsight_users
+
+  Sourcetypes used in this view:
+  - bitsight_users
+  - bitsight_users_quota
+  - bitsight_users_views
+
+  Panels:
+  - Total Users
+  - Active Users (Last 7 Days)
+  - User Quota
+  - Roles Distribution
+  - User Directory
+  - User Login Activity Over Time
+  - Company Views by User
+  - Users by Permission Level
+  - Recently Added Users
+  - Inactive Users (No Login in 30+ Days)
+-->
 <dashboard version="1.1">
-  <label>Bitsight Users</label>
+  <label>BitSight Users</label>
   <description>User Management and Activity Monitoring</description>
-  
+
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
       <label>Time Range</label>
@@ -14,7 +78,14 @@
       <label>Role</label>
       <choice value="*">All Roles</choice>
       <search>
-        <query>index=security_bitsight sourcetype="bitsight:users" | dedup role | table role</query>
+        <query>
+          `get_index`
+          sourcetype="bitsight_users"
+          | dedup role
+          | where isnotnull(role) AND role!=""
+          | table role
+          | sort role
+        </query>
       </search>
       <fieldForLabel>role</fieldForLabel>
       <fieldForValue>role</fieldForValue>
@@ -22,13 +93,18 @@
     </input>
   </fieldset>
 
-  <!-- User Overview -->
   <row>
     <panel>
       <title>Total Users</title>
       <single>
         <search>
-          <query>index=security_bitsight sourcetype="bitsight:users" | dedup email | stats count</query>
+          <query>
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | dedup email
+            | stats count
+          </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
         </search>
@@ -41,11 +117,13 @@
       <single>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:users" 
-| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
-| where last_login_time > relative_time(now(), "-7d")
-| dedup email
-| stats count
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+            | where last_login_time > relative_time(now(), "-7d")
+            | dedup email
+            | stats count
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -59,9 +137,13 @@ index=security_bitsight sourcetype="bitsight:users"
       <single>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:user_quota" 
-| stats latest(used) as used, latest(total) as total
-| eval quota=used."/".total
+            `get_index`
+            sourcetype="bitsight_users_quota"
+            | stats
+                latest(used) as used,
+                latest(total) as total
+            | eval quota=used."/".total
+            | table quota
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -73,7 +155,13 @@ index=security_bitsight sourcetype="bitsight:user_quota"
       <title>Roles Distribution</title>
       <chart>
         <search>
-          <query>index=security_bitsight sourcetype="bitsight:users" | dedup email | stats count by role</query>
+          <query>
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | dedup email
+            | stats count by role
+          </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
         </search>
@@ -83,19 +171,35 @@ index=security_bitsight sourcetype="bitsight:user_quota"
     </panel>
   </row>
 
-  <!-- User List -->
   <row>
     <panel>
       <title>User Directory</title>
       <table>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:users" 
-| where role LIKE "%$role_filter$%"
-| dedup email
-| table email, first_name, last_name, role, status, last_login, created, guid
-| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", status as "Status", last_login as "Last Login", created as "Created", guid as "User GUID"
-| sort -"Last Login"
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | dedup email
+            | table
+                email,
+                first_name,
+                last_name,
+                role,
+                status,
+                last_login,
+                created,
+                guid
+            | rename
+                email as "Email",
+                first_name as "First Name",
+                last_name as "Last Name",
+                role as "Role",
+                status as "Status",
+                last_login as "Last Login",
+                created as "Created",
+                guid as "User GUID"
+            | sort -"Last Login"
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -109,16 +213,19 @@ index=security_bitsight sourcetype="bitsight:users"
     </panel>
   </row>
 
-  <!-- User Activity -->
   <row>
     <panel>
       <title>User Login Activity Over Time</title>
       <chart>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:users"
-| eval login_date=strftime(strptime(last_login, "%Y-%m-%dT%H:%M:%S"), "%Y-%m-%d")
-| timechart count by email limit=10
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+            | where isnotnull(last_login_time)
+            | eval _time=last_login_time
+            | timechart span=1d count by email limit=10
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -133,10 +240,20 @@ index=security_bitsight sourcetype="bitsight:users"
       <chart>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:user_company_views"
-| stats count as views by user_email, company_name
-| sort -views
-| head 20
+            `get_index`
+            sourcetype="bitsight_users_views"
+            | rename user_email as email
+            | join type=left email [
+              search `get_index`
+              sourcetype="bitsight_users"
+              | dedup email
+              | table email, role
+            ]
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | eval user_company=email." → ".company_name
+            | stats count as views by user_company
+            | sort -views
+            | head 20
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -147,16 +264,17 @@ index=security_bitsight sourcetype="bitsight:user_company_views"
     </panel>
   </row>
 
-  <!-- User Permissions -->
   <row>
     <panel>
       <title>Users by Permission Level</title>
       <chart>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:users"
-| dedup email
-| stats count by permissions
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | dedup email
+            | stats count by permissions
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -170,13 +288,25 @@ index=security_bitsight sourcetype="bitsight:users"
       <table>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:users"
-| dedup email
-| eval created_time=strptime(created, "%Y-%m-%dT%H:%M:%S")
-| sort -created_time
-| head 10
-| table email, first_name, last_name, role, created
-| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", created as "Created Date"
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | dedup email
+            | eval created_time=strptime(created, "%Y-%m-%dT%H:%M:%S")
+            | sort -created_time
+            | head 10
+            | table
+                email,
+                first_name,
+                last_name,
+                role,
+                created
+            | rename
+                email as "Email",
+                first_name as "First Name",
+                last_name as "Last Name",
+                role as "Role",
+                created as "Created Date"
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
@@ -186,21 +316,34 @@ index=security_bitsight sourcetype="bitsight:users"
     </panel>
   </row>
 
-  <!-- Inactive Users -->
   <row>
     <panel>
       <title>Inactive Users (No Login in 30+ Days)</title>
       <table>
         <search>
           <query>
-index=security_bitsight sourcetype="bitsight:users"
-| dedup email
-| eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
-| where last_login_time &lt; relative_time(now(), "-30d") OR isnull(last_login_time)
-| eval days_inactive=round((now()-last_login_time)/86400, 0)
-| table email, first_name, last_name, role, last_login, days_inactive
-| rename email as "Email", first_name as "First Name", last_name as "Last Name", role as "Role", last_login as "Last Login", days_inactive as "Days Inactive"
-| sort -days_inactive
+            `get_index`
+            sourcetype="bitsight_users"
+            | where role="$role_filter$" OR "$role_filter$"="*"
+            | dedup email
+            | eval last_login_time=strptime(last_login, "%Y-%m-%dT%H:%M:%S")
+            | where last_login_time < relative_time(now(), "-30d") OR isnull(last_login_time)
+            | eval days_inactive=if(isnull(last_login_time), null(), round((now()-last_login_time)/86400, 0))
+            | table
+                email,
+                first_name,
+                last_name,
+                role,
+                last_login,
+                days_inactive
+            | rename
+                email as "Email",
+                first_name as "First Name",
+                last_name as "Last Name",
+                role as "Role",
+                last_login as "Last Login",
+                days_inactive as "Days Inactive"
+            | sort -days_inactive
           </query>
           <earliest>$time_range.earliest$</earliest>
           <latest>$time_range.latest$</latest>
