@@ -1,59 +1,125 @@
-![BitSight](docs/images/%20BitSight_logo.jpg)
+![BitSight](docs/images/BitSight_logo.jpg)
 
-# Bitsight Security Ratings for Splunk
+# BitSight Security Ratings for Splunk
 
 ## Overview
-Full Splunk App for Bitsight Security Ratings. Monitor and visualize security ratings, portfolio companies, alerts, findings, exposed credentials, users, and threat intelligence from the Bitsight API.
 
+Full Splunk App for BitSight Security Ratings.
+
+Monitor and visualize:
+
+- security ratings
+- portfolio companies
+- alerts
+- findings
+- exposed credentials
+- users
+- threat intelligence
+- risk vectors
+- remediation activity
+- operational health
+
+This app provides prebuilt dashboards, modular input collection, lookup-backed enrichment, workflow actions, setup pages, alert actions, and documentation views for BitSight data in Splunk.
 
 ## ⚠️ Disclaimer
 
 This tool is **not an official BitSight product**.
 
 Use of this software is **not covered** by any license, warranty, or support agreement you may have with BitSight.
-All functionality is implemented independently using publicly available Bitsight API Documentation: https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview
 
+All functionality is implemented independently using publicly available BitSight documentation, including:
+
+- BitSight API Documentation Overview  
+  https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview
+- What is a BitSight Security Rating  
+  https://help.bitsighttech.com/hc/en-us/articles/231352528-What-is-a-Bitsight-Security-Rating
+- Vulnerability Severity / BitSight Severity / CVSS  
+  https://help.bitsighttech.com/hc/en-us/articles/4418994292887-Vulnerability-Severity-Bitsight-Severity-CVSS
+- How to Get Help  
+  https://help.bitsighttech.com/hc/en-us/articles/115000807367-How-to-Get-Help
 
 ## Features
 
 ### 🛡️ Core Capabilities
+
 | Feature | Description |
 |---------|-------------|
 | 📊 Security Ratings Monitoring | Track your organization's security rating over time |
 | 🏢 Portfolio Management | Monitor third-party vendor security posture with sparklines |
-| 🔔 Alert Management | Real-time notifications for security rating changes |
-| 🔍 Findings Analysis | Detailed vulnerability and security finding tracking with CVSS scores |
+| 🔔 Alert Management | Real-time visibility into BitSight alert activity |
+| 🔍 Findings Analysis | Detailed security finding tracking and investigation workflows |
 | 🔐 Exposed Credentials | Data breach and credential exposure monitoring |
-| ⚠️ Threat Intelligence | CVE and vulnerability threat tracking |
+| ⚠️ Threat Intelligence | CVE and threat tracking from BitSight threat data |
 | 👥 User Management | Track user activity, quota usage, and access review |
-| 📈 21 Risk Vectors | Complete coverage of all Bitsight risk vectors |
+| 📈 Risk Vector Coverage | Coverage for BitSight risk vectors used by the app |
 
 ### 📈 Advanced Analytics
+
 | Feature | Description |
 |---------|-------------|
 | 📉 Ratings Trending | Company-level ratings trending over time |
-| 📊 Findings Trending | WoW, MoM, QoQ, YoY findings trend analysis |
-| 🔄 Comparative Trending | WoW, MoM, QoQ, YoY rating comparisons |
+| 📊 Findings Trending | WoW, MoM, QoQ, and YoY findings trend analysis |
+| 🔄 Comparative Trending | WoW, MoM, QoQ, and YoY rating comparisons |
 | 🏆 Peer Benchmarking | Industry and peer group comparisons |
 | ⏱️ MTTR Executive | Mean Time to Remediate executive metrics |
-| 🎯 Asset Risk Matrix | Asset importance vs severity heat mapping |
+| 🎯 Asset Risk Matrix | Asset importance versus severity heat mapping |
 | 🌳 Ratings Tree | Company hierarchy and subsidiary ratings visualization |
 
 ### ✅ Compliance & Governance
+
 | Feature | Description |
 |---------|-------------|
 | 🏛️ NIST CSF Mapping | Risk vectors mapped to NIST Cybersecurity Framework |
-| ⏰ SLA Tracking | Remediation SLA monitoring and breach alerts |
+| ⏰ SLA Tracking | Remediation SLA monitoring and overdue tracking |
 | 👤 User Access Review | Periodic access review and audit support |
 
 ### ⚙️ Operational Excellence
+
 | Feature | Description |
 |---------|-------------|
-| 📊 Operational Metrics | Records processed, API calls, ingestion rates |
+| 📊 Operational Metrics | Records processed, API calls, and ingestion metrics |
 | 💓 Health Monitoring | Data freshness and collection status |
-| ✅ Configuration Validation | Automatic setup validation on first launch |
-| 🕐 Scheduled Health Checks | Daily validation and hourly API health checks |
+| ✅ Configuration Validation | Setup validation and health verification |
+| 🕐 Scheduled Health Checks | Daily validation and recurring operational checks |
 | 📋 Log Viewer | API activity and error monitoring |
+| 📚 Documentation Views | In-app help, glossary, documentation hub, and API documentation hub |
+
+### 🚨 Alert Actions
+
+| Feature | Description |
+|---------|-------------|
+| 📧 Email Alert Action | Sends email notifications for BitSight alerts |
+| 🌐 Webhook Alert Action | Sends webhook notifications to external systems |
+| 🧩 Script Alert Action | Executes local custom scripts for downstream workflows |
+| 📟 PagerDuty Alert Action | Triggers PagerDuty incidents for urgent alerts |
+| 🎫 ServiceNow Alert Action | Creates ServiceNow incidents for operational response |
+
+### 🚀 Deployment
+
+| Feature | Description |
+|---------|-------------|
+| 🖥️ Web UI Setup | Configure the app through Splunk Web |
+| ☁️ Splunk Cloud Ready | App structure prepared for Splunk packaging and validation workflows |
+| 🧾 Example Configurations | Includes example local configuration files |
+| 🔍 Workflow Actions | Search, pivot, and external enrichment shortcuts |
+| 📦 Modular Input Collection | Collect BitSight data directly into Splunk indexes |
+
+## BitSight Rating Categories
+
+| Category | Rating Range | Description |
+|----------|--------------|-------------|
+| Advanced | 740-900 | Strong security performance and lower risk |
+| Intermediate | 640-730 | Fair security performance and moderate risk |
+| Basic | 250-630 | Poor security performance and higher risk |
+
+## BitSight Severity Levels
+
+| Severity | Display Name | Priority | Color |
+|----------|--------------|----------|-------|
+| severe | Severe | 1 | `#dc4e41` |
+| material | Material | 2 | `#f1813f` |
+| moderate | Moderate | 3 | `#f8be34` |
+| minor | Minor | 4 | `#53a051` |
 
 ## Dashboards
 
@@ -68,11 +134,11 @@ All functionality is implemented independently using publicly available Bitsight
 | **Ratings Trending** | Company ratings trending over time |
 | **Trending** | WoW, MoM, QoQ, YoY comparative trending analysis |
 | **Findings** | Security findings summary by severity and risk vector |
-| **Findings Detailed** | Detailed findings with CVSS scores, assets, remediation |
+| **Findings Detailed** | Detailed findings with assets and remediation context |
 | **Findings Trending** | Findings WoW, MoM, QoQ, YoY trending analysis |
 | **Remediation** | Remediation tracking and SLA monitoring |
 | **MTTR Executive** | Mean Time to Remediate executive dashboard |
-| **Asset Risk Matrix** | Asset importance vs severity risk matrix |
+| **Asset Risk Matrix** | Asset importance versus severity risk matrix |
 | **NIST CSF** | NIST Cybersecurity Framework compliance mapping |
 | **Threats** | CVE and threat intelligence dashboard |
 | **Exposed Credentials** | Data breach and credential exposure tracking |
@@ -84,236 +150,131 @@ All functionality is implemented independently using publicly available Bitsight
 | **Operations** | Records processed and ingestion metrics |
 | **Logs** | Log viewer and API activity monitoring |
 | **Reports** | Board-ready report generation |
-| **Help** | Executive help and glossary |
+| **Help** | Executive help, glossary, support, and troubleshooting |
+| **Documentation Hub** | General BitSight documentation landing view |
+| **API Documentation Hub** | BitSight API documentation landing view |
 
 ## Risk Vectors Supported
 
 ### Compromised Systems (5)
-- botnet_infections, spam_propagation, malware_servers, unsolicited_comm, potentially_exploited
+
+- `botnet_infections`
+- `spam_propagation`
+- `malware_servers`
+- `unsolicited_comm`
+- `potentially_exploited`
 
 ### Diligence (15)
-- spf, dkim, ssl_certificates, ssl_configurations, open_ports, web_appsec
-- patching_cadence, insecure_systems, server_software, desktop_software
-- mobile_software, dnssec, mobile_application_security, application_security, dmarc
+
+- `spf`
+- `dkim`
+- `ssl_certificates`
+- `ssl_configurations`
+- `open_ports`
+- `web_appsec`
+- `patching_cadence`
+- `insecure_systems`
+- `server_software`
+- `desktop_software`
+- `mobile_software`
+- `dnssec`
+- `mobile_application_security`
+- `application_security`
+- `dmarc`
 
 ### User Behavior (1)
-- file_sharing
 
-### 🚀 Deployment
-| Feature | Description |
-|---------|-------------|
-| 📊 26 Pre-built Dashboards | Immediate insights out of the box |
-| 🖥️ Web UI Setup | No CLI required - configure via Splunk Web |
-| ☁️ Splunk Cloud Ready | AppInspect compliant for cloud deployment |
-| 📧 Alert Actions | Email, Webhook, Script, and PagerDuty integrations |
+- `file_sharing`
 
 ## Installation
 
 ### Step 1: Deploy the App
-1. Download the `BitSight_For_Splunk_App-1.0.0.tar.gz` file
-2. In Splunk Web, navigate to **Apps → Manage Apps**
-3. Click **Install app from file**
-4. Upload the `.tar.gz` file and click **Upload**
-5. Restart Splunk when prompted
+
+1. Download the packaged app archive.
+2. In Splunk Web, navigate to **Apps → Manage Apps**.
+3. Click **Install app from file**.
+4. Upload the app package.
+5. Restart Splunk when prompted.
 
 ### Step 2: Configure the App
-1. In Splunk Web, navigate to **Apps → Bitsight → Setup**
-2. Configure the following settings:
+
+1. In Splunk Web, navigate to **Apps → BitSight → Setup**.
+2. Configure the required settings.
 
 #### API Configuration
-- **Bitsight API Token**: Enter your API token (obtain from the Bitsight portal)
-- **API Base URL**: Default is `https://api.bitsighttech.com`
-- **Verify SSL**: Enable SSL certificate verification (recommended)
-- **Request Timeout**: Set timeout in seconds (default: 60)
 
-#### Proxy Configuration (Optional)
-- **Use Proxy**: Enable if your network requires a proxy
-- **Proxy URL**: Enter proxy URL (e.g., `http://proxy.example.com:8080`)
-- **Proxy Username**: Enter username if proxy requires authentication
-- **Proxy Password**: Enter password if proxy requires authentication
+- **BitSight API Token**  
+  Enter your BitSight API token.
+- **API Base URL**  
+  Default is `https://api.bitsighttech.com`
+- **Verify SSL**  
+  Enable SSL certificate verification unless your environment requires otherwise.
+- **Request Timeout**  
+  Set timeout in seconds.
+
+#### Proxy Configuration
+
+- **Use Proxy**  
+  Enable if your network requires a proxy.
+- **Proxy URL**  
+  Example: `http://proxy.example.com:8080`
+- **Proxy Username**  
+  Optional.
+- **Proxy Password**  
+  Optional.
 
 #### Data Inputs
-Select which data to collect:
-- Portfolio Companies
-- Security Ratings
-- Ratings History (Trending)
-- Security Findings
+
+Enable the data inputs you want to collect.
+
+Examples include:
+
+- Portfolio
+- Ratings
+- Ratings History
+- Findings
 - Findings Summary
 - Alerts
 - Exposed Credentials
-- Threat Intelligence
-- Users & Quota
+- Threats
+- Users
+- User Quota
+- User Company Views
+- Tiers
+- Industries
+- Ratings Tree
+- Risk Vectors
+- Asset and infrastructure collection inputs
+- Reporting and statistics inputs
 
 #### Collection Settings
-- **Portfolio Interval**: How often to collect portfolio data (seconds)
-- **Findings Interval**: How often to collect findings data (seconds)
-- **Alerts Interval**: How often to check for new alerts (seconds)
-- **Historical Data**: Number of days of historical data to collect
 
-3. Click **Save** to apply the configuration
+Configure collection timing and history values.
+
+Examples include:
+
+- Portfolio Interval
+- Ratings Interval
+- Ratings History Interval
+- Findings Interval
+- Alerts Interval
+- Threats Interval
+- Exposed Credentials Interval
+- Users Interval
+- Days Back
+
+3. Click **Save**.
 
 ### Step 3: Validate Configuration
-1. After saving, click **Test API Connection** to verify your API token
-2. If using a proxy, click **Test Proxy Connection** to verify connectivity
-3. The app will automatically validate your configuration on first launch
+
+1. Click **Test API Connection** to validate your BitSight API token.
+2. If using a proxy, click **Test Proxy Connection**.
+3. Review setup validation and health results.
 
 ### Step 4: Verify Data Collection
-In Splunk Web, run this search to verify data is being collected:
+
+In Splunk Web, run:
+
 ```spl
-index=security_bitsight sourcetype=bitsight:*
+index=security_bitsight sourcetype=bitsight_*
 | stats count by sourcetype
-```
-
-## Directory Structure
-```
-BitSight_For_Splunk_App/
-├── app.manifest                    # App manifest for Splunk Cloud
-├── LICENSE                         # Apache 2.0 License
-├── README.md                       # This file
-├── default/
-│   ├── app.conf                    # App configuration
-│   ├── alert_actions.conf          # Alert action definitions
-│   ├── bitsight.conf               # Default settings
-│   ├── indexes.conf                # Index definitions
-│   ├── inputs.conf                 # Input definitions
-│   ├── macros.conf                 # Search macros
-│   ├── props.conf                  # Field extraction rules
-│   ├── restmap.conf                # REST API configuration
-│   ├── savedsearches.conf          # Saved searches & alerts
-│   ├── server.conf                 # Server configuration
-│   ├── transforms.conf             # Field transformations
-│   ├── web.conf                    # Web settings
-│   ├── workflow_actions.conf       # Workflow actions
-│   └── data/ui/
-│       ├── nav/default.xml         # Navigation menu
-│       └── views/                  # Dashboard XML files (26 dashboards)
-│           ├── setup.xml           # Setup wizard
-│           ├── bitsight_overview.xml
-│           ├── bitsight_search.xml
-│           ├── bitsight_portfolio.xml
-│           ├── bitsight_ratings.xml
-│           ├── bitsight_ratings_tree.xml
-│           ├── bitsight_ratings_trending.xml
-│           ├── bitsight_trending.xml
-│           ├── bitsight_benchmarking.xml
-│           ├── bitsight_findings.xml
-│           ├── bitsight_findings_detailed.xml
-│           ├── bitsight_findings_trending.xml
-│           ├── bitsight_remediation.xml
-│           ├── bitsight_mttr_executive.xml
-│           ├── bitsight_asset_risk_matrix.xml
-│           ├── bitsight_nist_csf.xml
-│           ├── bitsight_threats.xml
-│           ├── bitsight_exposed_credentials.xml
-│           ├── bitsight_users.xml
-│           ├── bitsight_users_access_review.xml
-│           ├── bitsight_alerts.xml
-│           ├── bitsight_health.xml
-│           ├── bitsight_health_check.xml
-│           ├── bitsight_operations.xml
-│           ├── bitsight_logs.xml
-│           ├── bitsight_reports.xml
-│           └── bitsight_help.xml
-├── bin/
-│   ├── bitsight_input.py           # Modular input script
-│   ├── bitsight_setup_handler.py   # Setup REST handler
-│   ├── bitsight_validation.py      # Configuration validation
-│   ├── bitsight_email_alert.py     # Email alert action
-│   ├── bitsight_webhook_alert.py   # Webhook alert action
-│   ├── bitsight_script_alert.py    # Script alert action
-│   └── bitsight_pagerduty_alert.py # PagerDuty alert action
-├── lookups/
-│   ├── bitsight_rating_categories.csv
-│   ├── bitsight_risk_vectors.csv
-│   └── bitsight_severity_levels.csv
-├── local/
-│   └── inputs.conf.example         # Example configuration
-├── metadata/
-│   ├── default.meta                # Default permissions
-│   └── local.meta                  # Local permissions
-├── README/
-│   ├── bitsight.conf.spec          # Config specification
-│   └── alert_actions.conf.spec     # Alert actions spec
-└── static/
-    ├── appIcon.png                 # App icon (36x36)
-    ├── appIcon_2x.png              # Retina app icon (72x72)
-    ├── appIconAlt.png              # Alternative icon (36x36)
-    └── appIconAlt_2x.png           # Retina alt icon (72x72)
-```
-
-
-
-## Sourcetypes
-
-| Sourcetype | Description |
-|------------|-------------|
-| `bitsight:portfolio` | Portfolio company data |
-| `bitsight:current_ratings` | Current security ratings |
-| `bitsight:ratings_history` | Historical ratings for trending |
-| `bitsight:findings` | Security findings |
-| `bitsight:findings_summary` | Findings summary statistics |
-| `bitsight:alerts` | Alert notifications |
-| `bitsight:threats` | Threat intelligence |
-| `bitsight:exposed_credentials` | Exposed credentials |
-| `bitsight:users` | User accounts |
-| `bitsight:user_quota` | User quota information |
-| `bitsight:user_company_views` | User activity |
-
-## Requirements
-
-- Splunk Enterprise 8.0+ or Splunk Cloud
-- Python 3.x (included with Splunk)
-- Bitsight API Token (obtain from Bitsight portal)
-
-## AppInspect Compliance
-
-This app is designed to pass Splunk AppInspect validation:
-- ✅ Proper directory structure
-- ✅ app.manifest for Splunk Cloud
-- ✅ No hardcoded credentials in default/
-- ✅ All inputs disabled by default
-- ✅ Proper metadata permissions
-- ✅ Apache 2.0 License included
-- ✅ README documentation
-- ✅ Setup validation script
-
-## Troubleshooting
-
-### No data appearing
-1. Navigate to **Apps → Bitsight → Setup** and verify your API token
-2. Click **Test API Connection** to validate connectivity
-3. Check that at least one data input is enabled
-4. In Splunk Web, search `index=_internal source=*bitsight*` for errors
-
-### API errors
-- Verify your API token has the correct permissions in the Bitsight portal
-- Check Bitsight API rate limits
-- Ensure network connectivity to `api.bitsighttech.com`
-- If using a proxy, verify proxy settings and test connection
-
-### Proxy issues
-1. Navigate to **Apps → Bitsight → Setup**
-2. Verify proxy URL format includes protocol (http:// or https://)
-3. Click **Test Proxy Connection** to validate
-4. Check proxy authentication credentials if required
-
-### Configuration validation
-The app automatically validates configuration on first launch. To re-run validation:
-1. Navigate to **Apps → Bitsight → Setup**
-2. Make any change and click **Save**
-3. Check the validation results in the app logs
-
-## Support
-- Bitsight API Documentation: https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview
-- Splunk Documentation: https://docs.splunk.com
-
-## License
-Apache License 2.0
-
-#Copyright (c) 2025 Mark Teicher
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
