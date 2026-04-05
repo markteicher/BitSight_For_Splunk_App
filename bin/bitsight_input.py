@@ -3,7 +3,7 @@
 
 """
 =============================================================================
- bin/bitsight_modular_input.py
+ bin/bitsight_input.py
  BitSight for Splunk App
  BitSight Modular Input for Splunk
 =============================================================================
