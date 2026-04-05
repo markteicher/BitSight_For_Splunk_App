@@ -24,6 +24,8 @@ This handler provides:
 - validation stanza visibility
 - API connection testing
 - proxy connection testing
+- BitSight app log directory creation
+- BitSight app log file creation
 
 PRIMARY ANALYSIS OBJECTIVE
 
@@ -220,6 +222,14 @@ uses configured proxy opener
 tests normalized BitSight API base URL reachability
 401 and 403 responses count as successful transport validation
 
+APP LOG PATH MODEL
+
+creates app-relative directory
+var/log
+
+creates app-relative file
+var/log/bitsight.log
+
 DEPENDENCIES
 
 base64
@@ -254,6 +264,29 @@ try:
 except ImportError as e:  # pragma: no cover
     admin = None
     SPLUNK_IMPORT_ERROR = e
+
+
+APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+APP_LOG_DIR = os.path.join(APP_ROOT, "var", "log")
+APP_LOG_FILE = os.path.join(APP_LOG_DIR, "bitsight.log")
+
+
+def ensure_bitsight_log_file() -> str:
+    """
+    Ensure the BitSight app log directory and log file exist.
+
+    Returns
+    -------
+    str
+        Absolute path to the BitSight app log file.
+    """
+    os.makedirs(APP_LOG_DIR, exist_ok=True)
+
+    if not os.path.exists(APP_LOG_FILE):
+        with open(APP_LOG_FILE, "a", encoding="utf-8"):
+            pass
+
+    return APP_LOG_FILE
 
 
 class BitsightSetupHandler(admin.MConfigHandler):
@@ -412,6 +445,8 @@ class BitsightSetupHandler(admin.MConfigHandler):
         """
         List current configuration.
         """
+        ensure_bitsight_log_file()
+
         conf_dict = self.readConf(self.CONF_FILE)
 
         if conf_dict is None:
@@ -428,6 +463,8 @@ class BitsightSetupHandler(admin.MConfigHandler):
         """
         Update configuration.
         """
+        ensure_bitsight_log_file()
+
         stanza_name = str(self.callerArgs.id)
         args = self.callerArgs
 
@@ -441,6 +478,7 @@ class BitsightSetupHandler(admin.MConfigHandler):
             self.writeConf(self.CONF_FILE, stanza_name, updates)
 
         confInfo[stanza_name].append("status", "updated")
+        confInfo[stanza_name].append("bitsight_log_file", APP_LOG_FILE)
 
     def _collect_updates(self, stanza_name: str, args_data: Dict[str, List[str]]) -> Dict[str, str]:
         updates: Dict[str, str] = {}
@@ -534,12 +572,16 @@ class BitsightTestHandler(admin.MConfigHandler):
         """
         Return test status.
         """
+        ensure_bitsight_log_file()
         confInfo["test"].append("status", "ready")
+        confInfo["test"].append("bitsight_log_file", APP_LOG_FILE)
 
     def handleEdit(self, confInfo):
         """
         Execute connection tests.
         """
+        ensure_bitsight_log_file()
+
         args = self.callerArgs
 
         if "test_api" in args.data:
@@ -549,6 +591,8 @@ class BitsightTestHandler(admin.MConfigHandler):
         if "test_proxy" in args.data:
             result = self._test_proxy_connection()
             confInfo["test"].append("proxy_result", result)
+
+        confInfo["test"].append("bitsight_log_file", APP_LOG_FILE)
 
     def _test_api_connection(self) -> str:
         """
