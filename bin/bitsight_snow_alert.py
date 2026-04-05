@@ -26,6 +26,7 @@ Supports:
 - description substitution
 - requests library usage
 - urllib fallback handling
+- BitSight app file logging
 
 FILE LOCATION
 
@@ -126,9 +127,18 @@ Basic authentication
 snow_user
 snow_password
 
+APP LOG PATH MODEL
+
+creates app-relative directory
+var/log
+
+creates app-relative file
+var/log/bitsight.log
+
 DEPENDENCIES
 
 base64
+datetime
 json
 os
 re
@@ -144,10 +154,14 @@ ssl
 """
 
 import base64
+import datetime
 import json
 import os
 import re
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from typing import Any, Dict, Tuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
@@ -156,14 +170,38 @@ try:
     import requests
 except ImportError:  # pragma: no cover
     import ssl
-    import urllib.error
-    import urllib.parse
-    import urllib.request
-
     requests = None
 
 
 DEFAULT_TIMEOUT = 30
+APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+APP_LOG_DIR = os.path.join(APP_ROOT, "var", "log")
+APP_LOG_FILE = os.path.join(APP_LOG_DIR, "bitsight.log")
+COMPONENT_NAME = "bitsight_snow_alert.py"
+
+
+def ensure_bitsight_log_file() -> str:
+    os.makedirs(APP_LOG_DIR, exist_ok=True)
+
+    if not os.path.exists(APP_LOG_FILE):
+        with open(APP_LOG_FILE, "a", encoding="utf-8"):
+            pass
+
+    return APP_LOG_FILE
+
+
+def write_app_log(level: str, message: str) -> None:
+    try:
+        ensure_bitsight_log_file()
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        safe_message = str(message).replace("\n", " ").replace("\r", " ").strip()
+
+        with open(APP_LOG_FILE, "a", encoding="utf-8") as handle:
+            handle.write(
+                f"{timestamp} level={str(level).upper()} component={COMPONENT_NAME} message={safe_message}\n"
+            )
+    except Exception:
+        pass
 
 
 def _clean_string(value: Any, default: str = "") -> str:
@@ -278,12 +316,15 @@ def send_servicenow_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tu
     timeout = int(config.get("timeout", DEFAULT_TIMEOUT) or DEFAULT_TIMEOUT)
 
     if not snow_url:
+        write_app_log("ERROR", "ServiceNow alert action failed: no ServiceNow URL configured")
         return False, "No ServiceNow URL configured"
 
     if not snow_user:
+        write_app_log("ERROR", "ServiceNow alert action failed: no ServiceNow username configured")
         return False, "No ServiceNow username configured"
 
     if not snow_password:
+        write_app_log("ERROR", "ServiceNow alert action failed: no ServiceNow password configured")
         return False, "No ServiceNow password configured"
 
     incident_payload = _build_incident_payload(config, payload)
@@ -291,6 +332,16 @@ def send_servicenow_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tu
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
+
+    write_app_log(
+        "INFO",
+        (
+            "ServiceNow alert action starting "
+            f"snow_url={snow_url} "
+            f"short_description={incident_payload.get('short_description', '')} "
+            f"priority={incident_payload.get('priority', '')}"
+        ),
+    )
 
     try:
         if requests is not None:
@@ -303,6 +354,10 @@ def send_servicenow_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tu
             )
 
             if response.status_code >= 400:
+                write_app_log(
+                    "ERROR",
+                    f"ServiceNow returned status={response.status_code} body={response.text}",
+                )
                 return False, f"ServiceNow returned status {response.status_code}: {response.text}"
 
             try:
@@ -313,6 +368,11 @@ def send_servicenow_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tu
             result = response_json.get("result", {})
             incident_number = result.get("number") or "unknown"
             sys_id = result.get("sys_id") or "unknown"
+
+            write_app_log(
+                "INFO",
+                f"ServiceNow incident created successfully number={incident_number} sys_id={sys_id}",
+            )
             return True, f"ServiceNow incident created: {incident_number} ({sys_id})"
 
         request_body = json.dumps(incident_payload).encode("utf-8")
@@ -333,6 +393,10 @@ def send_servicenow_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tu
             body = response.read().decode("utf-8", errors="replace")
 
             if status >= 400:
+                write_app_log(
+                    "ERROR",
+                    f"ServiceNow returned status={status} body={body}",
+                )
                 return False, f"ServiceNow returned status {status}: {body}"
 
             try:
@@ -343,30 +407,42 @@ def send_servicenow_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tu
             result = response_json.get("result", {})
             incident_number = result.get("number") or "unknown"
             sys_id = result.get("sys_id") or "unknown"
+
+            write_app_log(
+                "INFO",
+                f"ServiceNow incident created successfully number={incident_number} sys_id={sys_id}",
+            )
             return True, f"ServiceNow incident created: {incident_number} ({sys_id})"
 
     except Exception as e:
+        write_app_log("ERROR", f"ServiceNow request failed error={str(e)}")
         return False, f"ServiceNow request failed: {str(e)}"
 
 
 def main() -> None:
     """Main entry point for alert action."""
 
+    ensure_bitsight_log_file()
+
     if len(sys.argv) < 2:
+        write_app_log("ERROR", "ServiceNow alert action failed: no payload file provided")
         print("ERROR: No payload file provided", file=sys.stderr)
         sys.exit(1)
 
     payload_file = sys.argv[1]
+    write_app_log("INFO", f"ServiceNow alert action invoked payload_file={payload_file}")
 
     try:
         with open(payload_file, "r", encoding="utf-8") as f:
             payload = json.load(f)
     except Exception as e:
+        write_app_log("ERROR", f"Failed to read ServiceNow payload error={e}")
         print(f"ERROR: Failed to read payload: {e}", file=sys.stderr)
         sys.exit(1)
 
     config = payload.get("configuration", {})
     if not isinstance(config, dict):
+        write_app_log("ERROR", "ServiceNow alert action failed: invalid configuration payload")
         print("ERROR: Invalid configuration payload", file=sys.stderr)
         sys.exit(1)
 
