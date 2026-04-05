@@ -29,6 +29,7 @@ Supports:
 - custom details population
 - requests library usage
 - urllib fallback handling
+- BitSight app file logging
 
 FILE LOCATION
 
@@ -123,8 +124,17 @@ CONTENT TYPE
 
 application/json
 
+APP LOG PATH MODEL
+
+creates app-relative directory
+var/log
+
+creates app-relative file
+var/log/bitsight.log
+
 DEPENDENCIES
 
+datetime
 json
 os
 re
@@ -136,10 +146,13 @@ urllib.error
 =============================================================================
 """
 
+import datetime
 import json
 import os
 import re
 import sys
+import urllib.error
+import urllib.request
 from typing import Any, Dict, Tuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
@@ -147,15 +160,41 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 try:
     import requests
 except ImportError:  # pragma: no cover
-    import urllib.error
-    import urllib.request
-
     requests = None
 
 PAGERDUTY_EVENTS_URL = "https://events.pagerduty.com/v2/enqueue"
 DEFAULT_TIMEOUT = 30
 VALID_SEVERITIES = {"critical", "error", "warning", "info"}
 VALID_EVENT_ACTIONS = {"trigger", "acknowledge", "resolve"}
+
+APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+APP_LOG_DIR = os.path.join(APP_ROOT, "var", "log")
+APP_LOG_FILE = os.path.join(APP_LOG_DIR, "bitsight.log")
+COMPONENT_NAME = "bitsight_pagerduty_alert.py"
+
+
+def ensure_bitsight_log_file() -> str:
+    os.makedirs(APP_LOG_DIR, exist_ok=True)
+
+    if not os.path.exists(APP_LOG_FILE):
+        with open(APP_LOG_FILE, "a", encoding="utf-8"):
+            pass
+
+    return APP_LOG_FILE
+
+
+def write_app_log(level: str, message: str) -> None:
+    try:
+        ensure_bitsight_log_file()
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        safe_message = str(message).replace("\n", " ").replace("\r", " ").strip()
+
+        with open(APP_LOG_FILE, "a", encoding="utf-8") as handle:
+            handle.write(
+                f"{timestamp} level={str(level).upper()} component={COMPONENT_NAME} message={safe_message}\n"
+            )
+    except Exception:
+        pass
 
 
 def substitute_variables(template: Any, payload: Dict[str, Any]) -> str:
@@ -237,6 +276,7 @@ def send_pagerduty_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tup
     timeout = int(config.get("timeout", DEFAULT_TIMEOUT) or DEFAULT_TIMEOUT)
 
     if not routing_key:
+        write_app_log("ERROR", "PagerDuty alert action failed: no routing key configured")
         return False, "No PagerDuty routing key configured"
 
     summary = substitute_variables(summary, payload)
@@ -267,6 +307,19 @@ def send_pagerduty_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tup
 
     headers = {"Content-Type": "application/json"}
 
+    write_app_log(
+        "INFO",
+        (
+            "PagerDuty alert action starting "
+            f"event_action={event_action} "
+            f"severity={severity} "
+            f"source={source} "
+            f"component={component or 'none'} "
+            f"group={group} "
+            f"class={event_class}"
+        ),
+    )
+
     try:
         if requests is not None:
             response = requests.post(
@@ -278,6 +331,10 @@ def send_pagerduty_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tup
 
             response_text = response.text
             if response.status_code >= 400:
+                write_app_log(
+                    "ERROR",
+                    f"PagerDuty returned status={response.status_code} body={response_text}",
+                )
                 return False, f"PagerDuty returned status {response.status_code}: {response_text}"
 
             try:
@@ -286,6 +343,10 @@ def send_pagerduty_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tup
                 response_json = {}
 
             returned_dedup_key = response_json.get("dedup_key") or dedup_key or "unknown"
+            write_app_log(
+                "INFO",
+                f"PagerDuty event created successfully dedup_key={returned_dedup_key}",
+            )
             return True, f"PagerDuty event created: {returned_dedup_key}"
 
         data = json.dumps(pd_payload).encode("utf-8")
@@ -296,6 +357,10 @@ def send_pagerduty_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tup
             body = response.read().decode("utf-8", errors="replace")
 
             if status >= 400:
+                write_app_log(
+                    "ERROR",
+                    f"PagerDuty returned status={status} body={body}",
+                )
                 return False, f"PagerDuty returned status {status}: {body}"
 
             try:
@@ -304,30 +369,41 @@ def send_pagerduty_event(config: Dict[str, Any], payload: Dict[str, Any]) -> Tup
                 response_json = {}
 
             returned_dedup_key = response_json.get("dedup_key") or dedup_key or "unknown"
+            write_app_log(
+                "INFO",
+                f"PagerDuty event created successfully dedup_key={returned_dedup_key}",
+            )
             return True, f"PagerDuty event created: {returned_dedup_key}"
 
     except Exception as e:
+        write_app_log("ERROR", f"PagerDuty request failed error={str(e)}")
         return False, f"PagerDuty request failed: {str(e)}"
 
 
 def main() -> None:
     """Main entry point for alert action."""
 
+    ensure_bitsight_log_file()
+
     if len(sys.argv) < 2:
+        write_app_log("ERROR", "PagerDuty alert action failed: no payload file provided")
         print("ERROR: No payload file provided", file=sys.stderr)
         sys.exit(1)
 
     payload_file = sys.argv[1]
+    write_app_log("INFO", f"PagerDuty alert action invoked payload_file={payload_file}")
 
     try:
         with open(payload_file, "r", encoding="utf-8") as f:
             payload = json.load(f)
     except Exception as e:
+        write_app_log("ERROR", f"Failed to read PagerDuty payload error={e}")
         print(f"ERROR: Failed to read payload: {e}", file=sys.stderr)
         sys.exit(1)
 
     config = payload.get("configuration", {})
     if not isinstance(config, dict):
+        write_app_log("ERROR", "PagerDuty alert action failed: invalid configuration payload")
         print("ERROR: Invalid configuration payload", file=sys.stderr)
         sys.exit(1)
 
