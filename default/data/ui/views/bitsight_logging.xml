@@ -70,7 +70,7 @@ BitSight for Splunk App logging only
 -->
 
 <form version="1.1" theme="dark">
-  <label>BitSight Logging</label>
+  <label>📜 BitSight Logging</label>
   <description>Browse and search BitSight for Splunk App logging activity</description>
 
   <!-- =============================================================== -->
@@ -111,7 +111,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range">
-      <label>Time Range</label>
+      <label>⏱️ Time Range</label>
       <default>
         <earliest>-24h@h</earliest>
         <latest>now</latest>
@@ -119,7 +119,7 @@ BitSight for Splunk App logging only
     </input>
 
     <input type="dropdown" token="log_level">
-      <label>Log Level</label>
+      <label>🚦 Log Level</label>
       <choice value="*">All Levels</choice>
       <choice value="ERROR">Error</choice>
       <choice value="WARN">Warning</choice>
@@ -130,7 +130,7 @@ BitSight for Splunk App logging only
     </input>
 
     <input type="dropdown" token="component_scope">
-      <label>Component</label>
+      <label>🧩 Component</label>
       <choice value="*">All Components</choice>
       <default>*</default>
       <fieldForLabel>component</fieldForLabel>
@@ -149,7 +149,7 @@ BitSight for Splunk App logging only
     </input>
 
     <input type="text" token="search_term">
-      <label>Search Term</label>
+      <label>🔎 Search Term</label>
       <default>*</default>
     </input>
   </fieldset>
@@ -159,7 +159,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="level_filter" searchWhenChanged="true">
-      <label>Operational Log Level</label>
+      <label>🚦 Operational Log Level</label>
       <choice value="*">All Levels</choice>
       <choice value="ERROR">ERROR</choice>
       <choice value="WARNING">WARNING</choice>
@@ -170,7 +170,7 @@ BitSight for Splunk App logging only
     </input>
 
     <input type="dropdown" token="component_filter" searchWhenChanged="true">
-      <label>Operational Component</label>
+      <label>🧩 Operational Component</label>
       <choice value="*">All Components</choice>
       <default>*</default>
       <fieldForLabel>component</fieldForLabel>
@@ -189,7 +189,7 @@ BitSight for Splunk App logging only
     </input>
 
     <input type="text" token="keyword_filter" searchWhenChanged="true">
-      <label>Keyword</label>
+      <label>🔍 Keyword</label>
       <default>*</default>
       <initialValue>*</initialValue>
     </input>
@@ -201,7 +201,7 @@ BitSight for Splunk App logging only
   <row>
     <panel>
       <single>
-        <title>Errors</title>
+        <title>🚨 Errors</title>
         <search base="base_logs">
           <query>
             | where log_level="ERROR"
@@ -223,7 +223,7 @@ BitSight for Splunk App logging only
 
     <panel>
       <single>
-        <title>Warnings</title>
+        <title>⚠️ Warnings</title>
         <search base="base_logs">
           <query>
             | where log_level="WARN"
@@ -245,7 +245,7 @@ BitSight for Splunk App logging only
 
     <panel>
       <single>
-        <title>Info Messages</title>
+        <title>ℹ️ Info Messages</title>
         <search base="base_logs">
           <query>
             | where log_level="INFO"
@@ -262,7 +262,7 @@ BitSight for Splunk App logging only
 
     <panel>
       <single>
-        <title>Total Log Entries</title>
+        <title>📄 Total Log Entries</title>
         <search base="base_logs">
           <query>
             | where (component="$component_scope$" OR "$component_scope$"="*")
@@ -282,7 +282,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>Log Activity Timeline</title>
+      <title>📈 Log Activity Timeline</title>
       <chart>
         <search base="base_logs">
           <query>
@@ -305,7 +305,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>Bitsight Internal Logs</title>
+      <title>📜 Bitsight Internal Logs</title>
       <table>
         <search base="base_logs">
           <query>
@@ -313,10 +313,9 @@ BitSight for Splunk App logging only
               AND (component="$component_scope$" OR "$component_scope$"="*")
               AND (like(message,"%$search_term$%") OR "$search_term$"="*")
             | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
-            | eval level_icon=case(log_level="ERROR", "🔴", log_level="WARN", "🟡", log_level="INFO", "🔵", 1=1, "⚪")
             | sort - _time
-            | table time_fmt, level_icon, log_level, component, message
-            | rename time_fmt as "Timestamp", level_icon as "", log_level as "Level", component as "Component", message as "Message"
+            | table time_fmt, log_level, component, message
+            | rename time_fmt as "Timestamp", log_level as "Level", component as "Component", message as "Message"
           </query>
         </search>
         <option name="count">50</option>
@@ -334,7 +333,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>API Collection Activity</title>
+      <title>🔌 API Collection Activity</title>
       <table>
         <search base="base_logs">
           <query>
@@ -362,7 +361,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>Recent BitSight Logging Events</title>
+      <title>🕒 Recent BitSight Logging Events</title>
       <table>
         <search base="base_logs">
           <query>
@@ -387,7 +386,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>Error Details &amp; Stack Traces</title>
+      <title>🧨 Error Details &amp; Stack Traces</title>
       <event>
         <search base="base_logs">
           <query>
@@ -409,7 +408,7 @@ BitSight for Splunk App logging only
   <row>
     <panel>
       <single>
-        <title>Total Log Events</title>
+        <title>📊 Total Log Events</title>
         <search base="base_logs">
           <query>
             | where (level="$level_filter$" OR "$level_filter$"="*")
@@ -427,7 +426,7 @@ BitSight for Splunk App logging only
 
     <panel>
       <single>
-        <title>Errors</title>
+        <title>🚨 Errors</title>
         <search base="base_logs">
           <query>
             | where level="ERROR"
@@ -445,7 +444,7 @@ BitSight for Splunk App logging only
 
     <panel>
       <single>
-        <title>Warnings</title>
+        <title>⚠️ Warnings</title>
         <search base="base_logs">
           <query>
             | where level="WARNING"
@@ -463,7 +462,7 @@ BitSight for Splunk App logging only
 
     <panel>
       <single>
-        <title>Distinct Components</title>
+        <title>🧩 Distinct Components</title>
         <search base="base_logs">
           <query>
             | where (level="$level_filter$" OR "$level_filter$"="*")
@@ -485,7 +484,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>Log Volume Over Time</title>
+      <title>📉 Log Volume Over Time</title>
       <chart>
         <search base="base_logs">
           <query>
@@ -508,7 +507,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>Events by Component</title>
+      <title>🧩 Events by Component</title>
       <chart>
         <search base="base_logs">
           <query>
@@ -533,7 +532,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>Recent Errors and Warnings</title>
+      <title>⚠️ Recent Errors and Warnings</title>
       <table>
         <search base="base_logs">
           <query>
@@ -560,7 +559,7 @@ BitSight for Splunk App logging only
   <!-- =============================================================== -->
   <row>
     <panel>
-      <title>All Log Events</title>
+      <title>📚 All Log Events</title>
       <table>
         <search base="base_logs">
           <query>
