@@ -61,8 +61,7 @@
   Ratings Correlation to Ransomware
   Logging In and Out of BitSight
   BitSight Platform Access
-  Login.gov
-  Login.gov Initial Setup
+  About BitSight VRM
   BitSight API Overview
   BitSight API Guides
   Findings Remediation API Guide
@@ -98,9 +97,20 @@
           .portal-icon{font-size:34px;margin-bottom:10px;}
           .portal-title{font-size:15px;font-weight:600;}
           .portal-link{text-decoration:none;color:inherit;display:block;}
+          .portal-header{
+            background:#f5f5f5;
+            border:1px solid #d0d0d0;
+            cursor:default;
+            grid-column:span 3;
+            font-size:16px;
+            font-weight:700;
+            padding:18px 22px;
+          }
         </style>
 
         <div class="portal-grid">
+
+          <div class="portal-tile portal-header">General Resources</div>
 
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us" target="_blank">
             <div class="portal-tile">
@@ -144,6 +154,8 @@
             </div>
           </a>
 
+          <div class="portal-tile portal-header">Methodologies</div>
+
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/categories/19493582637591-Methodologies" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📚</div>
@@ -168,14 +180,14 @@
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231950968-How-are-Bitsight-Security-Ratings-Calculated" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🧠</div>
-              <div class="portal-title">How Are Security Ratings Calculated?</div>
+              <div class="portal-title">How Are BitSight Security Ratings Calculated?</div>
             </div>
           </a>
 
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360015249114-Why-Do-Bitsight-Security-Ratings-Fluctuate" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">📉</div>
-              <div class="portal-title">Why Do Ratings Fluctuate?</div>
+              <div class="portal-title">Why Do BitSight Security Ratings Fluctuate?</div>
             </div>
           </a>
 
@@ -235,6 +247,8 @@
             </div>
           </a>
 
+          <div class="portal-tile portal-header">Platform Access</div>
+
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/4410323854103-Logging-In-and-Out-of-Bitsight" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">🔐</div>
@@ -242,4 +256,60 @@
             </div>
           </a>
 
-          <a class="portal-link" href="https://help.bitsight
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/206790428-Bitsight-Platform-Access" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🖥️</div>
+              <div class="portal-title">BitSight Platform Access</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/22068886476439-About-Bitsight-VRM" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🤝</div>
+              <div class="portal-title">About BitSight VRM</div>
+            </div>
+          </a>
+
+          <div class="portal-tile portal-header">API Documentation</div>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/206823987-Bitsight-API-Overview" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📘</div>
+              <div class="portal-title">BitSight API Overview</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/4411972074263-Bitsight-API-Guides" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🧭</div>
+              <div class="portal-title">BitSight API Guides</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360053410533-Findings-Remediation-API-Guide" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🛠️</div>
+              <div class="portal-title">Findings Remediation API Guide</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360042665353-Manage-Access-Control-Groups-via-API" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">👥</div>
+              <div class="portal-title">Manage Access Control Groups via API</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/1500009643981-Infrastructure-Attribution-API-Guide" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏗️</div>
+              <div class="portal-title">Infrastructure Attribution API Guide</div>
+            </div>
+          </a>
+
+        </div>
+
+      </html>
+    </panel>
+  </row>
+</dashboard>
