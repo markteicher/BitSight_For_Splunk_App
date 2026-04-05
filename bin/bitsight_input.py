@@ -5,14 +5,14 @@
 =============================================================================
  bin/bitsight_input.py
  BitSight for Splunk App
- BitSight Modular Input for Splunk
+ BitSight Input for Splunk
 =============================================================================
 
 PURPOSE
 
 Collects data from the BitSight Security Ratings API for Splunk ingestion.
 
-This modular input provides:
+This input provides:
 
 - configurable index selection
 - shared BitSight settings support
@@ -30,22 +30,22 @@ This modular input provides:
 
 PRIMARY ANALYSIS OBJECTIVE
 
-Provide a single modular input implementation that can collect BitSight
+Provide a single input implementation that can collect BitSight
 portfolio, ratings, findings, alerts, threats, user, infrastructure,
 statistics, and reporting data for indexing into Splunk.
 
 FILE LOCATION
 
 App-relative path
-bin/bitsight_modular_input.py
+bin/bitsight_input.py
 
 SCRIPT TYPE
 
-Splunk modular input script
+Splunk input script
 
 EXECUTION MODEL
 
-Invoked by Splunk modular input framework
+Invoked by Splunk input framework
 runs through Script.run(sys.argv)
 
 GRANULAR DOCUMENTATION SPECIFICATION
@@ -230,7 +230,7 @@ JsonType = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
 APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 APP_LOG_DIR = os.path.join(APP_ROOT, "var", "log")
 APP_LOG_FILE = os.path.join(APP_LOG_DIR, "bitsight.log")
-COMPONENT_NAME = "bitsight_modular_input.py"
+COMPONENT_NAME = "bitsight_input.py"
 
 
 def ensure_bitsight_log_file() -> str:
@@ -258,7 +258,7 @@ def write_app_log(level: str, component: str, message: str) -> None:
 
 
 class BitsightInput(Script):
-    """BitSight modular input script."""
+    """BitSight input script."""
 
     DEFAULT_API_BASE = "https://api.bitsighttech.com/ratings/v1"
     DEFAULT_INDEX = "security_bitsight"
@@ -623,7 +623,7 @@ class BitsightInput(Script):
 
     def stream_events(self, inputs, ew):
         ensure_bitsight_log_file()
-        write_app_log("INFO", COMPONENT_NAME, "BitSight modular input run started")
+        write_app_log("INFO", COMPONENT_NAME, "BitSight input run started")
 
         app_settings = self._load_app_settings()
 
@@ -693,7 +693,7 @@ class BitsightInput(Script):
                     f"Collection failed input_name={input_name} endpoint={endpoint} error={str(e)}",
                 )
 
-        write_app_log("INFO", COMPONENT_NAME, "BitSight modular input run completed")
+        write_app_log("INFO", COMPONENT_NAME, "BitSight input run completed")
 
     def fetch_bitsight_data(
         self,
@@ -1419,5 +1419,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     ensure_bitsight_log_file()
-    write_app_log("INFO", COMPONENT_NAME, "Launching BitSight modular input process")
+    write_app_log("INFO", COMPONENT_NAME, "Launching BitSight input process")
     sys.exit(BitsightInput().run(sys.argv))
