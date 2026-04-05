@@ -15,6 +15,9 @@ Builds plain text and HTML email bodies from the Splunk alert payload.
 Supports recipient, cc, subject, priority, SMTP, result details,
 and results link handling.
 
+This script also writes operational alert action log entries to the
+BitSight app log file.
+
 FILE LOCATION
 
 App-relative path
@@ -100,8 +103,25 @@ RESULT TABLE LOGIC
 includes non-internal result fields
 skips fields beginning with underscore
 
+APP LOG PATH MODEL
+
+creates app-relative directory
+var/log
+
+creates app-relative file
+var/log/bitsight.log
+
+LOGGING MODEL
+
+writes alert action execution messages to app log
+writes success and failure messages
+writes payload read failures
+writes SMTP connection mode and recipient counts
+does not write SMTP passwords
+
 DEPENDENCIES
 
+datetime
 json
 os
 sys
@@ -115,6 +135,7 @@ typing
 =============================================================================
 """
 
+import datetime
 import html
 import json
 import os
@@ -126,6 +147,35 @@ from email.mime.text import MIMEText
 from typing import Any, Dict, List, Tuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
+
+APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+APP_LOG_DIR = os.path.join(APP_ROOT, "var", "log")
+APP_LOG_FILE = os.path.join(APP_LOG_DIR, "bitsight.log")
+COMPONENT_NAME = "bitsight_email_alert.py"
+
+
+def ensure_bitsight_log_file() -> str:
+    os.makedirs(APP_LOG_DIR, exist_ok=True)
+
+    if not os.path.exists(APP_LOG_FILE):
+        with open(APP_LOG_FILE, "a", encoding="utf-8"):
+            pass
+
+    return APP_LOG_FILE
+
+
+def write_app_log(level: str, message: str) -> None:
+    try:
+        ensure_bitsight_log_file()
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        safe_message = str(message).replace("\n", " ").replace("\r", " ").strip()
+
+        with open(APP_LOG_FILE, "a", encoding="utf-8") as handle:
+            handle.write(
+                f"{timestamp} level={level.upper()} component={COMPONENT_NAME} message={safe_message}\n"
+            )
+    except Exception:
+        pass
 
 
 def _as_bool(value: Any, default: bool = False) -> bool:
@@ -243,6 +293,7 @@ def send_email(config: Dict[str, Any], payload: Dict[str, Any]) -> Tuple[bool, s
     include_link = _as_bool(config.get("include_link"), True)
 
     if not to_addresses and not cc_addresses:
+        write_app_log("ERROR", "Email alert action failed: no recipient addresses configured")
         return False, "No recipient addresses configured"
 
     smtp_server = str(config.get("smtp_server", "localhost") or "localhost").strip()
@@ -295,6 +346,25 @@ def send_email(config: Dict[str, Any], payload: Dict[str, Any]) -> Tuple[bool, s
 
     all_recipients = to_addresses + cc_addresses
 
+    tls_mode = "SMTP"
+    if smtp_use_tls and smtp_port == 465:
+        tls_mode = "SMTP_SSL"
+    elif smtp_use_tls:
+        tls_mode = "STARTTLS"
+
+    write_app_log(
+        "INFO",
+        (
+            "Email alert action starting "
+            f"to_count={len(to_addresses)} "
+            f"cc_count={len(cc_addresses)} "
+            f"smtp_server={smtp_server} "
+            f"smtp_port={smtp_port} "
+            f"smtp_mode={tls_mode} "
+            f"subject={subject}"
+        ),
+    )
+
     try:
         if smtp_use_tls and smtp_port == 465:
             context = ssl.create_default_context()
@@ -321,27 +391,51 @@ def send_email(config: Dict[str, Any], payload: Dict[str, Any]) -> Tuple[bool, s
 
                 server.sendmail(from_address, all_recipients, msg.as_string())
 
+        write_app_log(
+            "INFO",
+            (
+                "Email alert action completed successfully "
+                f"to_count={len(to_addresses)} "
+                f"cc_count={len(cc_addresses)} "
+                f"smtp_server={smtp_server}"
+            ),
+        )
         return True, "Email sent successfully"
     except Exception as e:
+        write_app_log(
+            "ERROR",
+            (
+                "Email alert action failed "
+                f"smtp_server={smtp_server} "
+                f"smtp_port={smtp_port} "
+                f"error={str(e)}"
+            ),
+        )
         return False, str(e)
 
 
 def main() -> None:
+    ensure_bitsight_log_file()
+
     if len(sys.argv) < 2:
+        write_app_log("ERROR", "Email alert action failed: no payload file provided")
         print("ERROR: No payload file provided", file=sys.stderr)
         sys.exit(1)
 
     payload_file = sys.argv[1]
+    write_app_log("INFO", f"Email alert action invoked payload_file={payload_file}")
 
     try:
         with open(payload_file, "r", encoding="utf-8") as f:
             payload = json.load(f)
     except Exception as e:
+        write_app_log("ERROR", f"Email alert action failed: payload read error={e}")
         print(f"ERROR: Failed to read payload: {e}", file=sys.stderr)
         sys.exit(1)
 
     configuration = payload.get("configuration", {})
     if not isinstance(configuration, dict):
+        write_app_log("ERROR", "Email alert action failed: invalid configuration payload")
         print("ERROR: Invalid configuration payload", file=sys.stderr)
         sys.exit(1)
 
