@@ -2,7 +2,7 @@
 
 <!--
 =============================================================================
- default/data/ui/views/help_glossary.xml
+ default/data/ui/views/bitsight_help.xml
  BitSight for Splunk App
  Help & Glossary Dashboard
 =============================================================================
@@ -10,8 +10,8 @@
 PURPOSE
 
 Executive reference dashboard for BitSight terminology, metrics, scoring
-logic, dashboard navigation, SLA expectations, report export guidance,
-and support resources.
+logic, dashboard navigation, support workflows, SLA expectations,
+report export guidance, and support resources.
 
 This dashboard provides:
 
@@ -21,7 +21,8 @@ This dashboard provides:
 - executive glossary of common terms
 - remediation SLA reference guidance
 - report export and scheduling guidance
-- support and documentation resource links
+- BitSight help, support, and troubleshooting guidance
+- official support and documentation resource links
 
 PRIMARY ANALYSIS OBJECTIVE
 
@@ -33,6 +34,8 @@ explains:
 - how to navigate the BitSight app
 - how remediation SLA targets are defined
 - how reports can be exported and scheduled
+- how to get help in BitSight
+- how to contact support and manage tickets
 - where to find official documentation and support resources
 
 DESIGN CHARACTERISTICS
@@ -48,7 +51,7 @@ DESIGN CHARACTERISTICS
 
 <dashboard version="1.1" theme="dark">
   <label>Help &amp; Glossary</label>
-  <description>Executive guide to Bitsight metrics, terminology, and dashboard navigation</description>
+  <description>Executive guide to BitSight metrics, terminology, dashboard navigation, support, and troubleshooting</description>
 
   <!-- =============================================================== -->
   <!-- ROW 1: QUICK NAVIGATION                                         -->
@@ -59,8 +62,8 @@ DESIGN CHARACTERISTICS
         <![CDATA[
         <div style="padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;">
           <h2 style="margin: 0 0 15px 0; color: #fff;">&#128218; Dashboard Guide</h2>
-          <p style="color: #ccc; margin: 0 0 20px 0;">This help guide provides definitions, explanations, and navigation assistance for executives using the Bitsight Security Ratings platform.</p>
-          
+          <p style="color: #ccc; margin: 0 0 20px 0;">This help guide provides definitions, explanations, and navigation assistance for executives using the BitSight Security Ratings platform.</p>
+
           <div style="display: flex; gap: 15px; flex-wrap: wrap;">
             <a href="/app/bitsight/bitsight_overview" style="background: rgba(83,160,81,0.2); padding: 15px; border-radius: 8px; text-decoration: none; flex: 1; min-width: 200px;">
               <div style="color: #53A051; font-weight: bold;">&#127968; Executive Overview</div>
@@ -99,7 +102,7 @@ DESIGN CHARACTERISTICS
         <![CDATA[
         <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
           <p style="color: #ccc; margin: 0 0 15px 0;">The <strong style="color: #53A051;">Composite Risk Score</strong> is a single 0-100 metric that aggregates multiple security factors into one executive-friendly number. <strong>Higher is better.</strong></p>
-          
+
           <table style="width: 100%; border-collapse: collapse; color: #ccc;">
             <tr style="border-bottom: 1px solid #333;">
               <th style="text-align: left; padding: 10px; color: #6DB7C6;">Component</th>
@@ -110,29 +113,29 @@ DESIGN CHARACTERISTICS
             <tr style="border-bottom: 1px solid #222;">
               <td style="padding: 10px;"><strong>Rating Score</strong></td>
               <td style="text-align: center; padding: 10px;">40%</td>
-              <td style="padding: 10px;">Average security rating across portfolio (normalized from 0-900 scale)</td>
+              <td style="padding: 10px;">Average security rating across portfolio (normalized from 250-900 scale)</td>
               <td style="padding: 10px;">Remediate critical findings, improve configuration security</td>
             </tr>
             <tr style="border-bottom: 1px solid #222;">
               <td style="padding: 10px;"><strong>Portfolio Health</strong></td>
               <td style="text-align: center; padding: 10px;">25%</td>
-              <td style="padding: 10px;">Percentage of companies meeting 640+ threshold</td>
-              <td style="padding: 10px;">Focus on underperforming vendors, escalate to procurement</td>
+              <td style="padding: 10px;">Percentage of companies meeting the target rating threshold</td>
+              <td style="padding: 10px;">Focus on underperforming vendors, escalate through governance processes</td>
             </tr>
             <tr style="border-bottom: 1px solid #222;">
               <td style="padding: 10px;"><strong>Findings Score</strong></td>
               <td style="text-align: center; padding: 10px;">20%</td>
-              <td style="padding: 10px;">Inverse of critical/severe open findings count</td>
-              <td style="padding: 10px;">Prioritize critical findings, assign remediation owners</td>
+              <td style="padding: 10px;">Inverse of severe open findings count</td>
+              <td style="padding: 10px;">Prioritize severe and material findings, assign remediation owners</td>
             </tr>
             <tr>
               <td style="padding: 10px;"><strong>SLA Compliance</strong></td>
               <td style="text-align: center; padding: 10px;">15%</td>
-              <td style="padding: 10px;">Percentage of findings remediated within SLA targets</td>
+              <td style="padding: 10px;">Percentage of findings remediated within target timeframes</td>
               <td style="padding: 10px;">Track MTTR metrics, improve remediation processes</td>
             </tr>
           </table>
-          
+
           <div style="margin-top: 20px; display: flex; gap: 20px;">
             <div style="flex: 1; padding: 15px; background: rgba(83,160,81,0.2); border-radius: 8px; text-align: center;">
               <div style="font-size: 24px; color: #53A051; font-weight: bold;">75-100</div>
@@ -162,44 +165,32 @@ DESIGN CHARACTERISTICS
       <html>
         <![CDATA[
         <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
-          <p style="color: #ccc; margin: 0 0 15px 0;">Bitsight Security Ratings range from 250 to 900, similar to credit scores. Ratings are calculated based on externally observable security behaviors.</p>
-          
+          <p style="color: #ccc; margin: 0 0 15px 0;">BitSight Security Ratings range from 250 to 900. Ratings are grouped into the current BitSight categories shown below.</p>
+
           <table style="width: 100%; border-collapse: collapse; color: #ccc;">
             <tr style="border-bottom: 1px solid #333;">
               <th style="text-align: left; padding: 10px; color: #6DB7C6;">Category</th>
               <th style="text-align: center; padding: 10px; color: #6DB7C6;">Range</th>
               <th style="text-align: left; padding: 10px; color: #6DB7C6;">Description</th>
-              <th style="text-align: left; padding: 10px; color: #6DB7C6;">Breach Likelihood</th>
+              <th style="text-align: left; padding: 10px; color: #6DB7C6;">General Interpretation</th>
             </tr>
             <tr style="border-bottom: 1px solid #222;">
               <td style="padding: 10px;"><span style="color: #53A051;">&#9679;</span> <strong>Advanced</strong></td>
               <td style="text-align: center; padding: 10px;">740-900</td>
-              <td style="padding: 10px;">Excellent security posture with minimal issues</td>
-              <td style="padding: 10px; color: #53A051;">Very Low</td>
+              <td style="padding: 10px;">Strong security performance and lower risk</td>
+              <td style="padding: 10px; color: #53A051;">Strong</td>
             </tr>
             <tr style="border-bottom: 1px solid #222;">
-              <td style="padding: 10px;"><span style="color: #84b957;">&#9679;</span> <strong>Good</strong></td>
-              <td style="text-align: center; padding: 10px;">700-739</td>
-              <td style="padding: 10px;">Strong security with room for improvement</td>
-              <td style="padding: 10px; color: #84b957;">Low</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #222;">
-              <td style="padding: 10px;"><span style="color: #F8BE34;">&#9679;</span> <strong>Fair</strong></td>
-              <td style="text-align: center; padding: 10px;">640-699</td>
-              <td style="padding: 10px;">Moderate security, several improvement areas</td>
+              <td style="padding: 10px;"><span style="color: #F8BE34;">&#9679;</span> <strong>Intermediate</strong></td>
+              <td style="text-align: center; padding: 10px;">640-730</td>
+              <td style="padding: 10px;">Fair security performance and moderate risk</td>
               <td style="padding: 10px; color: #F8BE34;">Moderate</td>
             </tr>
-            <tr style="border-bottom: 1px solid #222;">
-              <td style="padding: 10px;"><span style="color: #F1813F;">&#9679;</span> <strong>Warning</strong></td>
-              <td style="text-align: center; padding: 10px;">500-639</td>
-              <td style="padding: 10px;">Significant security gaps requiring attention</td>
-              <td style="padding: 10px; color: #F1813F;">Elevated</td>
-            </tr>
             <tr>
-              <td style="padding: 10px;"><span style="color: #DC4E41;">&#9679;</span> <strong>Critical</strong></td>
-              <td style="text-align: center; padding: 10px;">250-499</td>
-              <td style="padding: 10px;">Serious security issues, immediate action needed</td>
-              <td style="padding: 10px; color: #DC4E41;">High</td>
+              <td style="padding: 10px;"><span style="color: #DC4E41;">&#9679;</span> <strong>Basic</strong></td>
+              <td style="text-align: center; padding: 10px;">250-630</td>
+              <td style="padding: 10px;">Poor security performance and higher risk</td>
+              <td style="padding: 10px; color: #DC4E41;">Elevated</td>
             </tr>
           </table>
         </div>
@@ -223,31 +214,31 @@ DESIGN CHARACTERISTICS
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">Risk Vector</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">A category of security behavior (e.g., Patching Cadence, SSL Certificates, Open Ports).</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">A category of security behavior or condition such as Patching Cadence, SSL Certificates, or Open Ports.</p>
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">Finding</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">A specific security issue identified by Bitsight (e.g., expired SSL certificate).</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">A specific security issue identified by BitSight.</p>
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">SLA (Service Level Agreement)</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Target remediation timeframes: Critical=30d, High=60d, Medium=90d, Low=180d.</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Target remediation timeframes used for operational tracking.</p>
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">Portfolio</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Collection of all companies being monitored (your organization + vendors).</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Collection of all companies being monitored.</p>
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">NIST CSF</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">NIST Cybersecurity Framework with 5 functions: Identify, Protect, Detect, Respond, Recover.</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">NIST Cybersecurity Framework with five functions: Identify, Protect, Detect, Respond, Recover.</p>
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">Exposed Credentials</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Employee credentials found in data breaches on the dark web.</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Credentials observed in third-party breach data.</p>
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">Sparkline</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Mini chart showing 30-day rating trend at a glance.</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Mini trend chart used to show change over time.</p>
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">WoW / MoM / QoQ / YoY</strong>
@@ -255,7 +246,7 @@ DESIGN CHARACTERISTICS
           </div>
           <div style="break-inside: avoid; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
             <strong style="color: #6DB7C6;">Tier</strong>
-            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Vendor criticality level (Tier 1=Critical, Tier 2=Important, Tier 3=Standard).</p>
+            <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">Vendor criticality or classification level used in portfolio segmentation.</p>
           </div>
         </div>
         ]]>
@@ -272,8 +263,8 @@ DESIGN CHARACTERISTICS
       <html>
         <![CDATA[
         <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
-          <p style="color: #ccc; margin: 0 0 15px 0;">Standard remediation SLA targets based on finding severity:</p>
-          
+          <p style="color: #ccc; margin: 0 0 15px 0;">Standard remediation SLA targets used for operational tracking:</p>
+
           <div style="display: flex; gap: 15px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 150px; padding: 20px; background: linear-gradient(135deg, rgba(220,78,65,0.3) 0%, rgba(220,78,65,0.1) 100%); border-radius: 8px; text-align: center; border-left: 4px solid #DC4E41;">
               <div style="font-size: 32px; color: #DC4E41; font-weight: bold;">30</div>
@@ -312,7 +303,7 @@ DESIGN CHARACTERISTICS
         <![CDATA[
         <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
           <h3 style="color: #6DB7C6; margin: 0 0 15px 0;">How to Export Reports</h3>
-          
+
           <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="flex: 1; min-width: 250px;">
               <h4 style="color: #fff; margin: 0 0 10px 0;">Manual Export (Any Panel)</h4>
@@ -337,7 +328,7 @@ DESIGN CHARACTERISTICS
 
           <h3 style="color: #6DB7C6; margin: 20px 0 15px 0;">Scheduled Reports</h3>
           <p style="color: #ccc; margin: 0 0 10px 0;">The following reports are pre-configured for automatic delivery:</p>
-          
+
           <table style="width: 100%; border-collapse: collapse; color: #ccc;">
             <tr style="border-bottom: 1px solid #333;">
               <th style="text-align: left; padding: 10px; color: #6DB7C6;">Report</th>
@@ -365,7 +356,7 @@ DESIGN CHARACTERISTICS
               <td style="padding: 10px;">YoY comparisons, strategic recommendations</td>
             </tr>
           </table>
-          
+
           <p style="color: #888; font-size: 12px; margin: 15px 0 0 0;">
             <em>To modify schedules: Settings &#8594; Searches, reports, and alerts &#8594; Select report &#8594; Edit Schedule</em>
           </p>
@@ -376,7 +367,108 @@ DESIGN CHARACTERISTICS
   </row>
 
   <!-- =============================================================== -->
-  <!-- ROW 7: CONTACT AND SUPPORT                                      -->
+  <!-- ROW 7: GETTING HELP IN BITSIGHT                                 -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>&#128587; Getting Help in BitSight</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <p style="color: #ccc; margin: 0 0 15px 0;">
+            Access BitSight help resources through the <strong>Patch AI Assistant</strong>
+            from the Help menu in the top-right corner of a BitSight application.
+          </p>
+
+          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 220px; padding: 15px; background: rgba(109,183,198,0.1); border-radius: 8px;">
+              <h4 style="color: #6DB7C6; margin: 0 0 10px 0;">&#128214; Help Resources</h4>
+              <ul style="color: #ccc; margin: 0; padding-left: 18px;">
+                <li>Patch AI Assistant</li>
+                <li>Knowledge Base</li>
+                <li>Academy resources</li>
+              </ul>
+            </div>
+            <div style="flex: 1; min-width: 220px; padding: 15px; background: rgba(248,190,52,0.1); border-radius: 8px;">
+              <h4 style="color: #F8BE34; margin: 0 0 10px 0;">&#128100; Sign-In Required</h4>
+              <p style="color: #ccc; margin: 0; font-size: 13px;">
+                You must be logged in to BitSight to contact support or review active support tickets.
+              </p>
+            </div>
+            <div style="flex: 1; min-width: 220px; padding: 15px; background: rgba(220,78,65,0.1); border-radius: 8px;">
+              <h4 style="color: #DC4E41; margin: 0 0 10px 0;">&#128222; Support Model</h4>
+              <p style="color: #ccc; margin: 0; font-size: 13px;">
+                BitSight does not provide a centralized phone number for support.
+              </p>
+            </div>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 8: CONTACT SUPPORT AND MANAGE TICKETS                       -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>&#128172; Contact Support &amp; Manage Tickets</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 320px;">
+              <h3 style="color: #6DB7C6; margin: 0 0 12px 0;">Contact Support</h3>
+              <ol style="color: #ccc; margin: 0; padding-left: 20px;">
+                <li>Summarize your issue in Patch AI Assistant</li>
+                <li>Review Patch’s response</li>
+                <li>If needed, enter <strong>Contact support</strong></li>
+                <li>Or choose <strong>No, create a ticket</strong></li>
+                <li>Fill in Name, Subject, and Text Field details</li>
+                <li>Select <strong>Send</strong></li>
+              </ol>
+            </div>
+            <div style="flex: 1; min-width: 320px;">
+              <h3 style="color: #53A051; margin: 0 0 12px 0;">Manage Support Tickets</h3>
+              <ul style="color: #ccc; margin: 0; padding-left: 20px;">
+                <li>Select <strong>View My Tickets</strong> in Patch AI Assistant</li>
+                <li>Or go to the Knowledge Base user menu and choose <strong>Requests</strong></li>
+                <li>Use <strong>My requests</strong> to upload attachments and review ticket status</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 9: COMMON TROUBLESHOOTING GUIDES                            -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>&#128295; Common Troubleshooting Guides</title>
+      <html>
+        <![CDATA[
+        <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+          <ul style="color: #ccc; margin: 0; padding-left: 20px;">
+            <li><a href="https://help.bitsighttech.com/hc/en-us/articles/12247780792599-Improving-Your-Bitsight-Security-Rating" target="_blank" style="color: #6DB7C6; text-decoration: none;">Improving Your BitSight Security Rating</a></li>
+            <li><a href="https://help.bitsighttech.com/hc/en-us/articles/4408020871575-Infrastructure-Management" target="_blank" style="color: #6DB7C6; text-decoration: none;">Infrastructure Management</a></li>
+            <li><a href="https://help.bitsighttech.com/hc/en-us/articles/9108006279319-Lifetime-and-Offline-Assets-Frequently-Asked-Questions" target="_blank" style="color: #6DB7C6; text-decoration: none;">Lifetime and Offline Assets: Frequently Asked Questions</a></li>
+            <li><a href="https://help.bitsighttech.com/hc/en-us/articles/9176707227031-TLS-SSL-Finding-Remediation-Remediation-Verification" target="_blank" style="color: #6DB7C6; text-decoration: none;">TLS/SSL Finding Remediation &amp; Remediation Verification</a></li>
+            <li><a href="https://help.bitsighttech.com/hc/en-us/articles/115012431448-Working-with-Bitsight-on-Questions-About-Data-Quality-and-Event-Attribution" target="_blank" style="color: #6DB7C6; text-decoration: none;">Working with BitSight on Questions About Data Quality and Event Attribution</a></li>
+            <li><a href="https://help.bitsighttech.com/hc/en-us/articles/12044241957783-What-To-Do-After-Remediation" target="_blank" style="color: #6DB7C6; text-decoration: none;">What To Do After Remediation</a></li>
+          </ul>
+        </div>
+        ]]>
+      </html>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 10: SUPPORT & RESOURCES                                     -->
   <!-- =============================================================== -->
   <row>
     <panel>
@@ -386,12 +478,12 @@ DESIGN CHARACTERISTICS
         <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
           <div style="display: flex; gap: 20px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px; padding: 15px; background: rgba(109,183,198,0.1); border-radius: 8px;">
-              <h4 style="color: #6DB7C6; margin: 0 0 10px 0;">&#128214; Bitsight Documentation</h4>
-              <a href="https://help.bitsighttech.com" target="_blank" style="color: #6DB7C6; text-decoration: none;">help.bitsighttech.com</a>
+              <h4 style="color: #6DB7C6; margin: 0 0 10px 0;">&#128214; BitSight Knowledge Base</h4>
+              <a href="https://help.bitsighttech.com/hc/en-us" target="_blank" style="color: #6DB7C6; text-decoration: none;">help.bitsighttech.com</a>
             </div>
             <div style="flex: 1; min-width: 200px; padding: 15px; background: rgba(83,160,81,0.1); border-radius: 8px;">
-              <h4 style="color: #53A051; margin: 0 0 10px 0;">&#128187; API Documentation</h4>
-              <a href="https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview" target="_blank" style="color: #53A051; text-decoration: none;">Bitsight API Docs</a>
+              <h4 style="color: #53A051; margin: 0 0 10px 0;">&#127891; BitSight Academy</h4>
+              <a href="https://academy.bitsight.com/" target="_blank" style="color: #53A051; text-decoration: none;">academy.bitsight.com</a>
             </div>
             <div style="flex: 1; min-width: 200px; padding: 15px; background: rgba(248,190,52,0.1); border-radius: 8px;">
               <h4 style="color: #F8BE34; margin: 0 0 10px 0;">&#128218; Splunk Documentation</h4>
