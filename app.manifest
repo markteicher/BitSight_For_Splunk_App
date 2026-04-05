@@ -1,52 +1,44 @@
 {
   "schemaVersion": "2.0.0",
   "info": {
-    "title": "Bitsight Security Ratings",
+    "title": "BitSight Security Ratings for Splunk",
     "id": {
-      "group": null,
       "name": "BitSight_For_Splunk_App",
       "version": "1.0.0"
     },
     "author": [
       {
-        "name": "Your Organization",
-        "email": "support@example.com",
-        "company": "Your Organization"
+        "name": "Mark Teicher"
       }
     ],
-    "releaseDate": null,
-    "description": "Bitsight Security Ratings integration for Splunk. Monitor security ratings, portfolio companies, alerts, findings, exposed credentials, and threats from the Bitsight API.",
+    "description": "BitSight Security Ratings integration for Splunk. Monitor security ratings, portfolio companies, alerts, findings, exposed credentials, threats, risk vectors, users, remediation activity, and operational health from the BitSightTech API.",
     "classification": {
       "intendedAudience": "Security",
-      "categories": ["Security, Fraud & Compliance"],
+      "categories": [
+        "Security, Fraud & Compliance"
+      ],
       "developmentStatus": "Production/Stable"
     },
-    "commonInformationModels": null,
     "license": {
       "name": "Apache License 2.0",
-      "text": null,
       "uri": "https://www.apache.org/licenses/LICENSE-2.0"
-    },
-    "privacyPolicy": {
-      "name": null,
-      "text": null,
-      "uri": null
     },
     "releaseNotes": {
       "name": "Release Notes",
-      "text": "Initial release with portfolio, ratings, findings, alerts, users, trending dashboards",
-      "uri": null
+      "text": "Initial release with portfolio, ratings, findings, alerts, threats, exposed credentials, users, trending dashboards, alert actions, setup, and documentation views."
     }
   },
-  "dependencies": null,
-  "tasks": null,
-  "inputGroups": null,
-  "incompatibleApps": null,
   "platformRequirements": {
     "splunk": {
       "Enterprise": "*"
     }
   },
-  "supportedDeployments": ["_standalone", "_distributed", "_search_head_clustering"],
-  "targetWorkloads": ["_search_heads"]
+  "supportedDeployments": [
+    "_standalone",
+    "_distributed",
+    "_search_head_clustering"
+  ],
+  "targetWorkloads": [
+    "_search_heads"
+  ]
 }
