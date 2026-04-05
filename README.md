@@ -1,5 +1,5 @@
 
-![BitSight](docs/images/bitsight_for_splunk_navigation_hub.jpg)
+![BitSight](docs/images/bitsight_security_ratings_for_splunk_app_navigation_hub.jpg)
 
 # BitSight Security Ratings for Splunk
 
