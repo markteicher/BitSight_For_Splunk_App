@@ -1,4 +1,50 @@
+#
 # Application-level permissions
+#
+# =============================================================================
+# FILE
+# =============================================================================
+# metadata/default.meta
+#
+# =============================================================================
+# PURPOSE
+# =============================================================================
+# Application metadata permissions
+# object export scope
+# system-wide visibility for shared app knowledge objects
+# system-wide visibility for app configuration objects
+#
+# =============================================================================
+# FILE LOCATION
+# =============================================================================
+# App-relative path
+# metadata/default.meta
+#
+# =============================================================================
+# GRANULAR DOCUMENTATION SPECIFICATION
+# =============================================================================
+# Metadata scope
+# application-level permissions
+#
+# Export model
+# export = system
+#
+# Covered object classes
+# eventtypes
+# props
+# transforms
+# views
+# nav
+# data/ui/views
+# data/ui/nav
+# lookups
+# alert_actions
+# workflow_actions
+# macros
+# savedsearches
+# admin
+# restmap
+#
 
 []
 export = system
@@ -25,4 +71,22 @@ export = system
 export = system
 
 [lookups]
+export = system
+
+[alert_actions]
+export = system
+
+[workflow_actions]
+export = system
+
+[macros]
+export = system
+
+[savedsearches]
+export = system
+
+[admin]
+export = system
+
+[restmap]
 export = system
