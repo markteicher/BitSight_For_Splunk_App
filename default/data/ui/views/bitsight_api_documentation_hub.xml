@@ -124,6 +124,13 @@
             </div>
           </a>
 
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231352528-What-is-a-Bitsight-Security-Rating" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏷️</div>
+              <div class="portal-title">What is a BitSight Security Rating?</div>
+            </div>
+          </a>
+
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360061987354-GET-Static-Data" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">⚙️</div>
