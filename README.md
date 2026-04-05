@@ -277,3 +277,6 @@ In Splunk Web, run:
 ```spl
 index=security_bitsight sourcetype=bitsight_*
 | stats count by sourcetype
+```
+
+
