@@ -7,14 +7,34 @@
 
 PURPOSE
 
-Tile-based landing page linking to BitSight views and feature areas.
+Tile-based landing page linking to the primary BitSight views.
 
-Section-header tiles break the grid into the exact functional groups
-provided for the BitSight for Splunk App.
+This view uses the established portal-tile navigation design used across
+the Splunk apps and organizes navigation by the approved BitSight
+section model.
 
-STYLE
+FILE LOCATION
 
-Matches the same portal-tile design used across the Splunk apps.
+App-relative path
+default/data/ui/views/bitsight_navigation_hub.xml
+
+SECTION MODEL
+
+Core Capabilities
+Advanced Analytics
+Compliance & Governance
+Operational Excellence
+Alert Actions
+
+TILE LABEL MODEL
+
+Feature titles are used exactly as provided.
+
+VIEW MAPPING MODEL
+
+Tiles link to the delivered BitSight views where applicable.
+Capability-only items without a dedicated BitSight view are displayed as
+non-clickable tiles.
 
 =============================================================================
 -->
@@ -43,9 +63,19 @@ Matches the same portal-tile design used across the Splunk apps.
             box-shadow:0 4px 14px rgba(0,0,0,.18);
             transform:translateY(-2px);
           }
-          .portal-icon{font-size:34px;margin-bottom:10px;}
-          .portal-title{font-size:15px;font-weight:600;}
-          .portal-link{text-decoration:none;color:inherit;display:block;}
+          .portal-icon{
+            font-size:34px;
+            margin-bottom:10px;
+          }
+          .portal-title{
+            font-size:15px;
+            font-weight:600;
+          }
+          .portal-link{
+            text-decoration:none;
+            color:inherit;
+            display:block;
+          }
           .portal-header{
             background:#f5f5f5;
             border:1px solid #d0d0d0;
@@ -55,48 +85,233 @@ Matches the same portal-tile design used across the Splunk apps.
             font-weight:700;
             padding:18px 22px;
           }
+          .portal-static{
+            cursor:default;
+          }
+          .portal-static:hover{
+            box-shadow:none;
+            transform:none;
+          }
         </style>
 
         <div class="portal-grid">
 
+          <a class="portal-link" href="bitsight_overview">
+            <div class="portal-tile">
+              <div class="portal-icon">🧭</div>
+              <div class="portal-title">Overview</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_search">
+            <div class="portal-tile">
+              <div class="portal-icon">🔎</div>
+              <div class="portal-title">Search</div>
+            </div>
+          </a>
+
           <div class="portal-tile portal-header">Core Capabilities</div>
-          <a class="portal-link" href="bitsight_ratings"><div class="portal-tile"><div class="portal-icon">📊</div><div class="portal-title">Security Ratings Monitoring</div></div></a>
-          <a class="portal-link" href="bitsight_portfolio"><div class="portal-tile"><div class="portal-icon">🏢</div><div class="portal-title">Portfolio Management</div></div></a>
-          <a class="portal-link" href="bitsight_alerts"><div class="portal-tile"><div class="portal-icon">🔔</div><div class="portal-title">Alert Management</div></div></a>
-          <a class="portal-link" href="bitsight_findings"><div class="portal-tile"><div class="portal-icon">🔍</div><div class="portal-title">Findings Analysis</div></div></a>
-          <a class="portal-link" href="bitsight_exposed_credentials"><div class="portal-tile"><div class="portal-icon">🔐</div><div class="portal-title">Exposed Credentials</div></div></a>
-          <a class="portal-link" href="bitsight_threats"><div class="portal-tile"><div class="portal-icon">⚠️</div><div class="portal-title">Threat Intelligence</div></div></a>
-          <a class="portal-link" href="bitsight_users"><div class="portal-tile"><div class="portal-icon">👥</div><div class="portal-title">User Management</div></div></a>
-          <a class="portal-link" href="bitsight_risk_vectors"><div class="portal-tile"><div class="portal-icon">📈</div><div class="portal-title">Risk Vector Coverage</div></div></a>
+
+          <a class="portal-link" href="bitsight_ratings">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">Security Ratings Monitoring</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_portfolio">
+            <div class="portal-tile">
+              <div class="portal-icon">🏢</div>
+              <div class="portal-title">Portfolio Management</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_alerts">
+            <div class="portal-tile">
+              <div class="portal-icon">🔔</div>
+              <div class="portal-title">Alert Management</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_findings">
+            <div class="portal-tile">
+              <div class="portal-icon">🔍</div>
+              <div class="portal-title">Findings Analysis</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_exposed_credentials">
+            <div class="portal-tile">
+              <div class="portal-icon">🔐</div>
+              <div class="portal-title">Exposed Credentials</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_threats">
+            <div class="portal-tile">
+              <div class="portal-icon">⚠️</div>
+              <div class="portal-title">Threat Intelligence</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_users">
+            <div class="portal-tile">
+              <div class="portal-icon">👥</div>
+              <div class="portal-title">User Management</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_findings_detailed">
+            <div class="portal-tile">
+              <div class="portal-icon">📈</div>
+              <div class="portal-title">Risk Vector Coverage</div>
+            </div>
+          </a>
 
           <div class="portal-tile portal-header">Advanced Analytics</div>
-          <a class="portal-link" href="bitsight_ratings_trending"><div class="portal-tile"><div class="portal-icon">📉</div><div class="portal-title">Ratings Trending</div></div></a>
-          <a class="portal-link" href="bitsight_findings_trending"><div class="portal-tile"><div class="portal-icon">📊</div><div class="portal-title">Findings Trending</div></div></a>
-          <a class="portal-link" href="bitsight_trending"><div class="portal-tile"><div class="portal-icon">🔄</div><div class="portal-title">Comparative Trending</div></div></a>
-          <a class="portal-link" href="bitsight_benchmarking"><div class="portal-tile"><div class="portal-icon">🏆</div><div class="portal-title">Peer Benchmarking</div></div></a>
-          <a class="portal-link" href="bitsight_mttr_executive"><div class="portal-tile"><div class="portal-icon">⏱️</div><div class="portal-title">MTTR Executive</div></div></a>
-          <a class="portal-link" href="bitsight_asset_risk_matrix"><div class="portal-tile"><div class="portal-icon">🎯</div><div class="portal-title">Asset Risk Matrix</div></div></a>
-          <a class="portal-link" href="bitsight_ratings_tree"><div class="portal-tile"><div class="portal-icon">🌳</div><div class="portal-title">Ratings Tree</div></div></a>
+
+          <a class="portal-link" href="bitsight_ratings_trending">
+            <div class="portal-tile">
+              <div class="portal-icon">📉</div>
+              <div class="portal-title">Ratings Trending</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_findings_trending">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">Findings Trending</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_trending">
+            <div class="portal-tile">
+              <div class="portal-icon">🔄</div>
+              <div class="portal-title">Comparative Trending</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_benchmarking">
+            <div class="portal-tile">
+              <div class="portal-icon">🏆</div>
+              <div class="portal-title">Peer Benchmarking</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_mttr_executive">
+            <div class="portal-tile">
+              <div class="portal-icon">⏱️</div>
+              <div class="portal-title">MTTR Executive</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_asset_risk_matrix">
+            <div class="portal-tile">
+              <div class="portal-icon">🎯</div>
+              <div class="portal-title">Asset Risk Matrix</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_ratings_tree">
+            <div class="portal-tile">
+              <div class="portal-icon">🌳</div>
+              <div class="portal-title">Ratings Tree</div>
+            </div>
+          </a>
 
           <div class="portal-tile portal-header">Compliance &amp; Governance</div>
-          <a class="portal-link" href="bitsight_nist_csf"><div class="portal-tile"><div class="portal-icon">🏛️</div><div class="portal-title">NIST CSF Mapping</div></div></a>
-          <a class="portal-link" href="bitsight_remediation"><div class="portal-tile"><div class="portal-icon">⏰</div><div class="portal-title">SLA Tracking</div></div></a>
-          <a class="portal-link" href="bitsight_users_access_review"><div class="portal-tile"><div class="portal-icon">👤</div><div class="portal-title">User Access Review</div></div></a>
+
+          <a class="portal-link" href="bitsight_nist_csf">
+            <div class="portal-tile">
+              <div class="portal-icon">🏛️</div>
+              <div class="portal-title">NIST CSF Mapping</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_remediation">
+            <div class="portal-tile">
+              <div class="portal-icon">⏰</div>
+              <div class="portal-title">SLA Tracking</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_users_access_review">
+            <div class="portal-tile">
+              <div class="portal-icon">👤</div>
+              <div class="portal-title">User Access Review</div>
+            </div>
+          </a>
 
           <div class="portal-tile portal-header">Operational Excellence</div>
-          <a class="portal-link" href="bitsight_operations"><div class="portal-tile"><div class="portal-icon">📊</div><div class="portal-title">Operational Metrics</div></div></a>
-          <a class="portal-link" href="bitsight_health"><div class="portal-tile"><div class="portal-icon">💓</div><div class="portal-title">Health Monitoring</div></div></a>
-          <a class="portal-link" href="bitsight_health_check"><div class="portal-tile"><div class="portal-icon">✅</div><div class="portal-title">Configuration Validation</div></div></a>
-          <a class="portal-link" href="bitsight_health_check"><div class="portal-tile"><div class="portal-icon">🕐</div><div class="portal-title">Scheduled Health Checks</div></div></a>
-          <a class="portal-link" href="bitsight_logging"><div class="portal-tile"><div class="portal-icon">📋</div><div class="portal-title">Log Viewer</div></div></a>
-          <a class="portal-link" href="bitsight_help"><div class="portal-tile"><div class="portal-icon">📚</div><div class="portal-title">Documentation Views</div></div></a>
+
+          <a class="portal-link" href="bitsight_operations">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">Operational Metrics</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_health">
+            <div class="portal-tile">
+              <div class="portal-icon">💓</div>
+              <div class="portal-title">Health Monitoring</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_health_check">
+            <div class="portal-tile">
+              <div class="portal-icon">✅</div>
+              <div class="portal-title">Configuration Validation</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_health_check">
+            <div class="portal-tile">
+              <div class="portal-icon">🕐</div>
+              <div class="portal-title">Scheduled Health Checks</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_logs">
+            <div class="portal-tile">
+              <div class="portal-icon">📋</div>
+              <div class="portal-title">Log Viewer</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="bitsight_help">
+            <div class="portal-tile">
+              <div class="portal-icon">📚</div>
+              <div class="portal-title">Documentation Views</div>
+            </div>
+          </a>
 
           <div class="portal-tile portal-header">Alert Actions</div>
-          <a class="portal-link" href="bitsight_email_alert"><div class="portal-tile"><div class="portal-icon">📧</div><div class="portal-title">Email Alert Action</div></div></a>
-          <a class="portal-link" href="bitsight_webhook_alert"><div class="portal-tile"><div class="portal-icon">🌐</div><div class="portal-title">Webhook Alert Action</div></div></a>
-          <a class="portal-link" href="bitsight_script_alert"><div class="portal-tile"><div class="portal-icon">🧩</div><div class="portal-title">Script Alert Action</div></div></a>
-          <a class="portal-link" href="bitsight_pagerduty_alert"><div class="portal-tile"><div class="portal-icon">📟</div><div class="portal-title">PagerDuty Alert Action</div></div></a>
-          <a class="portal-link" href="bitsight_snow_alert"><div class="portal-tile"><div class="portal-icon">🎫</div><div class="portal-title">ServiceNow Alert Action</div></div></a>
+
+          <div class="portal-tile portal-static">
+            <div class="portal-icon">📧</div>
+            <div class="portal-title">Email Alert Action</div>
+          </div>
+
+          <div class="portal-tile portal-static">
+            <div class="portal-icon">🌐</div>
+            <div class="portal-title">Webhook Alert Action</div>
+          </div>
+
+          <div class="portal-tile portal-static">
+            <div class="portal-icon">🧩</div>
+            <div class="portal-title">Script Alert Action</div>
+          </div>
+
+          <div class="portal-tile portal-static">
+            <div class="portal-icon">📟</div>
+            <div class="portal-title">PagerDuty Alert Action</div>
+          </div>
+
+          <div class="portal-tile portal-static">
+            <div class="portal-icon">🎫</div>
+            <div class="portal-title">ServiceNow Alert Action</div>
+          </div>
 
         </div>
       </html>
