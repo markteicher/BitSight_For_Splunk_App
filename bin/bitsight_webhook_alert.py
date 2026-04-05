@@ -1,157 +1,347 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
+
 """
-Bitsight Webhook Alert Action
-Sends webhook notifications to external systems (Slack, Teams, PagerDuty, etc.)
+=============================================================================
+ bin/bitsight_webhook_alert.py
+ BitSight for Splunk App
+ Webhook Alert Action
+=============================================================================
+
+PURPOSE
+
+Sends webhook notifications to external systems.
+
+Builds an outbound webhook request from the Splunk alert action payload
+and configuration.
+
+Supports:
+
+- webhook URL configuration
+- HTTP method configuration
+- content type configuration
+- custom headers
+- SSL verification control
+- request timeout control
+- payload template variable substitution
+- requests library usage
+- urllib fallback handling
+
+FILE LOCATION
+
+App-relative path
+bin/bitsight_webhook_alert.py
+
+SCRIPT TYPE
+
+Custom Splunk alert action script
+
+EXECUTION MODEL
+
+Invoked by Splunk alert actions
+expects payload file path as argv[1]
+
+GRANULAR DOCUMENTATION SPECIFICATION
+
+INPUT SOURCE
+
+Splunk alert action payload JSON file
+
+PAYLOAD REQUIREMENT
+
+argv[1]
+payload file path
+
+PAYLOAD SECTIONS USED
+
+configuration
+result
+results
+search_name
+trigger_time
+app
+owner
+results_link
+
+CONFIGURATION FIELDS
+
+webhook_url
+method
+content_type
+custom_headers
+verify_ssl
+timeout
+payload_template
+
+VARIABLE SUBSTITUTION MODEL
+
+Supports $variable$ tokens
+
+TOP-LEVEL TOKENS
+
+name
+search_name
+trigger_time
+app
+owner
+results_link
+result.count
+
+RESULT TOKENS
+
+$result.field_name$
+
+CUSTOM HEADER MODEL
+
+Header lines are supplied as:
+Header-Name: value
+
+One header per line
+
+OUTPUT BEHAVIOR
+
+stdout
+INFO message on success
+
+stderr
+ERROR message on failure
+
+EXIT CODES
+
+0
+success
+
+1
+failure
+
+HTTP TARGET
+
+Configured webhook_url
+
+HTTP METHODS
+
+POST
+PUT
+PATCH
+
+CONTENT TYPE
+
+Configured content_type
+
+SSL MODEL
+
+verify_ssl controls certificate validation
+
+DEPENDENCIES
+
+json
+os
+re
+sys
+typing
+requests
+urllib.request
+urllib.error
+ssl
+
+=============================================================================
 """
 
-import sys
-import os
 import json
+import os
 import re
+import sys
+from typing import Any, Dict, Tuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 
 try:
     import requests
-except ImportError:
-    # Fallback to urllib for environments without requests
-    import urllib.request
-    import urllib.error
+except ImportError:  # pragma: no cover
     import ssl
+    import urllib.error
+    import urllib.request
+
     requests = None
 
 
-def substitute_variables(template, payload):
-    """Substitute $variable$ patterns with actual values from payload"""
-    
-    result = payload.get('result', {})
-    
+DEFAULT_TIMEOUT = 30
+SUPPORTED_METHODS = {"POST", "PUT", "PATCH"}
+
+
+def _as_bool(value: Any, default: bool = False) -> bool:
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _clean_string(value: Any, default: str = "") -> str:
+    if value is None:
+        return default
+    text = str(value).strip()
+    return text or default
+
+
+def _result_count(payload: Dict[str, Any]) -> str:
+    result = payload.get("result", {})
+    results = payload.get("results", [])
+
+    if isinstance(result, dict):
+        count_value = result.get("count")
+        if count_value not in (None, ""):
+            return str(count_value)
+
+    if isinstance(results, list):
+        return str(len(results))
+
+    return "0"
+
+
+def substitute_variables(template: Any, payload: Dict[str, Any]) -> str:
+    """Substitute $variable$ patterns with values from the payload."""
+
+    if template is None:
+        return ""
+
+    result = payload.get("result", {})
+    if not isinstance(result, dict):
+        result = {}
+
     substitutions = {
-        'name': payload.get('search_name', ''),
-        'search_name': payload.get('search_name', ''),
-        'trigger_time': payload.get('trigger_time', ''),
-        'app': payload.get('app', 'bitsight'),
-        'owner': payload.get('owner', ''),
-        'results_link': payload.get('results_link', ''),
-        'result.count': str(len(payload.get('results', []))),
+        "name": str(payload.get("search_name", "") or ""),
+        "search_name": str(payload.get("search_name", "") or ""),
+        "trigger_time": str(payload.get("trigger_time", "") or ""),
+        "app": str(payload.get("app", "bitsight") or "bitsight"),
+        "owner": str(payload.get("owner", "") or ""),
+        "results_link": str(payload.get("results_link", "") or ""),
+        "result.count": _result_count(payload),
     }
-    
-    # Add all result fields
+
     for key, value in result.items():
-        substitutions[f'result.{key}'] = str(value) if value else ''
-    
-    # Perform substitution
-    def replace_var(match):
+        substitutions[f"result.{key}"] = "" if value is None else str(value)
+
+    def replace_var(match: re.Match[str]) -> str:
         var_name = match.group(1)
-        return substitutions.get(var_name, '')
-    
-    return re.sub(r'\$([^$]+)\$', replace_var, template)
+        return substitutions.get(var_name, "")
+
+    return re.sub(r"\$([^$]+)\$", replace_var, str(template))
 
 
-def send_webhook(config, payload):
-    """Send webhook notification"""
-    
-    webhook_url = config.get('webhook_url', '')
-    method = config.get('method', 'POST').upper()
-    content_type = config.get('content_type', 'application/json')
-    custom_headers = config.get('custom_headers', '')
-    verify_ssl = config.get('verify_ssl', '1') == '1'
-    timeout = int(config.get('timeout', 30))
-    payload_template = config.get('payload_template', '{}')
-    
+def _parse_custom_headers(custom_headers: str) -> Dict[str, str]:
+    headers: Dict[str, str] = {}
+
+    if not custom_headers:
+        return headers
+
+    for line in custom_headers.splitlines():
+        line = line.strip()
+        if not line or ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        key = key.strip()
+        value = value.strip()
+        if key:
+            headers[key] = value
+
+    return headers
+
+
+def send_webhook(config: Dict[str, Any], payload: Dict[str, Any]) -> Tuple[bool, str]:
+    """Send webhook notification."""
+
+    webhook_url = _clean_string(config.get("webhook_url"))
+    method = _clean_string(config.get("method", "POST"), "POST").upper()
+    content_type = _clean_string(config.get("content_type", "application/json"), "application/json")
+    custom_headers = _clean_string(config.get("custom_headers"))
+    verify_ssl = _as_bool(config.get("verify_ssl"), True)
+    timeout = int(config.get("timeout", DEFAULT_TIMEOUT) or DEFAULT_TIMEOUT)
+    payload_template = _clean_string(config.get("payload_template", "{}"), "{}")
+
     if not webhook_url:
         return False, "No webhook URL configured"
-    
-    # Build payload from template
+
+    if method not in SUPPORTED_METHODS:
+        return False, f"Unsupported HTTP method: {method}"
+
     try:
         payload_str = substitute_variables(payload_template, payload)
         webhook_payload = json.loads(payload_str)
     except json.JSONDecodeError as e:
         return False, f"Invalid payload template JSON: {e}"
-    
-    # Parse custom headers
-    headers = {'Content-Type': content_type}
-    if custom_headers:
-        for header in custom_headers.split('\n'):
-            if ':' in header:
-                key, value = header.split(':', 1)
-                headers[key.strip()] = value.strip()
-    
-    # Send request
+
+    headers = {"Content-Type": content_type}
+    headers.update(_parse_custom_headers(custom_headers))
+
+    request_body = json.dumps(webhook_payload).encode("utf-8")
+
     try:
-        if requests:
-            # Use requests library if available
-            if method == 'POST':
-                response = requests.post(
-                    webhook_url,
-                    json=webhook_payload,
-                    headers=headers,
-                    verify=verify_ssl,
-                    timeout=timeout
-                )
-            elif method == 'PUT':
-                response = requests.put(
-                    webhook_url,
-                    json=webhook_payload,
-                    headers=headers,
-                    verify=verify_ssl,
-                    timeout=timeout
-                )
-            else:
-                return False, f"Unsupported HTTP method: {method}"
-            
+        if requests is not None:
+            response = requests.request(
+                method=method,
+                url=webhook_url,
+                data=request_body,
+                headers=headers,
+                verify=verify_ssl,
+                timeout=timeout,
+            )
+
             if response.status_code >= 400:
                 return False, f"Webhook returned status {response.status_code}: {response.text}"
-            
+
             return True, f"Webhook sent successfully (status {response.status_code})"
-        else:
-            # Fallback to urllib
-            data = json.dumps(webhook_payload).encode('utf-8')
-            req = urllib.request.Request(webhook_url, data=data, headers=headers, method=method)
-            
-            context = None
-            if not verify_ssl:
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-            
-            with urllib.request.urlopen(req, timeout=timeout, context=context) as response:
-                status = response.getcode()
-                if status >= 400:
-                    return False, f"Webhook returned status {status}"
-                return True, f"Webhook sent successfully (status {status})"
-    
+
+        request = urllib.request.Request(
+            webhook_url,
+            data=request_body,
+            headers=headers,
+            method=method,
+        )
+
+        context = None
+        if not verify_ssl:
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+
+        with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
+            status = response.getcode()
+            if status >= 400:
+                return False, f"Webhook returned status {status}"
+            return True, f"Webhook sent successfully (status {status})"
+
     except Exception as e:
         return False, f"Webhook request failed: {str(e)}"
 
 
-def main():
-    """Main entry point for alert action"""
-    
+def main() -> None:
+    """Main entry point for alert action."""
+
     if len(sys.argv) < 2:
         print("ERROR: No payload file provided", file=sys.stderr)
         sys.exit(1)
-    
+
     payload_file = sys.argv[1]
-    
+
     try:
-        with open(payload_file, 'r') as f:
+        with open(payload_file, "r", encoding="utf-8") as f:
             payload = json.load(f)
     except Exception as e:
         print(f"ERROR: Failed to read payload: {e}", file=sys.stderr)
         sys.exit(1)
-    
-    config = payload.get('configuration', {})
-    
+
+    config = payload.get("configuration", {})
+    if not isinstance(config, dict):
+        print("ERROR: Invalid configuration payload", file=sys.stderr)
+        sys.exit(1)
+
     success, message = send_webhook(config, payload)
-    
+
     if success:
         print(f"INFO: {message}")
         sys.exit(0)
-    else:
-        print(f"ERROR: {message}", file=sys.stderr)
-        sys.exit(1)
+
+    print(f"ERROR: {message}", file=sys.stderr)
+    sys.exit(1)
 
 
 if __name__ == "__main__":
