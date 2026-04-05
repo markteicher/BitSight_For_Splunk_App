@@ -21,6 +21,8 @@ Monitor and visualize:
 
 This app provides prebuilt dashboards, modular input collection, lookup-backed enrichment, workflow actions, setup pages, alert actions, and documentation views for BitSight data in Splunk.
 
+![License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg)
+
 ## ⚠️ Disclaimer
 
 This tool is **not an official BitSight product**.
