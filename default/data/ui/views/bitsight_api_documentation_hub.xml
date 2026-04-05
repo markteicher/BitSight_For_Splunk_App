@@ -131,6 +131,13 @@
             </div>
           </a>
 
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/4418994292887-Vulnerability-Severity-Bitsight-Severity-CVSS" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📏</div>
+              <div class="portal-title">Vulnerability Severity / BitSight Severity / CVSS</div>
+            </div>
+          </a>
+
           <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360061987354-GET-Static-Data" target="_blank">
             <div class="portal-tile">
               <div class="portal-icon">⚙️</div>
