@@ -26,6 +26,7 @@ This modular input provides:
 - paginated API collection support
 - normalized underscore-based sourcetype mapping
 - JSON and non-JSON response handling
+- BitSight app file logging
 
 PRIMARY ANALYSIS OBJECTIVE
 
@@ -169,6 +170,14 @@ RISK VECTOR FILTER MODEL
 Applies only to findings endpoints
 uses comma-separated risk_vector query value
 
+APP LOG PATH MODEL
+
+creates app-relative directory
+var/log
+
+creates app-relative file
+var/log/bitsight.log
+
 DEPENDENCIES
 
 base64
@@ -217,6 +226,35 @@ except ImportError as e:  # pragma: no cover
 
 
 JsonType = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
+
+APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+APP_LOG_DIR = os.path.join(APP_ROOT, "var", "log")
+APP_LOG_FILE = os.path.join(APP_LOG_DIR, "bitsight.log")
+COMPONENT_NAME = "bitsight_modular_input.py"
+
+
+def ensure_bitsight_log_file() -> str:
+    os.makedirs(APP_LOG_DIR, exist_ok=True)
+
+    if not os.path.exists(APP_LOG_FILE):
+        with open(APP_LOG_FILE, "a", encoding="utf-8"):
+            pass
+
+    return APP_LOG_FILE
+
+
+def write_app_log(level: str, component: str, message: str) -> None:
+    try:
+        ensure_bitsight_log_file()
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        safe_message = str(message).replace("\n", " ").replace("\r", " ").strip()
+
+        with open(APP_LOG_FILE, "a", encoding="utf-8") as handle:
+            handle.write(
+                f"{timestamp} level={str(level).upper()} component={component} message={safe_message}\n"
+            )
+    except Exception:
+        pass
 
 
 class BitsightInput(Script):
@@ -584,6 +622,9 @@ class BitsightInput(Script):
                 )
 
     def stream_events(self, inputs, ew):
+        ensure_bitsight_log_file()
+        write_app_log("INFO", COMPONENT_NAME, "BitSight modular input run started")
+
         app_settings = self._load_app_settings()
 
         for input_name, input_item in inputs.inputs.items():
@@ -598,6 +639,15 @@ class BitsightInput(Script):
                     )
 
                 ew.log(EventWriter.INFO, f"Starting BitSight data collection for endpoint: {endpoint}")
+                write_app_log(
+                    "INFO",
+                    COMPONENT_NAME,
+                    (
+                        f"Starting collection input_name={input_name} "
+                        f"endpoint={endpoint} index={merged['index']} "
+                        f"base_url={merged['base_url']}"
+                    ),
+                )
 
                 data = self.fetch_bitsight_data(
                     api_token=merged["api_token"],
@@ -626,9 +676,24 @@ class BitsightInput(Script):
                     EventWriter.INFO,
                     f"Successfully collected {event_count} events for endpoint: {endpoint}",
                 )
+                write_app_log(
+                    "INFO",
+                    COMPONENT_NAME,
+                    (
+                        f"Completed collection input_name={input_name} "
+                        f"endpoint={endpoint} event_count={event_count}"
+                    ),
+                )
 
             except Exception as e:
                 ew.log(EventWriter.ERROR, f"Error fetching BitSight data for {endpoint}: {str(e)}")
+                write_app_log(
+                    "ERROR",
+                    COMPONENT_NAME,
+                    f"Collection failed input_name={input_name} endpoint={endpoint} error={str(e)}",
+                )
+
+        write_app_log("INFO", COMPONENT_NAME, "BitSight modular input run completed")
 
     def fetch_bitsight_data(
         self,
@@ -707,6 +772,7 @@ class BitsightInput(Script):
         verify_ssl: bool = True,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> List[Dict[str, Any]]:
+        write_app_log("INFO", COMPONENT_NAME, "Fetching BitSight portfolio for company expansion")
         data = self._make_request(
             api_token=api_token,
             base_url=base_url,
@@ -715,7 +781,13 @@ class BitsightInput(Script):
             verify_ssl=verify_ssl,
             timeout=timeout,
         )
-        return self._extract_company_list(data)
+        companies = self._extract_company_list(data)
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            f"Fetched BitSight portfolio company_count={len(companies)}",
+        )
+        return companies
 
     def fetch_all_users(
         self,
@@ -725,6 +797,7 @@ class BitsightInput(Script):
         verify_ssl: bool = True,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> List[Dict[str, Any]]:
+        write_app_log("INFO", COMPONENT_NAME, "Fetching BitSight users for user expansion")
         data = self._make_request(
             api_token=api_token,
             base_url=base_url,
@@ -733,7 +806,13 @@ class BitsightInput(Script):
             verify_ssl=verify_ssl,
             timeout=timeout,
         )
-        return self._extract_record_list(data)
+        users = self._extract_record_list(data)
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            f"Fetched BitSight users user_count={len(users)}",
+        )
+        return users
 
     def _fetch_company_scoped_data(
         self,
@@ -755,6 +834,11 @@ class BitsightInput(Script):
                 endpoint_path=path,
                 risk_vectors=risk_vectors,
                 days_back=days_back,
+            )
+            write_app_log(
+                "INFO",
+                COMPONENT_NAME,
+                f"Fetching company-scoped endpoint={endpoint} company_guid={company_guid}",
             )
             return self._make_request(
                 api_token=api_token,
@@ -802,6 +886,11 @@ class BitsightInput(Script):
                 item["company_name"] = company.get("name", "")
                 all_data.append(item)
 
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            f"Completed company-scoped expansion endpoint={endpoint} record_count={len(all_data)}",
+        )
         return all_data
 
     def _fetch_user_scoped_data(
@@ -817,6 +906,11 @@ class BitsightInput(Script):
     ) -> JsonType:
         if user_guid:
             path = endpoint_path.replace("{user_guid}", user_guid)
+            write_app_log(
+                "INFO",
+                COMPONENT_NAME,
+                f"Fetching user-scoped endpoint={endpoint} user_guid={user_guid}",
+            )
             return self._make_request(
                 api_token=api_token,
                 base_url=base_url,
@@ -856,6 +950,11 @@ class BitsightInput(Script):
                 item["user_email"] = user.get("email", "")
                 all_data.append(item)
 
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            f"Completed user-scoped expansion endpoint={endpoint} record_count={len(all_data)}",
+        )
         return all_data
 
     def _make_request(
@@ -892,6 +991,12 @@ class BitsightInput(Script):
         verify_ssl: bool,
         timeout: int,
     ) -> JsonType:
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            f"Requesting BitSight API url={url} timeout={timeout} verify_ssl={verify_ssl}",
+        )
+
         opener = self._build_opener(proxy_config=proxy_config, verify_ssl=verify_ssl, url=url)
         auth_string = base64.b64encode(f"{api_token}:".encode("utf-8")).decode("utf-8")
 
@@ -908,9 +1013,20 @@ class BitsightInput(Script):
                 text = raw_bytes.decode(charset, errors="replace")
                 content_type = response.headers.get("Content-Type", "")
 
+                write_app_log(
+                    "INFO",
+                    COMPONENT_NAME,
+                    f"Received BitSight API response url={url} content_type={content_type}",
+                )
+
                 try:
                     return json.loads(text)
                 except json.JSONDecodeError:
+                    write_app_log(
+                        "WARNING",
+                        COMPONENT_NAME,
+                        f"Non-JSON BitSight API response url={url} content_type={content_type}",
+                    )
                     return {
                         "raw_response": text,
                         "_response_content_type": content_type,
@@ -922,9 +1038,19 @@ class BitsightInput(Script):
                 error_body = e.read().decode("utf-8", errors="replace")
             except Exception:
                 error_body = ""
+            write_app_log(
+                "ERROR",
+                COMPONENT_NAME,
+                f"HTTP Error url={url} code={e.code} reason={e.reason}",
+            )
             raise Exception(f"HTTP Error {e.code}: {e.reason} {error_body}".strip())
 
         except urllib.error.URLError as e:
+            write_app_log(
+                "ERROR",
+                COMPONENT_NAME,
+                f"URL Error url={url} reason={e.reason}",
+            )
             raise Exception(f"URL Error: {e.reason}")
 
     def _handle_pagination(
@@ -945,9 +1071,16 @@ class BitsightInput(Script):
 
         aggregated = list(initial_results)
         next_url = ((initial_data.get("links") or {}).get("next") or "").strip()
+        page_count = 1
 
         while next_url:
             page_url = self._build_url(base_url, next_url)
+            write_app_log(
+                "INFO",
+                COMPONENT_NAME,
+                f"Fetching pagination page={page_count + 1} url={page_url}",
+            )
+
             page_data = self._request_url(
                 api_token=api_token,
                 url=page_url,
@@ -965,6 +1098,14 @@ class BitsightInput(Script):
 
             aggregated.extend(page_results)
             next_url = ((page_data.get("links") or {}).get("next") or "").strip()
+            page_count += 1
+
+        if page_count > 1:
+            write_app_log(
+                "INFO",
+                COMPONENT_NAME,
+                f"Completed pagination page_count={page_count} total_records={len(aggregated)}",
+            )
 
         return aggregated
 
@@ -1002,6 +1143,15 @@ class BitsightInput(Script):
             ew.write_event(event)
             count += 1
 
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            (
+                f"Wrote events input_name={input_name} endpoint={endpoint} "
+                f"sourcetype={sourcetype} index={index} count={count}"
+            ),
+        )
+
         return count
 
     def _add_argument(
@@ -1038,6 +1188,7 @@ class BitsightInput(Script):
 
         existing_files = [path for path in conf_paths if os.path.exists(path)]
         if not existing_files:
+            write_app_log("WARNING", COMPONENT_NAME, "No bitsight_settings.conf files found")
             return settings
 
         parser.read(existing_files, encoding="utf-8")
@@ -1045,6 +1196,12 @@ class BitsightInput(Script):
         for section in settings.keys():
             if parser.has_section(section):
                 settings[section] = {k: v for k, v in parser.items(section)}
+
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            f"Loaded app settings files={len(existing_files)}",
+        )
 
         return settings
 
@@ -1095,7 +1252,7 @@ class BitsightInput(Script):
             ),
         }
 
-        return {
+        config = {
             "api_token": api_token,
             "base_url": self._normalize_base_url(base_url or self.DEFAULT_API_BASE),
             "index": index or self.DEFAULT_INDEX,
@@ -1109,6 +1266,18 @@ class BitsightInput(Script):
             "timeout": timeout,
             "proxy": proxy,
         }
+
+        write_app_log(
+            "INFO",
+            COMPONENT_NAME,
+            (
+                f"Built runtime config endpoint={str(input_item.get('endpoint', '')).strip()} "
+                f"index={config['index']} verify_ssl={config['verify_ssl']} "
+                f"timeout={config['timeout']} proxy_enabled={config['proxy']['enabled']}"
+            ),
+        )
+
+        return config
 
     def _build_opener(
         self,
@@ -1249,4 +1418,6 @@ if __name__ == "__main__":
         print(f"ERROR: {SPLUNKLIB_IMPORT_ERROR}", file=sys.stderr)
         sys.exit(1)
 
+    ensure_bitsight_log_file()
+    write_app_log("INFO", COMPONENT_NAME, "Launching BitSight modular input process")
     sys.exit(BitsightInput().run(sys.argv))
