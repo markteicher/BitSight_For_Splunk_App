@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+=============================================================================
+ default/data/ui/views/bitsight_logging.xml
+ BitSight for Splunk App
+ Logging Dashboard
+=============================================================================
+
+PURPOSE
+
+Operational dashboard for browsing and searching BitSight for Splunk App
+logging activity.
+
+This dashboard provides:
+
+- log level summary visibility
+- internal log activity timeline
+- internal BitSight log review
+- API collection activity visibility
+- recent BitSight logging event review
+- error detail and stack trace visibility
+- component-scoped log browsing
+- free-text search across logs
+- operational summary visibility
+- log volume over time visibility
+- recent errors and warnings review
+- full internal log stream review
+
+DATA SOURCE
+
+This dashboard is powered by:
+
+- index=security_bitsight
+- sourcetype=bitsight_logging
+
+PRIMARY ANALYSIS OBJECTIVE
+
+Provide an operational log analysis view for administrators and analysts to
+monitor:
+
+- errors
+- warnings
+- info
+- debug activity
+- API collection behavior
+- internal modular input messages
+- recent BitSight logging events
+- log patterns
+- stack traces
+- component-specific activity
+
+FILTER MODEL
+
+Dashboard filtering is controlled by:
+
+- Time Range
+- Log Level
+- Component
+- Search Term
+- Operational Log Level
+- Operational Component
+- Keyword
+
+SCOPE
+
+BitSight for Splunk App logging only
+
+=============================================================================
+-->
+
+<form version="1.1" theme="dark">
+  <label>BitSight Logging</label>
+  <description>Browse and search BitSight for Splunk App logging activity</description>
+
+  <!-- =============================================================== -->
+  <!-- BASE SEARCH: APPLICATION LOGS                                   -->
+  <!-- =============================================================== -->
+  <search id="base_logs">
+    <query>
+      index=security_bitsight sourcetype=bitsight_logging
+      | eval message=coalesce(message, _raw)
+      | eval level_source=coalesce(level, log_level, severity, "")
+      | eval level_source=upper(level_source)
+      | eval level=case(
+          level_source="WARN", "WARNING",
+          level_source="WARNING", "WARNING",
+          level_source="ERROR", "ERROR",
+          level_source="INFO", "INFO",
+          level_source="DEBUG", "DEBUG",
+          level_source="CRITICAL", "ERROR",
+          match(message,"(?i)\bERROR\b"), "ERROR",
+          match(message,"(?i)\bWARN(?:ING)?\b"), "WARNING",
+          match(message,"(?i)\bINFO\b"), "INFO",
+          match(message,"(?i)\bDEBUG\b"), "DEBUG",
+          1=1, "OTHER"
+        )
+      | eval log_level=case(
+          level="WARNING", "WARN",
+          1=1, level
+        )
+      | eval component=coalesce(component, script_name, logger, logger_name, module, source, "unknown")
+      | fields _time, _raw, level, log_level, component, source, host, message
+    </query>
+    <earliest>$time_range.earliest$</earliest>
+    <latest>$time_range.latest$</latest>
+  </search>
+
+  <!-- =============================================================== -->
+  <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time_range">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+
+    <input type="dropdown" token="log_level">
+      <label>Log Level</label>
+      <choice value="*">All Levels</choice>
+      <choice value="ERROR">Error</choice>
+      <choice value="WARN">Warning</choice>
+      <choice value="INFO">Info</choice>
+      <choice value="DEBUG">Debug</choice>
+      <choice value="OTHER">Other</choice>
+      <default>*</default>
+    </input>
+
+    <input type="dropdown" token="component_scope">
+      <label>Component</label>
+      <choice value="*">All Components</choice>
+      <default>*</default>
+      <fieldForLabel>component</fieldForLabel>
+      <fieldForValue>component</fieldForValue>
+      <search>
+        <query>
+          index=security_bitsight sourcetype=bitsight_logging
+          | eval component=coalesce(component, script_name, logger, logger_name, module, source, "unknown")
+          | dedup component
+          | table component
+          | sort component
+        </query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+
+    <input type="text" token="search_term">
+      <label>Search Term</label>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <!-- =============================================================== -->
+  <!-- FIELDSET: OPERATIONAL FILTER CONTROLS                           -->
+  <!-- =============================================================== -->
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="level_filter" searchWhenChanged="true">
+      <label>Operational Log Level</label>
+      <choice value="*">All Levels</choice>
+      <choice value="ERROR">ERROR</choice>
+      <choice value="WARNING">WARNING</choice>
+      <choice value="INFO">INFO</choice>
+      <choice value="DEBUG">DEBUG</choice>
+      <choice value="OTHER">OTHER</choice>
+      <default>*</default>
+    </input>
+
+    <input type="dropdown" token="component_filter" searchWhenChanged="true">
+      <label>Operational Component</label>
+      <choice value="*">All Components</choice>
+      <default>*</default>
+      <fieldForLabel>component</fieldForLabel>
+      <fieldForValue>component</fieldForValue>
+      <search>
+        <query>
+          index=security_bitsight sourcetype=bitsight_logging
+          | eval component=coalesce(component, script_name, logger, logger_name, module, source, "unknown")
+          | dedup component
+          | table component
+          | sort component
+        </query>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+
+    <input type="text" token="keyword_filter" searchWhenChanged="true">
+      <label>Keyword</label>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+
+  <!-- =============================================================== -->
+  <!-- ROW 1: LOG LEVEL SUMMARY                                        -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <single>
+        <title>Errors</title>
+        <search base="base_logs">
+          <query>
+            | where log_level="ERROR"
+              AND (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="log_level">ERROR</set>
+        </drilldown>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Warnings</title>
+        <search base="base_logs">
+          <query>
+            | where log_level="WARN"
+              AND (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xF8BE34"]</option>
+        <option name="rangeValues">[5,20]</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="log_level">WARN</set>
+        </drilldown>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Info Messages</title>
+        <search base="base_logs">
+          <query>
+            | where log_level="INFO"
+              AND (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x6DB7C6","0x6DB7C6"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Total Log Entries</title>
+        <search base="base_logs">
+          <query>
+            | where (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x3D7EAA","0x3D7EAA"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 2: LOG TIMELINE                                             -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>Log Activity Timeline</title>
+      <chart>
+        <search base="base_logs">
+          <query>
+            | where (log_level="$log_level$" OR "$log_level$"="*")
+              AND (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | timechart span=15m count by log_level
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.fieldColors">{"ERROR": 0xDC4E41, "WARN": 0xF8BE34, "INFO": 0x6DB7C6, "DEBUG": 0x999999, "OTHER": 0x999999}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 3: INTERNAL LOGS                                            -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>Bitsight Internal Logs</title>
+      <table>
+        <search base="base_logs">
+          <query>
+            | where (log_level="$log_level$" OR "$log_level$"="*")
+              AND (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | eval level_icon=case(log_level="ERROR", "🔴", log_level="WARN", "🟡", log_level="INFO", "🔵", 1=1, "⚪")
+            | sort - _time
+            | table time_fmt, level_icon, log_level, component, message
+            | rename time_fmt as "Timestamp", level_icon as "", log_level as "Level", component as "Component", message as "Message"
+          </query>
+        </search>
+        <option name="count">50</option>
+        <option name="drilldown">none</option>
+        <option name="wrap">true</option>
+        <format type="color" field="Level">
+          <colorPalette type="map">{"ERROR": #DC4E41, "WARN": #F8BE34, "INFO": #6DB7C6, "DEBUG": #999999, "OTHER": #999999}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 4: API RESPONSE / COLLECTION ACTIVITY                       -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>API Collection Activity</title>
+      <table>
+        <search base="base_logs">
+          <query>
+            | where (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | rex field=message "(?i)(?P<api_endpoint>portfolio|ratings|findings|alerts|users|credentials|risk_vectors|threats|industries|tiers)"
+            | rex field=message "(?i)(?P<record_count>\d+)\s*(records|events|items|companies)"
+            | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | sort - _time
+            | table time_fmt, log_level, api_endpoint, record_count, message
+            | rename time_fmt as "Timestamp", log_level as "Level", api_endpoint as "API Endpoint", record_count as "Records", message as "Message"
+          </query>
+        </search>
+        <option name="count">30</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="Level">
+          <colorPalette type="map">{"ERROR": #DC4E41, "WARN": #F8BE34, "INFO": #6DB7C6, "DEBUG": #999999, "OTHER": #999999}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 5: RECENT BITSIGHT LOGGING EVENTS                           -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>Recent BitSight Logging Events</title>
+      <table>
+        <search base="base_logs">
+          <query>
+            | where (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+            | eval time_fmt=strftime(_time, "%Y-%m-%d %H:%M:%S")
+            | sort - _time
+            | table time_fmt, log_level, component, source, message
+            | rename time_fmt as "Timestamp", log_level as "Level", component as "Component", source as "Source", message as "Message"
+            | head 100
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">none</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 6: ERROR DETAILS AND STACK TRACES                           -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>Error Details &amp; Stack Traces</title>
+      <event>
+        <search base="base_logs">
+          <query>
+            | where log_level="ERROR"
+              AND (component="$component_scope$" OR "$component_scope$"="*")
+              AND (like(message,"%$search_term$%") OR "$search_term$"="*")
+          </query>
+        </search>
+        <option name="count">10</option>
+        <option name="list.drilldown">none</option>
+        <option name="type">list</option>
+      </event>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 7: OPERATIONAL SUMMARY                                      -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <single>
+        <title>Total Log Events</title>
+        <search base="base_logs">
+          <query>
+            | where (level="$level_filter$" OR "$level_filter$"="*")
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[100,500]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Errors</title>
+        <search base="base_logs">
+          <query>
+            | where level="ERROR"
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Warnings</title>
+        <search base="base_logs">
+          <query>
+            | where level="WARNING"
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | stats count
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xF1813F"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Distinct Components</title>
+        <search base="base_logs">
+          <query>
+            | where (level="$level_filter$" OR "$level_filter$"="*")
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | stats dc(component) as components
+          </query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0x6DB7C6","0xF8BE34"]</option>
+        <option name="rangeValues">[3,8]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 8: LOG VOLUME OVER TIME                                     -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>Log Volume Over Time</title>
+      <chart>
+        <search base="base_logs">
+          <query>
+            | where (level="$level_filter$" OR "$level_filter$"="*")
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | timechart span=30m count by level limit=5
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Events</option>
+        <option name="charting.fieldColors">{"ERROR": 0xDC4E41, "WARNING": 0xF1813F, "INFO": 0x53A051, "DEBUG": 0x6DB7C6, "OTHER": 0x999999}</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 9: EVENTS BY COMPONENT                                      -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>Events by Component</title>
+      <chart>
+        <search base="base_logs">
+          <query>
+            | where (level="$level_filter$" OR "$level_filter$"="*")
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | stats count by component
+            | sort -count
+            | head 10
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.axisTitleX.text">Events</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 10: RECENT ERRORS AND WARNINGS                              -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>Recent Errors and Warnings</title>
+      <table>
+        <search base="base_logs">
+          <query>
+            | where (level="ERROR" OR level="WARNING")
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | sort - _time
+            | table _time, level, component, host, source, message
+            | rename _time as "Time", level as "Level", component as "Component", host as "Host", source as "Source", message as "Message"
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <format type="color" field="Level">
+          <colorPalette type="map">{"ERROR": #DC4E41, "WARNING": #F1813F}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- =============================================================== -->
+  <!-- ROW 11: ALL LOG EVENTS                                          -->
+  <!-- =============================================================== -->
+  <row>
+    <panel>
+      <title>All Log Events</title>
+      <table>
+        <search base="base_logs">
+          <query>
+            | where (level="$level_filter$" OR "$level_filter$"="*")
+              AND (component="$component_filter$" OR "$component_filter$"="*")
+              AND (like(message,"%$keyword_filter$%") OR "$keyword_filter$"="*")
+            | sort - _time
+            | table _time, level, component, host, source, message
+            | rename _time as "Time", level as "Level", component as "Component", host as "Host", source as "Source", message as "Message"
+          </query>
+        </search>
+        <option name="count">50</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <format type="color" field="Level">
+          <colorPalette type="map">{"ERROR": #DC4E41, "WARNING": #F1813F, "INFO": #53A051, "DEBUG": #6DB7C6, "OTHER": #999999}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>
