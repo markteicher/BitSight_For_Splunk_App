@@ -1,4 +1,5 @@
-![BitSight](docs/images/ BitSight_logo.jpg)
+![BitSight](docs/images/BitSight_logo.jpg)
+
 # BitSight Security Ratings for Splunk
 
 ## Overview
@@ -279,4 +280,243 @@ index=security_bitsight sourcetype=bitsight_*
 | stats count by sourcetype
 ```
 
+## Directory Structure
 
+```text
+BitSight_For_Splunk_App/
+├── app.manifest
+├── LICENSE
+├── README.md
+├── default/
+│   ├── alert_actions.conf
+│   ├── app.conf
+│   ├── indexes.conf
+│   ├── inputs.conf
+│   ├── macros.conf
+│   ├── props.conf
+│   ├── restmap.conf
+│   ├── savedsearches.conf
+│   ├── transforms.conf
+│   ├── web.conf
+│   ├── workflow_actions.conf
+│   ├── data/ui/
+│   │   ├── nav/
+│   │   │   └── default.xml
+│   │   └── views/
+│   │       ├── setup.xml
+│   │       ├── bitsight_overview.xml
+│   │       ├── bitsight_search.xml
+│   │       ├── bitsight_portfolio.xml
+│   │       ├── bitsight_ratings.xml
+│   │       ├── bitsight_ratings_tree.xml
+│   │       ├── bitsight_ratings_trending.xml
+│   │       ├── bitsight_trending.xml
+│   │       ├── bitsight_benchmarking.xml
+│   │       ├── bitsight_findings.xml
+│   │       ├── bitsight_findings_detailed.xml
+│   │       ├── bitsight_findings_trending.xml
+│   │       ├── bitsight_remediation.xml
+│   │       ├── bitsight_mttr_executive.xml
+│   │       ├── bitsight_asset_risk_matrix.xml
+│   │       ├── bitsight_nist_csf.xml
+│   │       ├── bitsight_threats.xml
+│   │       ├── bitsight_exposed_credentials.xml
+│   │       ├── bitsight_users.xml
+│   │       ├── bitsight_users_access_review.xml
+│   │       ├── bitsight_alerts.xml
+│   │       ├── bitsight_health.xml
+│   │       ├── bitsight_health_check.xml
+│   │       ├── bitsight_operations.xml
+│   │       ├── bitsight_logs.xml
+│   │       ├── bitsight_reports.xml
+│   │       ├── bitsight_help.xml
+│   │       ├── bitsight_documentation_hub.xml
+│   │       └── bitsight_api_documentation.xml
+├── bin/
+│   ├── bitsight_input.py
+│   ├── bitsight_setup_handler.py
+│   ├── bitsight_validation.py
+│   ├── bitsight_email_alert.py
+│   ├── bitsight_webhook_alert.py
+│   ├── bitsight_script_alert.py
+│   ├── bitsight_pagerduty_alert.py
+│   └── bitsight_snow_alert.py
+├── docs/
+│   └── images/
+│       └── BitSight_logo.jpg
+├── local/
+│   ├── alert_actions.conf.example
+│   ├── bitsight_settings.conf.example
+│   └── inputs.conf.example
+├── lookups/
+│   ├── bitsight_rating_categories.csv
+│   ├── bitsight_risk_vectors.csv
+│   └── bitsight_severity_levels.csv
+├── metadata/
+│   ├── default.meta
+│   └── local.meta
+├── README/
+│   ├── alert_actions.conf.spec
+│   └── bitsight_settings.conf.spec
+└── static/
+    ├── appIcon.png
+    ├── appIcon_2x.png
+    ├── appIconAlt.png
+    └── appIconAlt_2x.png
+```
+
+## Sourcetypes
+
+| Sourcetype | Description |
+|------------|-------------|
+| `bitsight_portfolio` | Portfolio company data |
+| `bitsight_company` | Company detail and company search data |
+| `bitsight_country` | Country detail data |
+| `bitsight_rating_distribution` | Rating distribution data |
+| `bitsight_ratings_tree` | Company hierarchy and ratings tree data |
+| `bitsight_company_requests` | Company request summary data |
+| `bitsight_ratings` | Current security ratings |
+| `bitsight_ratings_history` | Historical ratings and grade history |
+| `bitsight_ratings_history_csv` | Ratings history CSV export data |
+| `bitsight_findings` | Security findings |
+| `bitsight_findings_summary` | Findings summary data |
+| `bitsight_findings_summaries` | Findings summaries data |
+| `bitsight_findings_statistics` | Findings statistics |
+| `bitsight_findings_comments` | Finding comment data |
+| `bitsight_observations` | Observation data |
+| `bitsight_risk_vectors` | Risk vector data |
+| `bitsight_risk_vectors_summary` | Risk vector summary data |
+| `bitsight_diligence_statistics` | Diligence statistics |
+| `bitsight_industry_statistics` | Industry statistics |
+| `bitsight_user_behavior_statistics` | User behavior statistics |
+| `bitsight_observations_statistics` | Observation statistics |
+| `bitsight_assets` | Asset data |
+| `bitsight_assets_statistics` | Asset statistics and asset risk matrix data |
+| `bitsight_infrastructure` | Infrastructure data |
+| `bitsight_infrastructure_changes` | Infrastructure change data |
+| `bitsight_ip_by_country` | IP by country data |
+| `bitsight_providers` | Service provider and dependency data |
+| `bitsight_products` | Product usage data |
+| `bitsight_users` | User records |
+| `bitsight_users_quota` | User quota information |
+| `bitsight_users_views` | User company view activity |
+| `bitsight_alerts` | BitSight alert notifications |
+| `bitsight_credentials` | Exposed credentials data |
+| `bitsight_threats` | Threat intelligence data |
+| `bitsight_folders` | Folder data |
+| `bitsight_tiers` | Tier data |
+| `bitsight_subscriptions` | Subscription data |
+| `bitsight_industries` | Industry reference data |
+| `bitsight_peer_analytics` | Peer analytics data |
+| `bitsight_nist_csf` | NIST CSF reporting data |
+| `bitsight_preview_report` | Preview report data |
+
+## Workflow Actions
+
+| Workflow Action Area | Description |
+|----------------------|-------------|
+| Company Links | Open company pages directly in the BitSight portal |
+| Company Searches | Search BitSight data for a selected company |
+| Findings Searches | Pivot from company, risk vector, severity, or asset into findings |
+| Credential Searches | Pivot from email to credential and breach data |
+| Risk Vector Searches | Pivot from a risk vector to affected companies |
+| Alert Searches | Pivot into historical alert activity |
+| Industry and Tier Searches | Pivot by industry or tier |
+| External Enrichment | Shodan, VirusTotal, Censys, WHOIS, DNS, and related lookups |
+
+## Requirements
+
+- Splunk Enterprise 8.0+ or compatible Splunk deployment
+- Python 3.x runtime as provided by Splunk
+- BitSight API token
+- Network connectivity to BitSight APIs
+- Optional proxy access if required by your environment
+
+## AppInspect Compliance
+
+This app is structured for Splunk app packaging and validation workflows, including:
+
+- proper app directory structure
+- no hardcoded credentials in shipped defaults
+- metadata files
+- setup handler support
+- modular input support
+- alert action scripts
+- README documentation
+- example local configuration files
+
+## Troubleshooting
+
+### No Data Appearing
+
+1. Go to **Apps → BitSight → Setup**.
+2. Verify the BitSight API token.
+3. Run **Test API Connection**.
+4. Confirm at least one input is enabled.
+5. Search Splunk internal logs:
+
+```spl
+index=_internal source=*bitsight*
+```
+
+### API Errors
+
+- Verify API token permissions in BitSight.
+- Confirm connectivity to `api.bitsighttech.com`.
+- Confirm base URL configuration.
+- Check timeout values.
+- Check proxy configuration if applicable.
+
+### Proxy Issues
+
+1. Verify proxy URL format includes protocol.
+2. Verify proxy credentials if required.
+3. Run **Test Proxy Connection**.
+4. Check Splunk internal logs for proxy errors.
+
+### Configuration Validation
+
+- Save the setup page after changes.
+- Review validation results.
+- Review health and operations dashboards.
+- Review app logs.
+
+### Sourcetype Verification
+
+Run:
+
+```spl
+index=security_bitsight
+| stats count by sourcetype
+| sort sourcetype
+```
+
+## Support
+
+### BitSight Resources
+
+- BitSight Knowledge Base  
+  https://help.bitsighttech.com/hc/en-us
+- How to Get Help  
+  https://help.bitsighttech.com/hc/en-us/articles/115000807367-How-to-Get-Help
+- BitSight Academy  
+  https://academy.bitsight.com/
+- BitSight API Documentation Overview  
+  https://help.bitsighttech.com/hc/en-us/articles/231872628-API-Documentation-Overview
+
+### Splunk Resources
+
+- Splunk Documentation  
+  https://docs.splunk.com
+
+## License
+
+Apache License 2.0
+
+Copyright (c) 2025 Mark Teicher
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
