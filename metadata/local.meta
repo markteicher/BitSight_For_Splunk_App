@@ -1,4 +1,39 @@
+#
 # Local permissions - customize as needed
+#
+# =============================================================================
+# FILE
+# =============================================================================
+# metadata/local.meta
+#
+# =============================================================================
+# PURPOSE
+# =============================================================================
+# Local metadata permissions
+# local export scope control
+# local override permissions
+# customizable object visibility
+#
+# =============================================================================
+# FILE LOCATION
+# =============================================================================
+# App-relative path
+# metadata/local.meta
+#
+# =============================================================================
+# GRANULAR DOCUMENTATION SPECIFICATION
+# =============================================================================
+# Metadata scope
+# local permissions
+#
+# Export model
+# export = none
+#
+# Intended usage
+# local customization
+# local override handling
+# non-system export scope
+#
 
 []
 export = none
