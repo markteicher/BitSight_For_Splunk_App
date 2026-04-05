@@ -1,18 +1,28 @@
 risk_vector,display_name,description
-botnet_infections,Botnet Infections,Systems infected with botnet malware
-spam_propagation,Spam Propagation,Systems sending spam email
-malware_servers,Malware Servers,Systems hosting malware
-unsolicited_comm,Unsolicited Communications,Outbound unsolicited communications
-potentially_exploited,Potentially Exploited,Systems showing signs of exploitation
-open_ports,Open Ports,Unnecessarily exposed network services
-patching_cadence,Patching Cadence,Speed of applying security patches
-insecure_systems,Insecure Systems,Systems with known vulnerabilities
-ssl_certificates,SSL Certificates,SSL/TLS certificate issues
-ssl_configurations,SSL Configurations,SSL/TLS configuration problems
-spf,SPF,Sender Policy Framework configuration
-dkim,DKIM,DomainKeys Identified Mail configuration
-dnssec,DNSSEC,DNS Security Extensions
-mobile_app_security,Mobile App Security,Mobile application security issues
-file_sharing,File Sharing,File sharing exposure
-desktop_software,Desktop Software,Desktop software security
-server_software,Server Software,Server software security
+botnet_infections,Botnet Infections,Devices on a company's network participating in a botnet
+spam_propagation,Spam Propagation,Devices on a company's network sending unsolicited bulk email
+malware_servers,Malware Servers,Systems hosting malware or engaging in malicious activity
+unsolicited_comm,Unsolicited Communications,Hosts attempting unexpected or unsupported outbound communications
+potentially_exploited,Potentially Exploited,Devices running potentially unwanted programs or applications
+open_ports,Open Ports,Internet-exposed network ports and services
+patching_cadence,Patching Cadence,How quickly vulnerable systems are patched
+insecure_systems,Insecure Systems,Systems communicating in ways that suggest outdated, tampered, or misconfigured software
+ssl_certificates,SSL Certificates,TLS or SSL certificate strength and trust issues
+ssl_configurations,SSL Configurations,TLS or SSL protocol and configuration weaknesses
+spf,SPF,Sender Policy Framework record effectiveness
+dkim,DKIM,DomainKeys Identified Mail record effectiveness
+dnssec,DNSSEC,DNSSEC configuration and effectiveness
+mobile_application_security,Mobile Application Security,Security issues in public mobile application offerings
+application_security,Web Application Headers,Security-related HTTP header weaknesses
+dmarc,DMARC,Domain-based Message Authentication Reporting and Conformance effectiveness
+file_sharing,File Sharing,File sharing exposure observed in company activity or infrastructure
+desktop_software,Desktop Software,Out-of-date or unsupported desktop software exposure
+server_software,Server Software,Out-of-date or unsupported server software exposure
+mobile_software,Mobile Software,Out-of-date or unsupported mobile device software exposure
+domain_squatting,Domain Squatting,Domains that imitate or resemble company-owned domains
+exposed_credentials,Exposed Credentials,Verified third-party breach exposure involving employee credentials
+data_breaches,Security Incidents,Publicly disclosed security incidents involving unauthorized access to data or resources
+breach,Breach Security Incident,Publicly disclosed breach-related security incident
+general,General Security Incident,Publicly disclosed general security incident
+other,Other Disclosures,Other publicly disclosed events relevant to cyber risk
+vulnerability,Vulnerability,Vulnerability-related observations and details
