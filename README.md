@@ -112,6 +112,18 @@ All functionality is implemented independently using publicly available BitSight
 | Intermediate | 640-730 | Fair security performance and moderate risk |
 | Basic | 250-630 | Poor security performance and higher risk |
 
+
+## BitSight Severity Levels
+
+| Severity | Display Name | Priority | Color |
+|----------|--------------|----------|-------|
+| severe | Severe | 1 | #dc4e41 |
+| material | Material | 2 | #f1813f |
+| moderate | Moderate | 3 | #f8be34 |
+| minor | Minor | 4 | #53a051 |
+
+
+
 ## BitSight Severity Levels
 
 | Severity | Display Name | Priority | Color |
