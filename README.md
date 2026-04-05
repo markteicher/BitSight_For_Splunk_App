@@ -1,6 +1,6 @@
 ![BitSight](docs/images/%20BitSight_logo.jpg)
 
-![BitSight](docs/images/%20bitsight_for_splunk_navigation_hub.jpg)
+![BitSight](docs/images/bitsight_for_splunk_navigation_hub.jpg)
 
 # BitSight Security Ratings for Splunk
 
