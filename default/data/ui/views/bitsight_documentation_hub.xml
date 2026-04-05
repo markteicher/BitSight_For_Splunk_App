@@ -1,0 +1,245 @@
+<!--
+=============================================================================
+ default/data/ui/views/bitsight_documentation_hub.xml
+ BitSight for Splunk App
+ Documentation Hub (tile layout)
+=============================================================================
+
+  FILE
+  =============================================================================
+  default/data/ui/views/bitsight_documentation_hub.xml
+
+  PURPOSE
+  =============================================================================
+  BitSight documentation hub
+  separate from the API-only documentation hub
+  tile-based navigation
+  external documentation references
+  official BitSight knowledge resources
+
+  FILE LOCATION
+  =============================================================================
+  App-relative path
+  default/data/ui/views/bitsight_documentation_hub.xml
+
+  Local override path
+  local/data/ui/views/bitsight_documentation_hub.xml
+
+  GRANULAR DOCUMENTATION SPECIFICATION
+  =============================================================================
+  Dashboard type
+  Splunk Classic XML dashboard
+
+  Theme
+  light
+
+  Layout
+  tile layout
+
+  Grid columns
+  3
+
+  Primary destinations
+  BitSight Knowledge Base
+  BitSight Resources
+  BitSight Platform
+  BitSight Academy
+  How to Get Help
+  Release Notes
+  Methodologies
+  Rating Methodologies
+  What is a BitSight Security Rating
+  How are BitSight Security Ratings Calculated
+  Why Do BitSight Security Ratings Fluctuate
+  Parent-Subsidiary Ratings
+  Risk Vector Grading with Insufficient Data
+  Desktop and Mobile Software Thresholds
+  Vulnerability Severity / BitSight Severity / CVSS
+  Compromised Systems Risk Category
+  Security Ratings Timeline Highlights
+  Ratings Correlate to Breaches
+  Ratings Correlation to Ransomware
+  Logging In and Out of BitSight
+  BitSight Platform Access
+  Login.gov
+  Login.gov Initial Setup
+  BitSight API Overview
+  BitSight API Guides
+  Findings Remediation API Guide
+  Manage Access Control Groups via API
+  Infrastructure Attribution API Guide
+-->
+<dashboard version="1.1" theme="light">
+  <label>📚 BitSight Documentation Hub</label>
+
+  <row>
+    <panel>
+      <html>
+
+        <style>
+          .portal-grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:22px;
+            margin-top:20px;
+          }
+          .portal-tile{
+            background:#ffffff;
+            border:1px solid #e5e5e5;
+            border-radius:8px;
+            padding:22px;
+            text-align:center;
+            transition:all .18s ease;
+          }
+          .portal-tile:hover{
+            box-shadow:0 4px 14px rgba(0,0,0,.18);
+            transform:translateY(-2px);
+          }
+          .portal-icon{font-size:34px;margin-bottom:10px;}
+          .portal-title{font-size:15px;font-weight:600;}
+          .portal-link{text-decoration:none;color:inherit;display:block;}
+        </style>
+
+        <div class="portal-grid">
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🌐</div>
+              <div class="portal-title">BitSight Knowledge Base</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/115003299727-Bitsight-Resources" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🧭</div>
+              <div class="portal-title">BitSight Resources</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/categories/4410175635991-Bitsight-Platform" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🖥️</div>
+              <div class="portal-title">BitSight Platform</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360010756233-Bitsight-Academy" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🎓</div>
+              <div class="portal-title">BitSight Academy</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/115000807367-How-to-Get-Help" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🆘</div>
+              <div class="portal-title">How to Get Help</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360015920293-Release-Notes" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🆕</div>
+              <div class="portal-title">Release Notes</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/categories/19493582637591-Methodologies" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📚</div>
+              <div class="portal-title">Methodologies</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/sections/360001938414-Rating-Methodologies" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📐</div>
+              <div class="portal-title">Rating Methodologies</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231352528-What-is-a-Bitsight-Security-Rating" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🏷️</div>
+              <div class="portal-title">What is a BitSight Security Rating?</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/231950968-How-are-Bitsight-Security-Ratings-Calculated" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🧠</div>
+              <div class="portal-title">How Are Security Ratings Calculated?</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360015249114-Why-Do-Bitsight-Security-Ratings-Fluctuate" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📉</div>
+              <div class="portal-title">Why Do Ratings Fluctuate?</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360010815274-How-are-parent-subsidiary-Security-Ratings-calculated-" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🧩</div>
+              <div class="portal-title">Parent-Subsidiary Ratings</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/22221767845783-Risk-Vector-Grading-with-Insufficient-Data" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📊</div>
+              <div class="portal-title">Risk Vector Grading with Insufficient Data</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/22220461885591-Observed-Devices-Thresholds-for-Grading-Desktop-and-Mobile-Software-Risk-Vectors" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📏</div>
+              <div class="portal-title">Desktop and Mobile Software Thresholds</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/4418994292887-Vulnerability-Severity-Bitsight-Severity-CVSS" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">⚖️</div>
+              <div class="portal-title">Vulnerability Severity / BitSight Severity / CVSS</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360005428073-How-is-the-Compromised-Systems-Risk-Category-Calculated" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🦠</div>
+              <div class="portal-title">Compromised Systems Risk Category</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/235448247-Security-Ratings-Timeline-Highlights" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🕒</div>
+              <div class="portal-title">Security Ratings Timeline Highlights</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/360011652613-Bitsight-Security-Ratings-Correlate-to-Breaches" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">📰</div>
+              <div class="portal-title">Ratings Correlate to Breaches</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/4418242253463-The-Bitsight-Security-Ratings-Correlation-to-Ransomware" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🛡️</div>
+              <div class="portal-title">Ratings Correlation to Ransomware</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsighttech.com/hc/en-us/articles/4410323854103-Logging-In-and-Out-of-Bitsight" target="_blank">
+            <div class="portal-tile">
+              <div class="portal-icon">🔐</div>
+              <div class="portal-title">Logging In and Out of BitSight</div>
+            </div>
+          </a>
+
+          <a class="portal-link" href="https://help.bitsight
