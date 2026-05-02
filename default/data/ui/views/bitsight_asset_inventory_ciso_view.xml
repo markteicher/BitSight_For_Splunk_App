@@ -13,62 +13,123 @@ Version:
 
 PURPOSE
 
-Provide a clear, complete view of BitSight asset data so a CISO or auditor
-can understand external assets, ownership, geographic distribution, and
-asset age.
+Provide a complete, easy-to-understand view of BitSight asset data so a CISO
+or auditor can review external assets, ownership, geographic distribution,
+age, and overall exposure.
+
+This view is designed for executive review and third-party audit use.
 
 DATA SOURCE
 
 bitsight_with_full_whois.csv
 
-PRIMARY KEY
+DATA DESCRIPTION
 
-Value (IP / CIDR)
+- Each row represents one asset (IP address or CIDR range)
+- Data includes ownership, location, lifecycle timing, and supporting metadata
+- No external data is added
+- No assumptions are made beyond what exists in the dataset
 
-NOTES
+KEY FIELD
 
-- "Start Date" is used to show when assets were first seen
-- Time-based panels show new assets, not total inventory change
+Value (IP address or CIDR range)
+
+IMPORTANT FIELDS
+
+Is Active
+    Shows if the asset is currently active
+
+Start Date
+    First time the asset was observed
+
+End Date
+    Last time the asset was observed (if no longer active)
+
+Attributed To
+    Organization responsible for the asset
+
+Country
+    Geographic location of the asset
+
+CIDR Size
+    Size of the network range (larger values mean broader exposure)
+
+AS Number
+    Network provider
+
+Tags
+    Labels used for grouping or classification
+
+AGE CALCULATION
+
+- Age is calculated using Start Date and the current date
+- Age is shown in both days and grouped ranges
+- Age helps identify newer vs long-standing assets
+
+TIME-BASED PANELS
+
+- Day/Week/Month panels show when assets were first seen
+- These panels show new assets over time
+- They do not show assets removed or total inventory change
+
+LIMITATIONS
+
+- Data reflects what BitSight provides
+- WHOIS data may be incomplete or repeated
+- Ownership and location may not always reflect real-time changes
+- This view does not include vulnerability or risk scoring
 
 =============================================================================
 -->
 <dashboard version="1.1">
 
-  <!-- BASE SEARCH -->
+  <!--
+    BASE SEARCH
+
+    Purpose:
+    - Load the dataset
+    - Convert Start Date into a usable time format
+    - Calculate how old each asset is
+    - Group assets into age ranges for reporting
+
+    All panels use this base search to ensure consistent results.
+  -->
   <search id="base_bitsight">
     <query>
       | inputlookup bitsight_with_full_whois.csv
-      | eval start_epoch = strptime('Start Date', "%Y-%m-%d")
-      | eval age_days = floor((now() - start_epoch)/86400)
-      | eval age_bucket = case(
-          age_days < 30, "0-29d",
-          age_days < 60, "30-59d",
-          age_days < 90, "60-89d",
-          age_days < 180, "90-179d",
-          age_days < 365, "180-364d",
-          age_days < 730, "1y",
-          age_days < 1095, "2y",
-          age_days < 1460, "3y",
-          age_days < 1825, "4y",
-          age_days < 2190, "5y",
-          age_days >= 2190, "5y+"
+      | eval start_epoch=strptime('Start Date', "%Y-%m-%d")
+      | eval age_days=floor((now()-start_epoch)/86400)
+      | eval age_bucket=case(
+          age_days < 30,"0-29d",
+          age_days < 60,"30-59d",
+          age_days < 90,"60-89d",
+          age_days < 180,"90-179d",
+          age_days < 365,"180-364d",
+          age_days < 730,"1y",
+          age_days < 1095,"2y",
+          age_days < 1460,"3y",
+          age_days < 1825,"4y",
+          age_days < 2190,"5y",
+          age_days >= 2190,"5y+"
       )
     </query>
   </search>
 
-  <!-- ROW 1 -->
+  <!-- ROW 1: High-level counts -->
   <row>
     <panel>
       <title>Total Assets</title>
+      <!-- Shows total number of asset records -->
       <single>
         <search base="base_bitsight">
-          <query>| stats count as "Total Assets"</query>
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
 
     <panel>
       <title>Active vs Inactive</title>
+      <!-- Compares currently active assets vs inactive -->
       <table>
         <search base="base_bitsight">
           <query>| stats count by "Is Active"</query>
@@ -77,10 +138,11 @@ NOTES
     </panel>
   </row>
 
-  <!-- ROW 2 -->
+  <!-- ROW 2: Distribution -->
   <row>
     <panel>
       <title>Geographic Distribution</title>
+      <!-- Shows where assets are located -->
       <table>
         <search base="base_bitsight">
           <query>| stats count by Country | sort - count</query>
@@ -90,6 +152,7 @@ NOTES
 
     <panel>
       <title>Ownership Distribution</title>
+      <!-- Shows who owns or is responsible for assets -->
       <table>
         <search base="base_bitsight">
           <query>| stats count by "Attributed To" | sort - count</query>
@@ -98,10 +161,11 @@ NOTES
     </panel>
   </row>
 
-  <!-- ROW 3 -->
+  <!-- ROW 3: Age and exposure -->
   <row>
     <panel>
       <title>Asset Age Distribution</title>
+      <!-- Groups assets by how long they have existed -->
       <table>
         <search base="base_bitsight">
           <query>| stats count by age_bucket</query>
@@ -111,38 +175,33 @@ NOTES
 
     <panel>
       <title>Largest Network Ranges</title>
+      <!-- Highlights largest CIDR blocks (highest exposure) -->
       <table>
         <search base="base_bitsight">
-          <query>| sort - "CIDR Size" | head 10 | table Value "CIDR Size" "Attributed To"</query>
+          <query>| sort - "CIDR Size" | head 10</query>
         </search>
       </table>
     </panel>
   </row>
 
-  <!-- ROW 4 -->
+  <!-- ROW 4: New assets over time -->
   <row>
     <panel>
       <title>New Assets Day over Day</title>
+      <!-- Shows assets first seen each day -->
       <table>
         <search base="base_bitsight">
-          <query>
-            | eval _time = strptime('Start Date', "%Y-%m-%d")
-            | timechart span=1d count as new_assets
-            | delta new_assets as change
-          </query>
+          <query>| eval _time=strptime('Start Date', "%Y-%m-%d") | timechart span=1d count</query>
         </search>
       </table>
     </panel>
 
     <panel>
       <title>New Assets Week over Week</title>
+      <!-- Shows assets first seen each week -->
       <table>
         <search base="base_bitsight">
-          <query>
-            | eval _time = strptime('Start Date', "%Y-%m-%d")
-            | timechart span=1w count as new_assets
-            | delta new_assets as change
-          </query>
+          <query>| eval _time=strptime('Start Date', "%Y-%m-%d") | timechart span=1w count</query>
         </search>
       </table>
     </panel>
@@ -152,22 +211,66 @@ NOTES
   <row>
     <panel>
       <title>New Assets Month over Month</title>
+      <!-- Shows assets first seen each month -->
       <table>
         <search base="base_bitsight">
-          <query>
-            | eval _time = strptime('Start Date', "%Y-%m-%d")
-            | timechart span=1mon count as new_assets
-            | delta new_assets as change
-          </query>
+          <query>| eval _time=strptime('Start Date', "%Y-%m-%d") | timechart span=1mon count</query>
         </search>
       </table>
     </panel>
   </row>
 
-  <!-- ROW 6 -->
+  <!-- ROW 6: Data quality -->
+  <row>
+    <panel>
+      <title>Missing Ownership</title>
+      <!-- Identifies assets without attribution -->
+      <table>
+        <search base="base_bitsight">
+          <query>| eval status=if(isnull('Attributed To') OR 'Attributed To'="","Missing","Present") | stats count by status</query>
+        </search>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Missing Country</title>
+      <!-- Identifies assets without location data -->
+      <table>
+        <search base="base_bitsight">
+          <query>| eval status=if(isnull(Country) OR Country="","Missing","Present") | stats count by status</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ROW 7: Exposure -->
+  <row>
+    <panel>
+      <title>Exposure by Owner</title>
+      <!-- Total CIDR size grouped by owner -->
+      <table>
+        <search base="base_bitsight">
+          <query>| stats sum("CIDR Size") as exposure by "Attributed To" | sort - exposure</query>
+        </search>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Exposure by Country</title>
+      <!-- Total CIDR size grouped by country -->
+      <table>
+        <search base="base_bitsight">
+          <query>| stats sum("CIDR Size") as exposure by Country | sort - exposure</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ROW 8: Detail -->
   <row>
     <panel>
       <title>Detailed Asset View</title>
+      <!-- Full dataset for audit review -->
       <table>
         <search base="base_bitsight">
           <query>| sort 0 "Start Date"</query>
