@@ -37,10 +37,8 @@ Capability-only items without a dedicated BitSight view are displayed as
 non-clickable tiles.
 
 =============================================================================
--->
-<dashboard version="1.1" theme="light">
-  <label>📚 BitSight for Splunk App – Navigation Hub</label>
-
+--><dashboard version="1.1" theme="light">
+  <label>📚 BitSight Security Ratings for Splunk App – Navigation Hub</label>
   <row>
     <panel>
       <html>
@@ -96,33 +94,27 @@ non-clickable tiles.
 
         <div class="portal-grid">
 
-          <a class="portal-link" href="bitsight_overview">
-            <div class="portal-tile">
-              <div class="portal-icon">🧭</div>
-              <div class="portal-title">Overview</div>
-            </div>
-          </a>
-
-          <a class="portal-link" href="bitsight_search">
-            <div class="portal-tile">
-              <div class="portal-icon">🔎</div>
-              <div class="portal-title">Search</div>
-            </div>
-          </a>
 
           <div class="portal-tile portal-header">Core Capabilities</div>
+          
+                    <a class="portal-link" href="bitsight_users">
+            <div class="portal-tile">
+              <div class="portal-icon">👥</div>
+              <div class="portal-title">Companies</div>
+            </div>
+          </a>
 
           <a class="portal-link" href="bitsight_ratings">
             <div class="portal-tile">
               <div class="portal-icon">📊</div>
-              <div class="portal-title">Security Ratings Monitoring</div>
+              <div class="portal-title">Current Ratings</div>
             </div>
           </a>
 
           <a class="portal-link" href="bitsight_portfolio">
             <div class="portal-tile">
               <div class="portal-icon">🏢</div>
-              <div class="portal-title">Portfolio Management</div>
+              <div class="portal-title">Portfolio</div>
             </div>
           </a>
 
@@ -132,20 +124,22 @@ non-clickable tiles.
               <div class="portal-title">Alert Management</div>
             </div>
           </a>
-
-          <a class="portal-link" href="bitsight_findings">
-            <div class="portal-tile">
-              <div class="portal-icon">🔍</div>
-              <div class="portal-title">Findings Analysis</div>
-            </div>
-          </a>
-
+          
           <a class="portal-link" href="bitsight_exposed_credentials">
             <div class="portal-tile">
               <div class="portal-icon">🔐</div>
               <div class="portal-title">Exposed Credentials</div>
             </div>
           </a>
+
+          <a class="portal-link" href="bitsight_findings">
+            <div class="portal-tile">
+              <div class="portal-icon">🔍</div>
+              <div class="portal-title">Findings and Observations</div>
+            </div>
+          </a>
+
+          
 
           <a class="portal-link" href="bitsight_threats">
             <div class="portal-tile">
@@ -154,12 +148,7 @@ non-clickable tiles.
             </div>
           </a>
 
-          <a class="portal-link" href="bitsight_users">
-            <div class="portal-tile">
-              <div class="portal-icon">👥</div>
-              <div class="portal-title">User Management</div>
-            </div>
-          </a>
+
 
           <a class="portal-link" href="bitsight_findings_detailed">
             <div class="portal-tile">
@@ -201,7 +190,7 @@ non-clickable tiles.
           <a class="portal-link" href="bitsight_mttr_executive">
             <div class="portal-tile">
               <div class="portal-icon">⏱️</div>
-              <div class="portal-title">MTTR Executive</div>
+              <div class="portal-title">MTTR Executive Metrics</div>
             </div>
           </a>
 
