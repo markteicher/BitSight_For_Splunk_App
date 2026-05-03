@@ -1,80 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--
-=============================================================================
- default/data/ui/views/bitsight_findings_trending.xml
- BitSight for Splunk App
- Findings Trending Dashboard
-=============================================================================
-
-PURPOSE
-
-Trend analysis dashboard for BitSight findings across multiple reporting
-periods.
-
-This dashboard provides:
-
-- Week-over-Week (WoW) findings trend visibility
-- Month-over-Month (MoM) findings trend visibility
-- Quarter-over-Quarter (QoQ) findings trend visibility
-- Year-over-Year (YoY) findings trend visibility
-- Current period findings KPI monitoring
-- Findings trendline visualization
-- Findings trend analysis by severity
-- Findings trend analysis by risk vector
-- Company-level WoW and MoM comparison views
-- QoQ comparison by derived risk category
-- Daily / hourly findings heatmap visibility
-
-DATA SOURCE
-
-This dashboard is powered by BitSight findings events indexed in Splunk:
-
-- index=security_bitsight
-- sourcetype=bitsight:findings
-
-PRIMARY ANALYSIS OBJECTIVE
-
-Provide an operational trend view for analysts to monitor:
-
-- findings growth or reduction over time
-- short-term versus long-term findings movement
-- company-level period-over-period changes
-- severity-based findings trends
-- risk-vector-based trend concentration
-- distribution changes across derived risk categories
-- temporal concentration of findings by day and hour
-
-FILTER MODEL
-
-Dashboard filtering is controlled by:
-
-- Time Range
-- Company
-- Severity
-- Risk Vector
-
-TREND MODEL
-
-This dashboard includes:
-
-- current period KPI totals
-- WoW percentage change
-- MoM percentage change
-- QoQ percentage change
-- YoY percentage change
-- weekly time-based findings trend charts
-- derived trend states such as increasing, decreasing, and stable
-
-=============================================================================
--->
-
-<dashboard version="1.1" theme="dark">
-  <label>Findings Trending</label>
+<form version="1.1" theme="dark">
+  <label>BitSight Security Ratings Findings Trending</label>
   <description>Week-over-Week, Month-over-Month, Quarter-over-Quarter, and Year-over-Year findings trends</description>
-  
   <!-- =============================================================== -->
   <!-- FIELDSET: GLOBAL FILTER CONTROLS                                -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 1: CURRENT PERIOD FINDINGS KPIS                             -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 2: PERIOD-OVER-PERIOD CHANGE KPIS                           -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 3: OVERALL FINDINGS TREND                                   -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 4: SEVERITY TREND                                            -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 5: RISK VECTOR TREND                                         -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 6: WOW DETAILED COMPARISON                                  -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 7: MOM DETAILED COMPARISON                                  -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 8: CRITICAL / SEVERE TREND AND RISK VECTOR CHANGE           -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 9: QOQ BY DERIVED RISK CATEGORY                             -->
+  <!-- =============================================================== -->
+  <!-- =============================================================== -->
+  <!-- ROW 10: FINDINGS HEATMAP                                        -->
   <!-- =============================================================== -->
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="time_range" searchWhenChanged="false">
@@ -119,10 +77,6 @@ This dashboard includes:
       <fieldForValue>risk_vector</fieldForValue>
     </input>
   </fieldset>
-
-  <!-- =============================================================== -->
-  <!-- ROW 1: CURRENT PERIOD FINDINGS KPIS                             -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>This Week Findings</title>
@@ -189,21 +143,17 @@ This dashboard includes:
       </single>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 2: PERIOD-OVER-PERIOD CHANGE KPIS                           -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Week-over-Week (WoW) Change</title>
       <single>
         <search>
           <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
-| eval period=if(_time >= relative_time(now(), "-7d@d"), "this_week", if(_time >= relative_time(now(), "-14d@d"), "last_week", "older"))
+| eval period=if(_time &gt;= relative_time(now(), "-7d@d"), "this_week", if(_time &gt;= relative_time(now(), "-14d@d"), "last_week", "older"))
 | stats count by period
 | eval this_week=if(period="this_week", count, 0), last_week=if(period="last_week", count, 0)
 | stats sum(this_week) as this_week sum(last_week) as last_week
-| eval wow_change=if(last_week>0, round(((this_week-last_week)/last_week)*100, 1), 0)
+| eval wow_change=if(last_week&gt;0, round(((this_week-last_week)/last_week)*100, 1), 0)
 | eval wow_display=wow_change."%"
 | table wow_display</query>
           <earliest>-14d@d</earliest>
@@ -223,11 +173,11 @@ This dashboard includes:
       <single>
         <search>
           <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
-| eval period=if(_time >= relative_time(now(), "-30d@d"), "this_month", if(_time >= relative_time(now(), "-60d@d"), "last_month", "older"))
+| eval period=if(_time &gt;= relative_time(now(), "-30d@d"), "this_month", if(_time &gt;= relative_time(now(), "-60d@d"), "last_month", "older"))
 | stats count by period
 | eval this_month=if(period="this_month", count, 0), last_month=if(period="last_month", count, 0)
 | stats sum(this_month) as this_month sum(last_month) as last_month
-| eval mom_change=if(last_month>0, round(((this_month-last_month)/last_month)*100, 1), 0)
+| eval mom_change=if(last_month&gt;0, round(((this_month-last_month)/last_month)*100, 1), 0)
 | eval mom_display=mom_change."%"
 | table mom_display</query>
           <earliest>-60d@d</earliest>
@@ -246,11 +196,11 @@ This dashboard includes:
       <single>
         <search>
           <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
-| eval period=if(_time >= relative_time(now(), "-90d@d"), "this_quarter", if(_time >= relative_time(now(), "-180d@d"), "last_quarter", "older"))
+| eval period=if(_time &gt;= relative_time(now(), "-90d@d"), "this_quarter", if(_time &gt;= relative_time(now(), "-180d@d"), "last_quarter", "older"))
 | stats count by period
 | eval this_quarter=if(period="this_quarter", count, 0), last_quarter=if(period="last_quarter", count, 0)
 | stats sum(this_quarter) as this_quarter sum(last_quarter) as last_quarter
-| eval qoq_change=if(last_quarter>0, round(((this_quarter-last_quarter)/last_quarter)*100, 1), 0)
+| eval qoq_change=if(last_quarter&gt;0, round(((this_quarter-last_quarter)/last_quarter)*100, 1), 0)
 | eval qoq_display=qoq_change."%"
 | table qoq_display</query>
           <earliest>-180d@d</earliest>
@@ -269,11 +219,11 @@ This dashboard includes:
       <single>
         <search>
           <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$" risk_vector="$risk_vector_filter$"
-| eval period=if(_time >= relative_time(now(), "-365d@d"), "this_year", if(_time >= relative_time(now(), "-730d@d"), "last_year", "older"))
+| eval period=if(_time &gt;= relative_time(now(), "-365d@d"), "this_year", if(_time &gt;= relative_time(now(), "-730d@d"), "last_year", "older"))
 | stats count by period
 | eval this_year=if(period="this_year", count, 0), last_year=if(period="last_year", count, 0)
 | stats sum(this_year) as this_year sum(last_year) as last_year
-| eval yoy_change=if(last_year>0, round(((this_year-last_year)/last_year)*100, 1), 0)
+| eval yoy_change=if(last_year&gt;0, round(((this_year-last_year)/last_year)*100, 1), 0)
 | eval yoy_display=yoy_change."%"
 | table yoy_display</query>
           <earliest>-730d@d</earliest>
@@ -288,10 +238,6 @@ This dashboard includes:
       </single>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 3: OVERALL FINDINGS TREND                                   -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings Trend Over Time</title>
@@ -311,10 +257,6 @@ This dashboard includes:
       </chart>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 4: SEVERITY TREND                                            -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings by Severity - Weekly Trend</title>
@@ -333,10 +275,6 @@ This dashboard includes:
       </chart>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 5: RISK VECTOR TREND                                         -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Top Risk Vectors - Weekly Trend</title>
@@ -353,22 +291,19 @@ This dashboard includes:
       </chart>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 6: WOW DETAILED COMPARISON                                  -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Week-over-Week Findings by Company</title>
       <table>
         <search>
           <query>index=security_bitsight sourcetype=bitsight:findings severity="$severity_filter$" risk_vector="$risk_vector_filter$"
-| eval period=if(_time >= relative_time(now(), "-7d@d"), "this_week", if(_time >= relative_time(now(), "-14d@d"), "last_week", "older"))
+| eval period=if(_time &gt;= relative_time(now(), "-7d@d"), "this_week", if(_time &gt;= relative_time(now(), "-14d@d"), "last_week", "older"))
 | stats count by company_name period
 | xyseries company_name period count
 | fillnull value=0 this_week last_week
-| eval wow_change=if(last_week>0, round(((this_week-last_week)/last_week)*100, 1), if(this_week>0, 100, 0))
-| eval trend=case(wow_change>10, "▲ Increasing", wow_change<-10, "▼ Decreasing", true(), "― Stable")
+| eval wow_change=if(last_week&gt;0, round(((this_week-last_week)/last_week)*100, 1), if(this_week&gt;0, 100, 0))
+ <!--
+| eval trend=case(wow_change>10, "▲ Increasing", wow_change<-10, "▼ Decreasing", true(), "― Stable")-->
 | sort -wow_change
 | rename this_week as "This Week" last_week as "Last Week" wow_change as "WoW Change %" trend as "Trend"
 | table company_name "Last Week" "This Week" "WoW Change %" Trend</query>
@@ -387,22 +322,20 @@ This dashboard includes:
       </table>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 7: MOM DETAILED COMPARISON                                  -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Month-over-Month Findings by Company</title>
       <table>
         <search>
           <query>index=security_bitsight sourcetype=bitsight:findings severity="$severity_filter$" risk_vector="$risk_vector_filter$"
-| eval period=if(_time >= relative_time(now(), "-30d@d"), "this_month", if(_time >= relative_time(now(), "-60d@d"), "last_month", "older"))
+| eval period=if(_time &gt;= relative_time(now(), "-30d@d"), "this_month", if(_time &gt;= relative_time(now(), "-60d@d"), "last_month", "older"))
 | stats count by company_name period
 | xyseries company_name period count
 | fillnull value=0 this_month last_month
-| eval mom_change=if(last_month>0, round(((this_month-last_month)/last_month)*100, 1), if(this_month>0, 100, 0))
+| eval mom_change=if(last_month&gt;0, round(((this_month-last_month)/last_month)*100, 1), if(this_month&gt;0, 100, 0))
+<!--
 | eval trend=case(mom_change>10, "▲ Increasing", mom_change<-10, "▼ Decreasing", true(), "― Stable")
+ -->
 | sort -mom_change
 | rename this_month as "This Month" last_month as "Last Month" mom_change as "MoM Change %" trend as "Trend"
 | table company_name "Last Month" "This Month" "MoM Change %" Trend</query>
@@ -421,10 +354,6 @@ This dashboard includes:
       </table>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 8: CRITICAL / SEVERE TREND AND RISK VECTOR CHANGE           -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Critical/Severe Findings Trend</title>
@@ -447,7 +376,7 @@ This dashboard includes:
       <chart>
         <search>
           <query>index=security_bitsight sourcetype=bitsight:findings company_name="$company_filter$" severity="$severity_filter$"
-| eval period=if(_time >= relative_time(now(), "-30d@d"), "This Month", "Last Month")
+| eval period=if(_time &gt;= relative_time(now(), "-30d@d"), "This Month", "Last Month")
 | stats count by risk_vector period
 | xyseries risk_vector period count
 | fillnull value=0
@@ -462,10 +391,6 @@ This dashboard includes:
       </chart>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 9: QOQ BY DERIVED RISK CATEGORY                             -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Quarter-over-Quarter by Risk Category</title>
@@ -477,16 +402,19 @@ This dashboard includes:
     match(risk_vector, "spf|dkim|dmarc|dnssec"), "Email Security",
     match(risk_vector, "ssl_certificates|ssl_configurations"), "SSL/TLS",
     match(risk_vector, "open_ports|web_appsec|application_security"), "Network Security",
-    match(risk_vector, "patching_cadence|server_software|desktop_software|mobile_software|insecure_systems"), "Patching & Software",
+    match(risk_vector, "patching_cadence|server_software|desktop_software|mobile_software|insecure_systems"), "Patching and Software",
     match(risk_vector, "file_sharing"), "User Behavior",
     true(), "Other"
 )
-| eval period=if(_time >= relative_time(now(), "-90d@d"), "this_quarter", if(_time >= relative_time(now(), "-180d@d"), "last_quarter", "older"))
+| eval period=if(_time &gt;= relative_time(now(), "-90d@d"), "this_quarter", if(_time &gt;= relative_time(now(), "-180d@d"), "last_quarter", "older"))
 | stats count by risk_category period
 | xyseries risk_category period count
 | fillnull value=0 this_quarter last_quarter
+<!--
 | eval qoq_change=if(last_quarter>0, round(((this_quarter-last_quarter)/last_quarter)*100, 1), if(this_quarter>0, 100, 0))
+
 | eval trend=case(qoq_change>10, "▲", qoq_change<-10, "▼", true(), "―")
+-->
 | sort -this_quarter
 | rename this_quarter as "This Quarter" last_quarter as "Last Quarter" qoq_change as "QoQ Change %" trend as "Trend"
 | table risk_category "Last Quarter" "This Quarter" "QoQ Change %" Trend</query>
@@ -502,10 +430,6 @@ This dashboard includes:
       </table>
     </panel>
   </row>
-
-  <!-- =============================================================== -->
-  <!-- ROW 10: FINDINGS HEATMAP                                        -->
-  <!-- =============================================================== -->
   <row>
     <panel>
       <title>Findings Heatmap by Day of Week</title>
@@ -526,5 +450,4 @@ This dashboard includes:
       </chart>
     </panel>
   </row>
-
-</dashboard>
+</form>
