@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+=============================================================================
+Directory:
+    /default/data/ui/views/
+
+File Name:
+    bitsight_data_overview.xml
+
+View Name:
+    BitSight Data Overview
+
+Version:
+    1.0.0
+=============================================================================
+
+PURPOSE
+
+Provide a foundational dashboard for analyzing raw BitSight CSV data.
+This view establishes a reusable base search and core validation metric.
+
+The top-left panel displays the total number of rows to confirm ingestion
+volume and serve as a reference point for all downstream panels.
+
+DATA SOURCE
+
+bitsight_raw 2.csv
+
+=============================================================================
+-->
+
+<dashboard version="1.1">
+  <label>BitSight Data Overview</label>
+
+  <search id="base_search">
+    <query>
+      index=bitsight sourcetype=bitsight_csv
+      | eval source_file="bitsight_raw 2.csv"
+    </query>
+  </search>
+
+  <row>
+    <panel>
+      <title>Total Rows</title>
+      <single>
+        <search base="base_search">
+          <query>
+            | stats count AS total_rows
+          </query>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+
+</dashboard>
